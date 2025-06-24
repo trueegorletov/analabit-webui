@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { gsap } from "gsap";
 
 interface Direction {
@@ -82,29 +82,63 @@ const universities: University[] = [
 	},
 ];
 
+const palettes = [
+	{
+		grad: "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))",
+		glow: "rgba(255, 120, 99, 0.3)",
+	},
+	{
+		grad: "linear-gradient(120deg, rgba(95, 114, 190, 0.6), rgba(102, 153, 255, 0.6))",
+		glow: "rgba(98, 135, 229, 0.3)",
+	},
+	{
+		grad: "linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))",
+		glow: "rgba(110, 190, 253, 0.3)",
+	},
+	{
+		grad: "linear-gradient(120deg, rgba(255, 153, 102, 0.6), rgba(95, 114, 190, 0.6))",
+		glow: "rgba(177, 135, 142, 0.3)",
+	},
+	{
+		grad: "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(125, 226, 252, 0.6))",
+		glow: "rgba(191, 143, 179, 0.3)",
+	},
+];
+
 const UniversityBlock = ({ university }: { university: University }) => {
 	const [expanded, setExpanded] = useState(false);
+
+	const handleToggle = () => {
+		setExpanded(!expanded);
+	};
 
 	return (
 		<div className="university-block">
 			<div className="block-header">
 				<h3>{university.name}</h3>
-				<button className="info-btn">
-					ℹ
-					<div className="tooltip">
-						Баллы – проходные баллы; № – рейтинг последнего зачисленного;
-						диапазон – прогноз изменения балла.
-					</div>
+				<button
+					className={`toggle-btn ${expanded ? "expanded" : ""}`}
+					onClick={handleToggle}
+				>
+					<svg
+						className="arrow-icon"
+						viewBox="0 0 12 8"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<path
+							d="M1.5 1.5L6 6.5L10.5 1.5"
+							stroke="white"
+							strokeWidth="2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						/>
+					</svg>
 				</button>
 			</div>
-			<table className="directions-table">
-				<tbody>
-					{university.directions
-						.slice(
-							0,
-							expanded ? university.directions.length : 4
-						)
-						.map((dir: Direction, index: number) => (
+			{expanded && (
+				<table className="directions-table">
+					<tbody>
+						{university.directions.map((dir: Direction, index: number) => (
 							<tr key={index}>
 								<td className="dir-name">
 									<a href="#" title={dir.name}>
@@ -116,48 +150,32 @@ const UniversityBlock = ({ university }: { university: University }) => {
 								<td className="range">{dir.range}</td>
 							</tr>
 						))}
-				</tbody>
-			</table>
-			{!expanded && university.directions.length > 4 && (
-				<button
-					className="expand-btn"
-					onClick={() => setExpanded(true)}
-				>
-					Показать все
-				</button>
+					</tbody>
+				</table>
 			)}
 		</div>
 	);
 };
 
 export default function Home() {
-	useEffect(() => {
-		const palettes = [
-			{
-				grad: "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))",
-				glow: "rgba(255, 120, 99, 0.3)",
-			},
-			{
-				grad: "linear-gradient(120deg, rgba(95, 114, 190, 0.6), rgba(102, 153, 255, 0.6))",
-				glow: "rgba(98, 135, 229, 0.3)",
-			},
-			{
-				grad: "linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))",
-				glow: "rgba(110, 190, 253, 0.3)",
-			},
-			{
-				grad: "linear-gradient(120deg, rgba(255, 153, 102, 0.6), rgba(95, 114, 190, 0.6))",
-				glow: "rgba(177, 135, 142, 0.3)",
-			},
-			{
-				grad: "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(125, 226, 252, 0.6))",
-				glow: "rgba(191, 143, 179, 0.3)",
-			},
-		];
+	// Create consistent mapping between university names and palettes
+	const universityPalettes = useMemo(() => {
+		const mapping: { [key: string]: typeof palettes[0] } = {};
+		const universityNames = universities.map(uni => uni.name);
+		universityNames.forEach((name, index) => {
+			mapping[name] = palettes[index % palettes.length];
+		});
+		return mapping;
+	}, []);
 
+	useEffect(() => {
 		const tags = gsap.utils.toArray<HTMLElement>(".tag");
 		tags.forEach((tag) => {
-			const palette = palettes[Math.floor(Math.random() * palettes.length)];
+			const universityName = tag.textContent?.trim();
+			const palette = universityName && universityPalettes[universityName] 
+				? universityPalettes[universityName]
+				: palettes[Math.floor(Math.random() * palettes.length)];
+			
 			gsap.set(tag, {
 				background: palette.grad,
 				backgroundSize: "200% 200%",
@@ -178,6 +196,27 @@ export default function Home() {
 				delay: gsap.utils.random(0, 2),
 			});
 		});
+
+		// Apply gradients to university blocks
+		const universityBlocks = gsap.utils.toArray<HTMLElement>(".university-block");
+		universityBlocks.forEach((block) => {
+			const universityName = block.querySelector("h3")?.textContent?.trim();
+			const palette = universityName && universityPalettes[universityName] 
+				? universityPalettes[universityName]
+				: palettes[0];
+			
+			gsap.set(block, {
+				background: palette.grad,
+				backgroundSize: "200% 200%",
+			});
+			gsap.to(block, {
+				backgroundPosition: "100% 100%",
+				duration: gsap.utils.random(15, 20),
+				repeat: -1,
+				yoyo: true,
+				ease: "sine.inOut",
+			});
+		});
 		tags.forEach((tag, index) => {
 			const amplitude = gsap.utils.random(3, 8);
 			const duration = gsap.utils.random(4, 7);
@@ -191,7 +230,7 @@ export default function Home() {
 				delay: delay,
 			});
 		});
-	}, []);
+	}, [universityPalettes]);
 
 	return (
 		<>

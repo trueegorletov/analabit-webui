@@ -33,13 +33,13 @@ body {
       color: #e0e0e0;
     }
     .container {
-      background: #18191a;
+      text-align: center;
+      background: #0c0d0f;
       border-radius: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-      padding: 40px;
       width: 90%;
       max-width: 700px;
-      text-align: center;
+      padding: 40px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
     }
     .tags {
       display: flex;
@@ -132,7 +132,7 @@ body {
       border-radius: 8px;
     }
     button {
-      background: #333;
+      background: #2563eb;
       color: #fff;
       border: none;
       padding: 10px 16px;
@@ -142,12 +142,14 @@ body {
       transition: background 0.3s ease;
     }
     button:hover {
-      background: #555;
+      background: #1d4ed8;
     }
     /* Results section styling */
     .results-container {
-      margin-top: 40px;
       text-align: left;
+      margin-top: 40px;
+      background: #0c0d0f;
+      border-radius: 24px;
     }
     .results-title {
       color: #fff;
@@ -173,6 +175,23 @@ body {
       max-width: 700px;
       text-align: left;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .university-block::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.2);
+      border-radius: 16px;
+      z-index: 1;
+    }
+    .university-block > * {
+      position: relative;
+      z-index: 2;
     }
     .block-header {
       display: flex;
@@ -185,42 +204,48 @@ body {
       font-size: 20px;
       color: #fff;
     }
-    .info-btn {
-      background: none;
-      border: none;
-      color: #ccc;
-      font-size: 16px;
-      position: relative;
+    .toggle-btn {
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      padding: 4px;
+      transition: all 0.3s ease;
+      padding: 0;
     }
-    .info-btn .tooltip {
-      visibility: hidden;
-      opacity: 0;
-      transition: 0.2s;
-      position: absolute;
-      top: 24px;
-      right: 0;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 12px;
-      width: 220px;
-      z-index: 3;
+    .toggle-btn:hover {
+      background: rgba(0,0,0,0.9);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
     }
-    .info-btn:hover .tooltip {
-      visibility: visible;
-      opacity: 1;
+    .toggle-btn .arrow-icon {
+      width: 16px;
+      height: 12px;
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+    .toggle-btn .arrow-icon path {
+      stroke: #ffffff;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .toggle-btn.expanded .arrow-icon {
+      transform: rotate(180deg);
     }
     .directions-table {
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed; /* Fixed layout for consistent column widths */
       min-width: 100%; /* Ensure table takes full width */
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       overflow: hidden;
@@ -276,22 +301,6 @@ body {
     }
     .directions-table tr.hidden {
       display: none;
-    }
-    .expand-btn {
-      display: block;
-      margin: 16px auto 0;
-      background: #333;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-      font-size: 14px;
-      text-align: center;
-    }
-    .expand-btn:hover {
-      background: #555;
     }
 
     /* Mobile responsive styles */
@@ -429,9 +438,14 @@ body {
         font-size: 10px; /* Smaller font */
       }
       
-      .expand-btn {
-        font-size: 12px;
-        padding: 6px 10px;
+      .toggle-btn {
+        width: 28px;
+        height: 28px;
+      }
+      
+      .toggle-btn .arrow-icon {
+        width: 12px;
+        height: 12px;
       }
     }
 
@@ -481,11 +495,6 @@ body {
       
       .block-header h3 {
         font-size: 14px;
-      }
-      
-      .expand-btn {
-        font-size: 11px;
-        padding: 5px 8px;
       }
     }
 
@@ -574,17 +583,13 @@ body {
         font-size: 8px;
       }
       
-      .expand-btn {
-        font-size: 10px;
-        padding: 4px 6px;
+      .toggle-btn {
+        width: 24px;
+        height: 24px;
       }
       
-      .info-btn {
-        font-size: 14px;
-      }
-      
-      .info-btn .tooltip {
-        font-size: 10px;
-        width: 180px;
+      .toggle-btn .arrow-icon {
+        width: 10px;
+        height: 10px;
       }
     }
