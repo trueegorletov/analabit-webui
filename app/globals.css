@@ -20,7 +20,252 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #232526, #414345);
+      display: flex;
+      flex-direction: column; /* Stack containers vertically */
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0; /* Add some vertical padding */
+      gap: 20px; /* Reduced space between containers */
+      min-height: 100vh;
+      color: #e0e0e0;
+    }
+    .container {
+      background: #18191a;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      padding: 40px;
+      width: 90%;
+      max-width: 700px;
+      text-align: center;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: -20px; /* Move tags down to overlap the wave */
+      position: relative; /* Ensure tags are rendered above the wave */
+      z-index: 2;
+    }
+    .tag {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      color: #fff;
+      padding: 4px 12px; /* Reduced padding */
+      border-radius: 14px; /* Adjusted for new size */
+      font-weight: 600;
+      font-size: 13px; /* Reduced font size */
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      
+      /* Glassmorphism Effect */
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      /* border: 1.5px solid rgba(255, 255, 255, 0.15); */ /* Replaced with pseudo-element */
+      transform: translateZ(0);
+    }
+    .tag::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 14px; /* Match parent's border-radius */
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none; /* Ensure the pseudo-element doesn't interfere with mouse events */
+    }
+    .tag:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .tag:active {
+      transform: scale(0.95);
+    }
+    .wave-container {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    .wave {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 200px;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+    .title {
+      color: #fff;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .desc {
+      color: #b0b0b0;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    input {
+      background: #232526;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      padding: 10px;
+      font-size: 16px;
+      width: 250px;
+      border-radius: 8px;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #555;
+    }
+    /* Results section styling */
+    .results-container {
+      margin-top: 40px;
+      text-align: left;
+    }
+    .results-title {
+      color: #fff;
+      font-size: 24px;
+      margin-bottom: 20px;
+      position: relative;
+      display: inline-block;
+    }
+    .results-title::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background: linear-gradient(90deg, transparent, #ff5e62, transparent);
+    }
+    .university-block {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 0 auto 20px;
+      max-width: 700px;
+      text-align: left;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .block-header h3 {
+      margin: 0;
+      font-size: 20px;
+      color: #fff;
+    }
+    .info-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 16px;
+      position: relative;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .info-btn .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s;
+      position: absolute;
+      top: 24px;
+      right: 0;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      width: 220px;
+      z-index: 3;
+    }
+    .info-btn:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .directions-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+      table-layout: fixed; /* Fixed layout for consistent column widths */
+    }
+    .directions-table td {
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
+    .directions-table .dir-name {
+      width: 60%; /* Fixed width for program name */
+    }
+    .directions-table .dir-name a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .directions-table .score {
+      color: #ffb74d;
+      font-weight: 600;
+      text-align: center;
+      width: 15%; /* Fixed width for score */
+    }
+    .directions-table .rank {
+      color: #64b5f6;
+      font-weight: 600;
+      text-align: center;
+      width: 10%; /* Fixed width for rank */
+    }
+    .directions-table .range {
+      color: #90a4ae;
+      font-weight: 500;
+      text-align: center;
+      width: 15%; /* Fixed width for range */
+    }
+    .directions-table tr.hidden {
+      display: none;
+    }
+    .expand-btn {
+      display: block;
+      margin: 16px auto 0;
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 14px;
+      text-align: center;
+    }
+    .expand-btn:hover {
+      background: #555;
+    }
