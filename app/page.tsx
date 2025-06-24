@@ -2,12 +2,6 @@
 import { useEffect, useState } from "react";
 import { gsap } from "gsap";
 
-declare global {
-	interface Window {
-		gsap: any;
-	}
-}
-
 interface Direction {
 	name: string;
 	score: number;
@@ -159,8 +153,8 @@ export default function Home() {
 			},
 		];
 
-		const tags = gsap.utils.toArray(".tag");
-		tags.forEach((tag: any) => {
+		const tags = gsap.utils.toArray<HTMLElement>(".tag");
+		tags.forEach((tag) => {
 			const palette = palettes[Math.floor(Math.random() * palettes.length)];
 			gsap.set(tag, {
 				background: palette.grad,
@@ -182,7 +176,7 @@ export default function Home() {
 				delay: gsap.utils.random(0, 2),
 			});
 		});
-		tags.forEach((tag: any, index: number) => {
+		tags.forEach((tag, index) => {
 			const amplitude = gsap.utils.random(3, 8);
 			const duration = gsap.utils.random(4, 7);
 			const delay = (index % 5) * 0.3;
