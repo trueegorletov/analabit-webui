@@ -55,10 +55,10 @@ body {
       overflow: hidden;
       z-index: 1;
       color: #fff;
-      padding: 4px 12px; /* Reduced padding */
-      border-radius: 14px; /* Adjusted for new size */
+      padding: 3px 10px; /* Reduced padding */
+      border-radius: 12px; /* Adjusted for smaller size */
       font-weight: 600;
-      font-size: 13px; /* Reduced font size */
+      font-size: 12px; /* Reduced font size */
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       text-shadow: 0 2px 4px rgba(0,0,0,0.2);
