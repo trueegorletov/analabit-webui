@@ -107,7 +107,9 @@ const UniversityBlock = ({ university }: { university: University }) => {
 						.map((dir: Direction, index: number) => (
 							<tr key={index}>
 								<td className="dir-name">
-									<a href="#">{dir.name}</a>
+									<a href="#" title={dir.name}>
+										{dir.name}
+									</a>
 								</td>
 								<td className="score">{dir.score}</td>
 								<td className="rank">{dir.rank}</td>
