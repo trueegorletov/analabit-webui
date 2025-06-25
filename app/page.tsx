@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { gsap } from "gsap";
+import AnimatedBlob from "./components/AnimatedBlob";
 
 interface Direction {
 	name: string;
@@ -260,31 +261,7 @@ export default function Home() {
 					<div className="tag">НИЯУ МИФИ</div>
 				</div>
 				<div className="wave-container">
-					<svg
-						className="wave"
-						viewBox="0 0 900 300"
-						preserveAspectRatio="none"
-					>
-						<defs>
-							<linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-								<stop offset="0%" style={{ stopColor: "#ff5e62" }} />
-								<stop offset="50%" style={{ stopColor: "#ff9966" }} />
-								<stop offset="100%" style={{ stopColor: "#5f72be" }} />
-							</linearGradient>
-						</defs>
-						<path fill="url(#grad)">
-							<animate
-								attributeName="d"
-								dur="6s"
-								repeatCount="indefinite"
-								values="
-            M0,150 C150,100 300,200 450,150 C600,100 750,200 900,150 L900,300 L0,300 Z;
-            M0,150 C150,200 300,100 450,200 C600,300 750,100 900,200 L900,300 L0,300 Z;
-            M0,150 C150,100 300,200 450,150 C600,100 750,200 900,150 L900,300 L0,300 Z
-          "
-							/>
-						</path>
-					</svg>
+					<AnimatedBlob />
 				</div>
 				<div className="title">Проверка статуса поступления</div>
 				<div className="desc">
