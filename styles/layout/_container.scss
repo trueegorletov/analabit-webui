@@ -6,12 +6,19 @@
   max-width: 700px;
   padding: 40px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+
+  /* provide breathing room beneath the fixed header */
+  &:first-of-type {
+    margin-top: 58px;
+  }
 }
 
 @media (max-width: 768px) {
   .container {
     padding: 20px;
     width: 95%;
+    /* slightly smaller gap on tablets/landscape phones */
+    &:first-of-type { margin-top: 32px; }
   }
 }
 
@@ -19,6 +26,7 @@
   .container {
     padding: 12px;
     width: 97%;
+    &:first-of-type { margin-top: 24px; }
   }
 }
 
@@ -26,5 +34,11 @@
   .container {
     padding: 10px;
     width: 99%;
+    &:first-of-type { margin-top: 24px; }
   }
+}
+
+/* A more explicit variant for the landing (hero) container */
+.hero-container {
+  margin-top: 58px;
 } 

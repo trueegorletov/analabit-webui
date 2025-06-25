@@ -294,7 +294,7 @@ export default function Home() {
 
 	return (
 		<>
-			<div className="container">
+			<div className="container hero-container">
 				<div className="tags">
 					<div className="tag">МФТИ</div>
 					<div className="tag">МГУ</div>
