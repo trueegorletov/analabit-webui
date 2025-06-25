@@ -1,6 +1,8 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { gsap } from "gsap";
+import LottiePlayer from "./components/LottiePlayer";
 import AnimatedBlob from "./components/AnimatedBlob";
 
 interface Direction {
@@ -158,6 +160,13 @@ const UniversityBlock = ({ university }: { university: University }) => {
 	);
 };
 
+function Animation() {
+	const searchParams = useSearchParams();
+	const showBlob = searchParams.get("animation") === "blob";
+
+	return showBlob ? <AnimatedBlob /> : <LottiePlayer />;
+}
+
 export default function Home() {
 	// Create consistent mapping between university names and palettes
 	const universityPalettes = useMemo(() => {
@@ -261,7 +270,9 @@ export default function Home() {
 					<div className="tag">НИЯУ МИФИ</div>
 				</div>
 				<div className="wave-container">
-					<AnimatedBlob />
+					<Suspense fallback={<div>Loading...</div>}>
+						<Animation />
+					</Suspense>
 				</div>
 				<div className="title">Проверка статуса поступления</div>
 				<div className="desc">
