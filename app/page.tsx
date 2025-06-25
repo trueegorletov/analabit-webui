@@ -116,8 +116,8 @@ const UniversityBlock = ({ university, palette }: { university: University, pale
 	const glowTl = useRef<gsap.core.Timeline | null>(null)
 
 	const handleToggle = () => {
-		setExpanded(!expanded);
-	};
+		setExpanded(prev => !prev)
+	}
 
 	// Handle glow logic on expand/collapse
 	useEffect(() => {
@@ -145,12 +145,15 @@ const UniversityBlock = ({ university, palette }: { university: University, pale
 	}, [expanded, palette]);
 
 	return (
-		<div ref={blockRef} className="university-block" data-expanded={expanded}>
+		<div ref={blockRef} className="university-block" data-expanded={expanded} onClick={handleToggle}>
 			<div className="block-header">
 				<h3>{university.name}</h3>
 				<button
 					className={`toggle-btn ${expanded ? "expanded" : ""}`}
-					onClick={handleToggle}
+					onClick={(e) => {
+						e.stopPropagation()
+						handleToggle()
+					}}
 				>
 					<svg
 						className="arrow-icon"
