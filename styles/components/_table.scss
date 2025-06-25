@@ -1,0 +1,133 @@
+.directions-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+
+.directions-table td {
+  padding: 8px 12px;
+  border-right: 2px solid rgba(255,255,255,0.15);
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+  overflow: hidden;
+}
+
+.directions-table td:last-child {
+  border-right: none;
+}
+
+.directions-table tr:last-child td {
+  border-bottom: none;
+}
+
+.directions-table .dir-name {
+  width: 60%;
+  min-width: 0;
+}
+
+.directions-table .dir-name a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.directions-table .score {
+  color: #ffb74d;
+  font-weight: 600;
+  text-align: center;
+  width: 14%;
+  white-space: nowrap;
+}
+
+.directions-table .rank {
+  color: #64b5f6;
+  font-weight: 600;
+  text-align: center;
+  width: 11%;
+  white-space: nowrap;
+}
+
+.directions-table .range {
+  color: #90a4ae;
+  font-weight: 500;
+  text-align: center;
+  width: 15%;
+  white-space: nowrap;
+  font-size: 0.9em;
+}
+
+.directions-table tr.hidden {
+  display: none;
+}
+
+/* Responsive tweaks specific to the table */
+@media (max-width: 768px) {
+  .directions-table {
+    font-size: 14px;
+  }
+  .directions-table td {
+    padding: 8px 6px;
+  }
+  .directions-table .dir-name { width: 56%; }
+  .directions-table .dir-name a { font-size: 14px; }
+  .directions-table .score { width: 15%; font-size: 13px; }
+  .directions-table .rank { width: 12%; font-size: 13px; }
+  .directions-table .range { width: 17%; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .directions-table { font-size: 12px; }
+  .directions-table td { padding: 5px 3px; }
+  .directions-table .dir-name { width: 54%; }
+  .directions-table .dir-name a { font-size: 12px; }
+  .directions-table .score { width: 15%; font-size: 11px; }
+  .directions-table .rank { width: 12%; font-size: 11px; }
+  .directions-table .range { width: 19%; font-size: 10px; }
+}
+
+@media (max-width: 430px) and (min-width: 415px) {
+  .directions-table .dir-name { width: 55%; }
+  .directions-table .range { width: 18%; font-size: 10px; }
+}
+
+@media (max-width: 375px) {
+  .directions-table { font-size: 11px; }
+  .directions-table td { padding: 4px 3px; }
+  .directions-table .dir-name { width: 52%; }
+  .directions-table .dir-name a { font-size: 11px; }
+  .directions-table .score { width: 15%; font-size: 10px; }
+  .directions-table .rank { width: 12%; font-size: 10px; }
+  .directions-table .range { width: 21%; font-size: 9px; }
+}
+
+@media (max-width: 414px) and (min-width: 376px) {
+  .directions-table { font-size: 12px; }
+  .directions-table td { padding: 4px 3px; }
+  .directions-table .dir-name { width: 53%; }
+  .directions-table .dir-name a { font-size: 12px; }
+  .directions-table .score { width: 15%; font-size: 11px; }
+  .directions-table .rank { width: 12%; font-size: 11px; }
+  .directions-table .range { width: 20%; font-size: 10px; }
+}
+
+@media (max-width: 320px) {
+  .directions-table { font-size: 10px; }
+  .directions-table td { padding: 3px 2px; }
+  .directions-table .dir-name { width: 50%; }
+  .directions-table .dir-name a { font-size: 10px; }
+  .directions-table .score { width: 15%; font-size: 9px; }
+  .directions-table .rank { width: 12%; font-size: 9px; }
+  .directions-table .range { width: 23%; font-size: 8px; }
+} 

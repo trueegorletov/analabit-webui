@@ -227,6 +227,7 @@ export default function Home() {
 				ease: "sine.inOut",
 			});
 		});
+
 		tags.forEach((tag, index) => {
 			const amplitude = gsap.utils.random(3, 8);
 			const duration = gsap.utils.random(4, 7);
@@ -240,6 +241,23 @@ export default function Home() {
 				delay: delay,
 			});
 		});
+
+		// Simple hover scaling using GSAP so it doesn't conflict with inline transforms
+		const removeListeners: Array<() => void> = [];
+		tags.forEach(tag => {
+			const onEnter = () => gsap.to(tag, { scale: 1.08, duration: 0.2, ease: 'power2.out' })
+			const onLeave = () => gsap.to(tag, { scale: 1, duration: 0.2, ease: 'power2.out' })
+			tag.addEventListener('mouseenter', onEnter)
+			tag.addEventListener('mouseleave', onLeave)
+			removeListeners.push(() => {
+				tag.removeEventListener('mouseenter', onEnter)
+				tag.removeEventListener('mouseleave', onLeave)
+			})
+		})
+
+		return () => {
+			removeListeners.forEach(fn => fn())
+		}
 	}, [universityPalettes]);
 
 	return (
