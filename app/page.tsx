@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, useMemo, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { gsap } from "gsap";
 import LottiePlayer from "./components/LottiePlayer";
 import AnimatedBlob from "./components/AnimatedBlob";
+import { flashThenIdle, type Palette } from './utils/glowHelpers';
 
 interface Direction {
 	name: string;
@@ -108,15 +109,43 @@ const palettes = [
 	},
 ];
 
-const UniversityBlock = ({ university }: { university: University }) => {
+const UniversityBlock = ({ university, palette }: { university: University, palette: Palette }) => {
 	const [expanded, setExpanded] = useState(false);
+	const blockRef = useRef<HTMLDivElement>(null);
+	// Persist glow timeline across renders so we can reliably kill it
+	const glowTl = useRef<gsap.core.Timeline | null>(null)
 
 	const handleToggle = () => {
 		setExpanded(!expanded);
 	};
 
+	// Handle glow logic on expand/collapse
+	useEffect(() => {
+		const el = blockRef.current;
+		if (!el) return;
+
+		if (expanded) {
+			// Start combined flash → idle timeline
+			glowTl.current?.kill()
+			glowTl.current = flashThenIdle(el, palette)
+			return () => {
+				// Cleanup when dependencies change (palette switch)
+				glowTl.current?.kill()
+			};
+		}
+
+		// collapsed — kill tweens and reset styles
+		gsap.killTweensOf(el, 'boxShadow');
+		el.style.boxShadow = 'none';
+		glowTl.current?.kill()
+		return () => {
+			// Ensure any in-progress timeline is killed on unmount
+			glowTl.current?.kill()
+		};
+	}, [expanded, palette]);
+
 	return (
-		<div className="university-block">
+		<div ref={blockRef} className="university-block" data-expanded={expanded}>
 			<div className="block-header">
 				<h3>{university.name}</h3>
 				<button
@@ -306,7 +335,7 @@ export default function Home() {
 			<div className="container results-container">
 				<h2 className="results-title">Результаты по направлениям</h2>
 				{universities.map((uni, index) => (
-					<UniversityBlock key={index} university={uni} />
+					<UniversityBlock key={index} university={uni} palette={universityPalettes[uni.name]} />
 				))}
 			</div>
 		</>
