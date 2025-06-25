@@ -20,6 +20,29 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Sass Setup
+
+This project uses [Sass](https://sass-lang.com/) for styling with the SCSS syntax. The **sass** compiler is installed as a development dependency and configured automatically by Next.js.
+
+Global variables and mixins live in `styles/variables.scss`. This file is automatically `@use`d (with the `as *` option) at build-time for every `.scss` file via `next.config.ts`, so you can reference any variable directly without a manual import. Example:
+
+```scss
+// any .scss file
+body {
+  color: $foreground;
+}
+```
+
+When creating new styled components, rename your files from `*.module.css` to `*.module.scss` and update the import path in the corresponding component.
+
+Run the development server and Next.js will compile the SCSS automatically:
+
+```bash
+npm run dev
+```
+
+No additional configuration is required.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
