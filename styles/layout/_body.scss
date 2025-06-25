@@ -7,7 +7,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  gap: 20px;
+  gap: 16px;
   min-height: 100vh;
   color: #e0e0e0;
 }
@@ -59,11 +59,12 @@ button:hover {
 }
 
 /* Results section */
-.results-container {
+.container.results-container {
   text-align: left;
-  margin-top: 40px;
+  margin-top: 0;
   background: #0c0d0f;
   border-radius: 24px;
+  padding: 32px;
 }
 
 .results-title {
