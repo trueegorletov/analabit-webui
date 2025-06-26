@@ -1,6 +1,13 @@
+%glass-panel {
+  background: rgba(11, 11, 11, 0.811);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
 .container {
+  @extend %glass-panel;
   text-align: center;
-  background: #0c0d0f;
   border-radius: 24px;
   width: 90%;
   max-width: 700px;
