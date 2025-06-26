@@ -14,10 +14,7 @@
   padding: 40px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 
-  /* provide breathing room beneath the fixed header */
-  &:first-of-type {
-    margin-top: 58px;
-  }
+  /* breathing room is now handled explicitly by .hero-container */
 }
 
 @media (max-width: 768px) {
@@ -25,11 +22,11 @@
     padding: 20px;
     width: 95%;
     /* slightly smaller gap on tablets/landscape phones */
-    &:first-of-type { margin-top: 32px; }
   }
 
   /* scale hero container slightly */
   .container.hero-container {
+    margin-top: 42px;
     padding-top: 30px;
     transform: scale(.96);
   }
@@ -37,18 +34,18 @@
   /* adjust results container spacing on tablet & small desktop */
   .container.results-container {
     padding: 20px;
-    transform: scale(.93);
+    transform: scale(.94);
   }
 }
 
 @media (max-width: 480px) {
   .container {
     padding: 12px;
-    &:first-of-type { margin-top: 24px; }
   }
 
   /* scale hero container slightly on phones */
   .container.hero-container {
+    margin-top: 40px;
     padding-top: 27px;
     padding-bottom: 24px;
     transform: scale(.96);
@@ -57,7 +54,7 @@
   /* adjust results container spacing on phones */
   .container.results-container {
     padding: 12px;
-    transform: scale(.93);
+    transform: scale(.94);
   }
 }
 
@@ -65,11 +62,11 @@
   .container {
     padding: 10px;
     width: 99%;
-    &:first-of-type { margin-top: 24px; }
   }
 
-  /* scale hero container slightly on very small devices */
+  /* scale hero container slightly on very small devices and maintain breathing room */
   .container.hero-container {
+    margin-top: 37px;
     padding-top: 25px;
     transform: scale(.95);
   }
@@ -83,5 +80,5 @@
 
 /* A more explicit variant for the landing (hero) container */
 .hero-container {
-  margin-top: 58px;
+  margin-top: 54px;
 } 
