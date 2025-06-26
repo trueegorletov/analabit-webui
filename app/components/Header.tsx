@@ -21,8 +21,8 @@ function Header () {
 
   return (
     <header
-      style={{ backdropFilter: 'blur(18px) saturate(130%) grayscale(15%)', padding: '0 8px' }}
-      className={`fixed top-0 left-0 w-full z-50 bg-[rgba(5,5,5,0.86)] border-b border-[rgba(255,255,255,0.2)] transition-shadow ${scrolled ? 'shadow-lg' : ''}`}
+      style={{ backdropFilter: 'blur(18px) saturate(66%) grayscale(66%)', padding: '0 8px' }}
+      className={`fixed top-0 left-0 w-full z-50 bg-[rgba(9,9,9,0.66)] border-b border-[rgba(255,255,255,0.2)] transition-shadow ${scrolled ? 'shadow-lg' : ''}`}
     >
       <nav
         aria-label='Main'
