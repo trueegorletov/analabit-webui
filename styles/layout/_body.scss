@@ -30,7 +30,7 @@ body {
   align-items: center;
   justify-content: flex-start;
   padding: 0 0 40px;
-  gap: 16px;
+  gap: 18px;
   min-height: 100vh;
   color: #e0e0e0;
   overflow-x: hidden;
@@ -205,7 +205,7 @@ button:hover {
 @media (max-width: 768px) {
   body {
     padding: 0 0 20px;
-    gap: 15px;
+    gap: 0px;
   }
 
   .title { font-size: 22px; }
@@ -243,14 +243,33 @@ button:hover {
     width: 12px;
     height: 12px;
   }
+
+  /* adjust results container spacing on tablet & small desktop */
+  // .container.results-container {
+  //   padding: 20px;
+  //   transform: scale(.96);
+  // }
 }
 
 @media (max-width: 480px) {
   .title { font-size: 18px; }
   .desc { font-size: 12px; }
 
+ 
+
   .university-block { padding: 10px; }
   .block-header h3 { font-size: 15px; }
+
+  /* adjust results container spacing on phones */
+  // .container.results-container {
+  //   padding: 12px;
+  //   transform: scale(.96);
+  // }
+
+  .toggle-btn .arrow-icon {
+    width: 10px;
+    height: 10px;
+  }
 }
 
 @media (max-width: 375px) {
@@ -274,6 +293,12 @@ button:hover {
     width: 10px;
     height: 10px;
   }
+
+  /* adjust results container spacing on very small devices */
+  // .container.results-container {
+  //   padding: 10px;
+  //   transform: scale(.95);
+  // }
 }
 
 /* Ensure main content begins just below header */

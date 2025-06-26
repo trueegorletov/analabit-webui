@@ -27,13 +27,37 @@
     /* slightly smaller gap on tablets/landscape phones */
     &:first-of-type { margin-top: 32px; }
   }
+
+  /* scale hero container slightly */
+  .container.hero-container {
+    padding-top: 30px;
+    transform: scale(.96);
+  }
+
+  /* adjust results container spacing on tablet & small desktop */
+  .container.results-container {
+    padding: 20px;
+    transform: scale(.93);
+  }
 }
 
 @media (max-width: 480px) {
   .container {
     padding: 12px;
-    width: 97%;
     &:first-of-type { margin-top: 24px; }
+  }
+
+  /* scale hero container slightly on phones */
+  .container.hero-container {
+    padding-top: 27px;
+    padding-bottom: 24px;
+    transform: scale(.96);
+  }
+
+  /* adjust results container spacing on phones */
+  .container.results-container {
+    padding: 12px;
+    transform: scale(.93);
   }
 }
 
@@ -42,6 +66,18 @@
     padding: 10px;
     width: 99%;
     &:first-of-type { margin-top: 24px; }
+  }
+
+  /* scale hero container slightly on very small devices */
+  .container.hero-container {
+    padding-top: 25px;
+    transform: scale(.95);
+  }
+
+  /* adjust results container spacing on very small devices */
+  .container.results-container {
+    padding: 10px;
+    transform: scale(.95);
   }
 }
 
