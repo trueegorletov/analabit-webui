@@ -25,8 +25,8 @@
   }
 
   /* scale hero container slightly */
-  .container.hero-container {
-    margin-top: 42px;
+  .container.hero-container, .container.page-container {
+    margin-top: 55px;
     padding-top: 30px;
     transform: scale(.96);
   }
@@ -44,8 +44,8 @@
   }
 
   /* scale hero container slightly on phones */
-  .container.hero-container {
-    margin-top: 40px;
+  .container.hero-container, .container.page-container {
+    margin-top: 45px;
     padding-top: 27px;
     padding-bottom: 24px;
     transform: scale(.96);
@@ -65,8 +65,8 @@
   }
 
   /* scale hero container slightly on very small devices and maintain breathing room */
-  .container.hero-container {
-    margin-top: 37px;
+  .container.hero-container, .container.page-container {
+    margin-top: 40px;
     padding-top: 25px;
     transform: scale(.95);
   }
@@ -78,7 +78,7 @@
   }
 }
 
-/* A more explicit variant for the landing (hero) container */
-.hero-container {
-  margin-top: 54px;
+/* Unified top margin for all page containers */
+.page-container, .hero-container {
+  margin-top: 72px;
 } 

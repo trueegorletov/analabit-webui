@@ -19,6 +19,8 @@ function Header () {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Header is now shown on all pages including dashboard pages
+
   return (
     <header
       style={{ backdropFilter: 'blur(18px) saturate(66%) grayscale(66%)', padding: '0 8px' }}
