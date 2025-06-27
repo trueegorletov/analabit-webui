@@ -9,14 +9,14 @@ import { Poppins } from 'next/font/google';
 const brandFont = Poppins({ weight: '600', subsets: ['latin'] });
 
 // Shared IconButton component as suggested in the plan
-const IconButton = ({ 
-  href, 
-  label, 
-  icon: Icon, 
-}: { 
-  href: string; 
-  label: string; 
-  icon: React.ComponentType<{ size: number }>; 
+const IconButton = ({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size: number }>;
 }) => (
   <a
     href={href}
@@ -59,20 +59,20 @@ function Header() {
           analabit
         </Link>
         <div className="flex items-center gap-2">
-          <IconButton 
-            href="https://github.com/analabit" 
-            label="GitHub" 
-            icon={SiGithub} 
+          <IconButton
+            href="https://github.com/analabit"
+            label="GitHub"
+            icon={SiGithub}
           />
-          <IconButton 
-            href="https://t.me/analabit" 
-            label="Telegram" 
-            icon={SiTelegram} 
+          <IconButton
+            href="https://t.me/analabit"
+            label="Telegram"
+            icon={SiTelegram}
           />
-          <IconButton 
-            href="https://boosty.to/analabit" 
-            label="Boosty" 
-            icon={SiBoosty} 
+          <IconButton
+            href="https://boosty.to/analabit"
+            label="Boosty"
+            icon={SiBoosty}
           />
         </div>
       </nav>

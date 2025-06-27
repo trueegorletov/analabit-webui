@@ -23,7 +23,8 @@ export default function Header() {
 
     // Glow effect animation like main page
     gsap.to(tag, {
-      boxShadow: '0 0 18px 3px rgba(110, 190, 253, 0.3), 0 0 8px 1px rgba(255, 255, 255, 0.1)',
+      boxShadow:
+        '0 0 18px 3px rgba(110, 190, 253, 0.3), 0 0 8px 1px rgba(255, 255, 255, 0.1)',
       duration: gsap.utils.random(6, 10),
       repeat: -1,
       yoyo: true,

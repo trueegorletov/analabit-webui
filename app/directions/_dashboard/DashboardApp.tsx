@@ -7,7 +7,7 @@ import AdmissionInfo from './components/AdmissionInfo';
 import DrainedResults from './components/DrainedResults';
 import Legend from './components/Legend';
 import ApplicationsList from './components/ApplicationsList';
-import { applicationsData, drainedResultsData } from './constants';
+import { drainedResultsData } from './constants';
 
 export default function DashboardApp() {
   // Dashboard now uses unified container system for consistency with main page
@@ -17,7 +17,7 @@ export default function DashboardApp() {
       {/* First container - unified styling with main page */}
       <div className="container">
         <Header />
-        <StatsOverview passingScore={282} admittedRank={135} />
+        <StatsOverview />
         <div className="hidden md:block">
           <AdmissionInfo passingScore={282} admittedRank={135} />
         </div>
@@ -26,7 +26,7 @@ export default function DashboardApp() {
 
       {/* Second container - unified styling and spacing */}
       <div className="container">
-        <ApplicationsList applications={applicationsData} />
+        <ApplicationsList />
         {/* Legend component with top margin */}
         <div className="mt-6">
           <Legend />

@@ -1,34 +1,52 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Application, OrigCeltStatus, AdmissionDecision } from '../types';
-import { CheckCircleIcon } from './icons/CheckCircleIcon';
-import { YellowDotIcon } from './icons/YellowDotIcon';
-import { SimpleCheckIcon } from './icons/SimpleCheckIcon';
-import { SimpleBlackCheckIcon } from './icons/SimpleBlackCheckIcon';
+'use client';
 
-interface ApplicationsListProps {
-  applications: Application[];
-}
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  type ColumnFiltersState,
+} from '@tanstack/react-table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  useApplications,
+  type Application,
+  OrigCeltStatus,
+  AdmissionDecision,
+} from '@/hooks/useDashboardStats';
+import { CircleCheck, Circle, Check } from 'lucide-react';
 
 const MIN_TABLE_HEIGHT = 150; // pixels
 const MAX_TABLE_HEIGHT = 700; // pixels
 const INITIAL_TABLE_HEIGHT = 320; // pixels
 const CLICK_DRAG_THRESHOLD = 5; // pixels to differentiate click from drag
 
-export default function ApplicationsList({
-  applications,
-}: ApplicationsListProps) {
+export default function ApplicationsList() {
+  const { applications } = useApplications();
   const [currentHeight, setCurrentHeight] = useState(INITIAL_TABLE_HEIGHT);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const resizableDivRef = useRef<HTMLDivElement>(null);
 
   const dragStateRef = useRef({
-    isResizing: false, // True if a drag operation is actively changing size
-    isPotentialDrag: false, // True on mousedown, to check if it becomes a drag or a click
+    isResizing: false,
+    isPotentialDrag: false,
     initialMouseY: 0,
     initialHeight: 0,
   });
 
   const toggleTableHeight = useCallback(() => {
-    // Using a small tolerance for comparison with MAX_TABLE_HEIGHT
     if (currentHeight < MAX_TABLE_HEIGHT - 1) {
       setCurrentHeight(MAX_TABLE_HEIGHT);
     } else {
@@ -64,7 +82,6 @@ export default function ApplicationsList({
     if (!dragStateRef.current.isPotentialDrag) return;
 
     if (!dragStateRef.current.isResizing) {
-      // If not resizing, it was a click
       toggleTableHeight();
     }
 
@@ -80,7 +97,7 @@ export default function ApplicationsList({
 
   const handleMouseDown = useCallback(
     (event: React.MouseEvent) => {
-      event.preventDefault(); // Prevent text selection on drag
+      event.preventDefault();
       if (!resizableDivRef.current) return;
 
       dragStateRef.current = {
@@ -97,7 +114,6 @@ export default function ApplicationsList({
   );
 
   useEffect(() => {
-    // Cleanup function
     return () => {
       if (
         dragStateRef.current.isPotentialDrag ||
@@ -105,21 +121,21 @@ export default function ApplicationsList({
       ) {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.userSelect = ''; // Ensure userSelect is reset
+        document.body.style.userSelect = '';
       }
     };
   }, [handleMouseMove, handleMouseUp]);
 
   const renderOrigCelt = (status: OrigCeltStatus) => {
     if (status === OrigCeltStatus.YES) {
-      return <CheckCircleIcon className="w-5 h-5 text-green-500 mx-auto" />;
+      return <CircleCheck className="w-5 h-5 text-green-500 mx-auto" />;
     }
-    return <YellowDotIcon className="w-5 h-5 text-yellow-500 mx-auto" />;
+    return <Circle className="w-5 h-5 text-yellow-500 mx-auto" />;
   };
 
   const renderOtherUnlv = (value?: number | 'check') => {
     if (value === 'check') {
-      return <SimpleBlackCheckIcon className="w-5 h-5 text-gray-300 mx-auto" />;
+      return <Check className="w-5 h-5 text-gray-300 mx-auto" strokeWidth={2} />;
     }
     if (typeof value === 'number') {
       return <span className="text-gray-200">{value}</span>;
@@ -135,12 +151,91 @@ export default function ApplicationsList({
         return (
           <span className="text-yellow-500 font-medium">Не конкурсует</span>
         );
-      case AdmissionDecision.ADMITTED_GREEN_CHECK:
-        return <SimpleCheckIcon className="w-5 h-5 text-green-500 mx-auto" />;
+              case AdmissionDecision.ADMITTED_GREEN_CHECK:
+          return <Check className="w-5 h-5 text-green-500 mx-auto" strokeWidth={2.5} />;
       default:
         return <span className="text-gray-500">-</span>;
     }
   };
+
+  const columns: ColumnDef<Application>[] = [
+    {
+      accessorKey: 'rank',
+      header: 'Ранг',
+      cell: ({ getValue, row }) => {
+        const isCurrentUser = row.original.isCurrentUser;
+        return (
+          <span
+            className={`text-xs sm:text-sm ${
+              isCurrentUser ? 'text-green-400 font-bold' : 'text-gray-200'
+            }`}
+          >
+            {String(getValue())}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'studentId',
+      header: 'ID',
+      cell: ({ getValue }) => (
+        <span className="text-xs sm:text-sm text-gray-200 truncate max-w-0">
+          {String(getValue())}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Прио',
+      cell: ({ getValue }) => (
+        <span className="text-xs sm:text-sm text-gray-200 text-right">
+          {String(getValue())}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'score',
+      header: 'Балл',
+      cell: ({ getValue }) => (
+        <span className="text-xs sm:text-sm text-gray-200 text-right">
+          {String(getValue())}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'origCelt',
+      header: 'О,Ц',
+      cell: ({ getValue }) => renderOrigCelt(getValue() as OrigCeltStatus),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'otherUnlv',
+      header: 'Др',
+      cell: ({ getValue }) =>
+        renderOtherUnlv(getValue() as number | 'check' | undefined),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'admission',
+      header: 'Зач',
+      cell: ({ row }) => renderAdmission(row.original),
+      enableSorting: false,
+    },
+  ];
+
+  const table = useReactTable({
+    data: applications,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
 
   return (
     <div>
@@ -152,65 +247,70 @@ export default function ApplicationsList({
         className="overflow-x-auto overflow-y-auto border border-gray-600 rounded-t-md relative bg-[#1C1C22] applications-scrollbar"
         style={{ height: `${currentHeight}px` }}
       >
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-700">
-              <th className="py-2 px-1 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                Ранг
-              </th>
-              <th className="py-2 px-1 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                ID
-              </th>
-              <th className="py-2 px-1 text-right font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                Прио
-              </th>
-              <th className="py-2 px-1 text-right font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                Балл
-              </th>
-              <th className="py-2 px-1 text-center font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                О,Ц
-              </th>
-              <th className="py-2 px-1 text-center font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                Др
-              </th>
-              <th className="py-2 px-1 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm">
-                Зач
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app, index) => (
-              <tr
-                key={app.studentId}
-                className={`border-b border-gray-700 hover:bg-gray-700/30 ${index % 2 === 0 ? '' : 'bg-black/10'}`}
+        <Table className="w-full text-sm">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow
+                key={headerGroup.id}
+                className="border-b border-gray-700"
               >
-                <td
-                  className={`py-2 px-1 text-xs sm:text-sm ${app.isCurrentUser ? 'text-green-400 font-bold' : 'text-gray-200'}`}
-                >
-                  {app.rank}
-                </td>
-                <td className="py-2 px-1 text-xs sm:text-sm text-gray-200 truncate max-w-0">
-                  {app.studentId}
-                </td>
-                <td className="py-2 px-1 text-right text-xs sm:text-sm text-gray-200">
-                  {app.priority}
-                </td>
-                <td className="py-2 px-1 text-right text-xs sm:text-sm text-gray-200">
-                  {app.score}
-                </td>
-                <td className="py-2 px-1 text-center text-xs sm:text-sm">
-                  {renderOrigCelt(app.origCelt)}
-                </td>
-                <td className="py-2 px-1 text-center text-xs sm:text-sm">
-                  {renderOtherUnlv(app.otherUnlv)}
-                </td>
-                <td className="py-2 px-1 text-left text-xs sm:text-sm">
-                  {renderAdmission(app)}
-                </td>
-              </tr>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={`py-2 px-1 font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm ${
+                      header.column.id === 'rank' ||
+                      header.column.id === 'studentId'
+                        ? 'text-left'
+                        : header.column.id === 'priority' ||
+                            header.column.id === 'score'
+                          ? 'text-right'
+                          : 'text-center'
+                    } ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                    {{
+                      asc: ' ↑',
+                      desc: ' ↓',
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </TableHead>
+                ))}
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row, index) => (
+              <TableRow
+                key={row.id}
+                className={`border-b border-gray-700 hover:bg-gray-700/30 ${
+                  index % 2 === 0 ? '' : 'bg-black/10'
+                }`}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className={`py-2 px-1 ${
+                      cell.column.id === 'rank' ||
+                      cell.column.id === 'studentId'
+                        ? 'text-left'
+                        : cell.column.id === 'priority' ||
+                            cell.column.id === 'score'
+                          ? 'text-right'
+                          : 'text-center'
+                    }`}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
       <div
         className="w-full h-4 bg-gray-700 hover:bg-gray-600 cursor-ns-resize flex items-center justify-center select-none rounded-b-md border-x border-b border-gray-600"
