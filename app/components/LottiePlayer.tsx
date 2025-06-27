@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import React from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 export default function LottiePlayer() {
   const style = {
@@ -19,4 +19,4 @@ export default function LottiePlayer() {
       speed={0.8}
     />
   );
-} 
+}

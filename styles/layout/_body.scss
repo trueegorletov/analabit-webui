@@ -12,7 +12,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: #1c1c1c;
   background-image: linear-gradient(
     -45deg,
@@ -120,13 +122,13 @@ button:hover {
 
 /* University blocks */
 .university-block {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 20px;
   margin: 0 auto 20px;
   max-width: 700px;
   text-align: left;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -139,7 +141,7 @@ button:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 16px;
   z-index: 1;
 }
@@ -163,8 +165,8 @@ button:hover {
 }
 
 .toggle-btn {
-  background: rgba(0,0,0,0.7);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -177,8 +179,8 @@ button:hover {
 }
 
 .toggle-btn:hover {
-  background: rgba(0,0,0,0.9);
-  border-color: rgba(255,255,255,0.3);
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
 }
 
@@ -208,8 +210,12 @@ button:hover {
     gap: 0px;
   }
 
-  .title { font-size: 22px; }
-  .desc { font-size: 14px; }
+  .title {
+    font-size: 22px;
+  }
+  .desc {
+    font-size: 14px;
+  }
 
   .input-group {
     flex-direction: column;
@@ -228,11 +234,18 @@ button:hover {
     padding: 8px 16px;
   }
 
-  .results-title { font-size: 20px; }
+  .results-title {
+    font-size: 20px;
+  }
 
-  .university-block { padding: 15px; margin-bottom: 15px; }
+  .university-block {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
 
-  .block-header h3 { font-size: 18px; }
+  .block-header h3 {
+    font-size: 18px;
+  }
 
   .toggle-btn {
     width: 28px;
@@ -252,13 +265,19 @@ button:hover {
 }
 
 @media (max-width: 480px) {
-  .title { font-size: 18px; }
-  .desc { font-size: 12px; }
+  .title {
+    font-size: 18px;
+  }
+  .desc {
+    font-size: 12px;
+  }
 
- 
-
-  .university-block { padding: 10px; }
-  .block-header h3 { font-size: 15px; }
+  .university-block {
+    padding: 10px;
+  }
+  .block-header h3 {
+    font-size: 15px;
+  }
 
   /* adjust results container spacing on phones */
   // .container.results-container {
@@ -273,16 +292,25 @@ button:hover {
 }
 
 @media (max-width: 375px) {
-  .block-header h3 { font-size: 14px; }
+  .block-header h3 {
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 414px) and (min-width: 376px) {
-  .block-header h3 { font-size: 15px; }
+  .block-header h3 {
+    font-size: 15px;
+  }
 }
 
 @media (max-width: 320px) {
-  .university-block { padding: 8px; margin-bottom: 10px; }
-  .block-header h3 { font-size: 13px; }
+  .university-block {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  .block-header h3 {
+    font-size: 13px;
+  }
 
   .toggle-btn {
     width: 24px;
@@ -304,4 +332,4 @@ button:hover {
 /* Ensure main content begins just below header */
 .container:first-of-type {
   margin-top: 96px; /* 6rem: offset for header height + breathing space */
-} 
+}

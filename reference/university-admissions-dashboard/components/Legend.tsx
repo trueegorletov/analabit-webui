@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { YellowDotIcon } from './icons/YellowDotIcon';

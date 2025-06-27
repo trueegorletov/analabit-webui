@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface AdmissionInfoProps {
@@ -6,7 +5,10 @@ interface AdmissionInfoProps {
   admittedRank: number;
 }
 
-const AdmissionInfo: React.FC<AdmissionInfoProps> = ({ passingScore, admittedRank }) => {
+const AdmissionInfo: React.FC<AdmissionInfoProps> = ({
+  passingScore,
+  admittedRank,
+}) => {
   return (
     <div className="flex justify-between items-center mb-8 px-4">
       <div>

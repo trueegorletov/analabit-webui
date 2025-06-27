@@ -1,13 +1,12 @@
-
 export enum OrigCeltStatus {
   YES, // Green check circle
-  NO,  // Yellow dot
+  NO, // Yellow dot
 }
 
 export enum AdmissionDecision {
-  ADMITTED_TEXT,    // Green text "Admitted"
+  ADMITTED_TEXT, // Green text "Admitted"
   NOT_COMPETING_TEXT, // Yellow text "Not competing"
-  ADMITTED_GREEN_CHECK,  // Simple green check icon
+  ADMITTED_GREEN_CHECK, // Simple green check icon
 }
 
 export interface Application {
@@ -18,7 +17,7 @@ export interface Application {
   origCelt: OrigCeltStatus;
   otherUnlv?: number | 'check'; // Number or a placeholder for black check
   admission: AdmissionDecision;
-  isCurrentUser?: boolean; 
+  isCurrentUser?: boolean;
 }
 
 export interface DrainedResultItem {

@@ -1,84 +1,89 @@
-import React from 'react'
+'use client';
 
-interface StatCircleProps {
-  value: number
-  label: string
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+
+interface StatCardProps {
+  value: number;
+  label: string;
 }
 
-interface StatsOverviewProps {
-  passingScore?: number
-  admittedRank?: number
-}
-
-function StatCircle ({ value, label }: StatCircleProps) {
+function StatCard({ value, label }: StatCardProps) {
   return (
-    <div className='flex flex-col items-center justify-center text-center bg-[#25252D] rounded-full w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 p-1 sm:p-2 transition-all duration-300 hover:bg-[#2A2A34] hover:scale-105 cursor-pointer'
-         style={{ 
-           transition: 'all 0.3s ease, box-shadow 0.3s ease',
-           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' 
-         }}
-         onMouseEnter={(e) => {
-           e.currentTarget.style.boxShadow = '0 6px 20px rgba(37, 37, 45, 0.6), 0 0 20px rgba(255, 255, 255, 0.1)'
-         }}
-         onMouseLeave={(e) => {
-           e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)'
-         }}
-    >
-      <span className='text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white transition-all duration-300'
-            style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}>
-        {value}
-      </span>
-      <span className='text-xs text-gray-400 mt-0.5 sm:mt-1 transition-colors duration-300'>{label}</span>
-    </div>
-  )
+    <Card className="bg-[#25252D] border-none rounded-full w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 transition-all duration-300 hover:bg-[#2A2A34] hover:scale-105 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_20px_rgba(37,37,45,0.6),0_0_20px_rgba(255,255,255,0.1)]">
+      <CardContent className="flex flex-col items-center justify-center text-center h-full p-1 sm:p-2">
+        <span
+          className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white transition-all duration-300"
+          style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}
+        >
+          {value}
+        </span>
+        <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 transition-colors duration-300">
+          {label}
+        </span>
+      </CardContent>
+    </Card>
+  );
 }
 
-function AdmissionBlock ({ passingScore, admittedRank }: { passingScore?: number, admittedRank?: number }) {
-  if (!passingScore || !admittedRank) return null
-  
+function AdmissionBlock({
+  passingScore,
+  admittedRank,
+}: {
+  passingScore?: number;
+  admittedRank?: number;
+}) {
+  if (!passingScore || !admittedRank) return null;
+
   return (
-    <div className='flex flex-col justify-center space-y-4'>
+    <div className="flex flex-col justify-center space-y-4">
       <div>
-        <p className='text-sm text-gray-400'>Проходной балл</p>
-        <p className='text-4xl font-bold text-white'>{passingScore}</p>
+        <p className="text-sm text-gray-400">Проходной балл</p>
+        <p className="text-4xl font-bold text-white">{passingScore}</p>
       </div>
       <div>
-        <p className='text-sm text-gray-400'>Ранг зачисленного</p>
-        <p className='text-4xl font-bold text-white'>#{admittedRank}</p>
+        <p className="text-sm text-gray-400">Ранг зачисленного</p>
+        <p className="text-4xl font-bold text-white">#{admittedRank}</p>
       </div>
     </div>
-  )
+  );
 }
 
-export default function StatsOverview ({ passingScore, admittedRank }: StatsOverviewProps = {}) {
+export default function StatsOverview() {
+  const stats = useDashboardStats();
+
   return (
-    <div className='w-full mb-8'>
+    <div className="w-full mb-8">
       {/* Mobile Layout: Compact circles on left, admission info on right */}
-      <div className='md:hidden px-2'>
-        <div className='flex justify-center'>
-          <div className='flex items-center justify-center w-full gap-4 max-w-md'>
-            <div className='flex-[2] grid grid-cols-2 gap-3 place-items-center'>
-              <StatCircle value={182} label='Всего' />
-              <StatCircle value={60} label='Особая' />
-              <StatCircle value={24} label='Целевая' />
-              <StatCircle value={12} label='Отдельная' />
+      <div className="md:hidden px-2">
+        <div className="flex justify-center">
+          <div className="flex items-center justify-center w-full gap-4 max-w-md">
+            <div className="flex-[2] grid grid-cols-2 gap-3 place-items-center">
+              <StatCard value={stats.total} label="Всего" />
+              <StatCard value={stats.special} label="Особая" />
+              <StatCard value={stats.targeted} label="Целевая" />
+              <StatCard value={stats.separate} label="Отдельная" />
             </div>
-            <div className='flex-1 flex items-center justify-center'>
-              <AdmissionBlock passingScore={passingScore} admittedRank={admittedRank} />
+            <div className="flex-1 flex items-center justify-center">
+              <AdmissionBlock
+                passingScore={stats.passingScore}
+                admittedRank={stats.admittedRank}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Tablet/Desktop Layout: Responsive grid of circles only */}
-      <div className='hidden md:block max-w-4xl mx-auto'>
-        <div className='grid grid-cols-4 gap-6 lg:gap-8 place-items-center justify-center'>
-          <StatCircle value={182} label='Всего' />
-          <StatCircle value={60} label='Особая' />
-          <StatCircle value={24} label='Целевая' />
-          <StatCircle value={12} label='Отдельная' />
+      <div className="hidden md:block max-w-4xl mx-auto">
+        <div className="grid grid-cols-4 gap-6 lg:gap-8 place-items-center justify-center">
+          <StatCard value={stats.total} label="Всего" />
+          <StatCard value={stats.special} label="Особая" />
+          <StatCard value={stats.targeted} label="Целевая" />
+          <StatCard value={stats.separate} label="Отдельная" />
         </div>
       </div>
     </div>
-  )
+  );
 }
