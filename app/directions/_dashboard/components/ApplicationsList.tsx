@@ -115,9 +115,9 @@ export default function ApplicationsList ({ applications }: ApplicationsListProp
   const renderAdmission = (app: Application) => {
     switch (app.admission) {
       case AdmissionDecision.ADMITTED_TEXT:
-        return <span className='text-green-400 font-medium'>Admitted</span>
+        return <span className='text-green-400 font-medium'>Зачислен</span>
       case AdmissionDecision.NOT_COMPETING_TEXT:
-        return <span className='text-yellow-500 font-medium'>Not competing</span>
+        return <span className='text-yellow-500 font-medium'>Не конкурсует</span>
       case AdmissionDecision.ADMITTED_GREEN_CHECK:
         return <SimpleCheckIcon className='w-5 h-5 text-green-500 mx-auto' />
       default:
@@ -127,22 +127,22 @@ export default function ApplicationsList ({ applications }: ApplicationsListProp
 
   return (
     <div>
-      <h2 className='text-xl font-semibold text-white mb-4'>Applications list</h2>
+      <h2 className='text-xl font-semibold text-white mb-4'>Список заявлений</h2>
       <div
         ref={resizableDivRef}
         className='overflow-x-auto overflow-y-auto border border-gray-600 rounded-t-md relative bg-[#1C1C22] applications-scrollbar'
         style={{ height: `${currentHeight}px` }}
       >
-        <table className='min-w-full text-sm'>
+        <table className='w-full text-sm'>
           <thead>
             <tr className='border-b border-gray-700'>
-              <th className='py-2 px-3 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Rank</th>
-              <th className='py-2 px-3 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Student ID</th>
-              <th className='py-2 px-3 text-right font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Priority</th>
-              <th className='py-2 px-3 text-right font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Score</th>
-              <th className='py-2 px-3 text-center font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Orig, celt</th>
-              <th className='py-2 px-3 text-center font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Other unlv</th>
-              <th className='py-2 px-3 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10'>Admission</th>
+              <th className='py-2 px-1 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>Ранг</th>
+              <th className='py-2 px-1 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>ID</th>
+              <th className='py-2 px-1 text-right font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>Прио</th>
+              <th className='py-2 px-1 text-right font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>Балл</th>
+              <th className='py-2 px-1 text-center font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>О,Ц</th>
+              <th className='py-2 px-1 text-center font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>Др</th>
+              <th className='py-2 px-1 text-left font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm'>Зач</th>
             </tr>
           </thead>
           <tbody>
@@ -151,13 +151,13 @@ export default function ApplicationsList ({ applications }: ApplicationsListProp
                 key={app.studentId}
                 className={`border-b border-gray-700 hover:bg-gray-700/30 ${index % 2 === 0 ? '' : 'bg-black/10'}`}
               >
-                <td className={`py-3 px-3 ${app.isCurrentUser ? 'text-green-400 font-bold' : 'text-gray-200'}`}>{app.rank}</td>
-                <td className='py-3 px-3 text-gray-200'>{app.studentId}</td>
-                <td className='py-3 px-3 text-right text-gray-200'>{app.priority}</td>
-                <td className='py-3 px-3 text-right text-gray-200'>{app.score}</td>
-                <td className='py-3 px-3 text-center'>{renderOrigCelt(app.origCelt)}</td>
-                <td className='py-3 px-3 text-center'>{renderOtherUnlv(app.otherUnlv)}</td>
-                <td className='py-3 px-3 text-left'>{renderAdmission(app)}</td>
+                <td className={`py-2 px-1 text-xs sm:text-sm ${app.isCurrentUser ? 'text-green-400 font-bold' : 'text-gray-200'}`}>{app.rank}</td>
+                <td className='py-2 px-1 text-xs sm:text-sm text-gray-200 truncate max-w-0'>{app.studentId}</td>
+                <td className='py-2 px-1 text-right text-xs sm:text-sm text-gray-200'>{app.priority}</td>
+                <td className='py-2 px-1 text-right text-xs sm:text-sm text-gray-200'>{app.score}</td>
+                <td className='py-2 px-1 text-center text-xs sm:text-sm'>{renderOrigCelt(app.origCelt)}</td>
+                <td className='py-2 px-1 text-center text-xs sm:text-sm'>{renderOtherUnlv(app.otherUnlv)}</td>
+                <td className='py-2 px-1 text-left text-xs sm:text-sm'>{renderAdmission(app)}</td>
               </tr>
             ))}
           </tbody>

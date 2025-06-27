@@ -10,12 +10,12 @@ import ApplicationsList from './components/ApplicationsList'
 import { applicationsData, drainedResultsData } from './constants'
 
 export default function DashboardApp () {
-  // Dashboard relies solely on the global Tailwind build; no runtime CSS injection.
+  // Dashboard now uses unified container system for consistency with main page
 
   return (
-    <>
-      {/* First container - matches home page structure */}
-      <div className='dashboard-container'>
+    <main>
+      {/* First container - unified styling with main page */}
+      <div className='container'>
         <Header />
         <StatsOverview passingScore={282} admittedRank={135} />
         <div className='hidden md:block'>
@@ -24,16 +24,16 @@ export default function DashboardApp () {
         <DrainedResults data={drainedResultsData} />
       </div>
 
-      {/* Second container - matches home page structure with spacing */}
-      <div className='dashboard-container mt-8'>
+      {/* Second container - unified styling and spacing */}
+      <div className='container'>
         <ApplicationsList applications={applicationsData} />
-        {/* Legend component added here with top margin */}
+        {/* Legend component with top margin */}
         <div className='mt-6'>
           <Legend />
         </div>
       </div>
       
       <div className='pb-8'></div>
-    </>
+    </main>
   )
 }

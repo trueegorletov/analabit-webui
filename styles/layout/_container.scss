@@ -5,6 +5,7 @@
   border: 1px solid rgba(255,255,255,0.08);
 }
 
+// Unified container system for consistent spacing and effects across all pages
 .container {
   @extend %glass-panel;
   text-align: center;
@@ -12,73 +13,85 @@
   width: 90%;
   max-width: 700px;
   padding: 40px;
+  margin: 0 auto;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-
-  /* breathing room is now handled explicitly by .hero-container */
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 20px;
-    width: 95%;
-    /* slightly smaller gap on tablets/landscape phones */
+  
+  // Universal hover effects for all containers
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 50px rgba(0,0,0,0.7);
   }
 
-  /* scale hero container slightly */
-  .container.hero-container, .container.page-container {
+  // Responsive behavior
+  @media (max-width: 768px) {
+    padding: 20px;
+    width: 96%;
+    max-width: calc(100vw - 16px);
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    width: 98%;
+    max-width: calc(100vw - 8px);
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  @media (max-width: 320px) {
+    padding: 10px;
+    width: 99%;
+    max-width: calc(100vw - 4px);
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// Unified spacing system for all containers
+.container + .container {
+  margin-top: 32px;
+
+  @media (max-width: 768px) {
+    margin-top: 24px;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 20px;
+  }
+
+  @media (max-width: 320px) {
+    margin-top: 16px;
+  }
+}
+
+// First container spacing - semantic approach using main element
+main > .container:first-child,
+.container.hero-container,
+.container.page-container {
+  margin-top: 72px;
+
+  @media (max-width: 768px) {
     margin-top: 55px;
     padding-top: 30px;
-    transform: scale(.96);
   }
 
-  /* adjust results container spacing on tablet & small desktop */
-  .container.results-container {
-    padding: 20px;
-    transform: scale(.94);
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 12px;
-  }
-
-  /* scale hero container slightly on phones */
-  .container.hero-container, .container.page-container {
+  @media (max-width: 480px) {
     margin-top: 45px;
     padding-top: 27px;
     padding-bottom: 24px;
-    transform: scale(.96);
   }
 
-  /* adjust results container spacing on phones */
-  .container.results-container {
-    padding: 12px;
-    transform: scale(.94);
-  }
-}
-
-@media (max-width: 320px) {
-  .container {
-    padding: 10px;
-    width: 99%;
-  }
-
-  /* scale hero container slightly on very small devices and maintain breathing room */
-  .container.hero-container, .container.page-container {
+  @media (max-width: 320px) {
     margin-top: 40px;
     padding-top: 25px;
-    transform: scale(.95);
   }
-
-  /* adjust results container spacing on very small devices */
-  .container.results-container {
-    padding: 10px;
-    transform: scale(.95);
-  }
-}
-
-/* Unified top margin for all page containers */
-.page-container, .hero-container {
-  margin-top: 72px;
 } 

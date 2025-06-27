@@ -293,7 +293,7 @@ export default function Home() {
 	}, [universityPalettes]);
 
 	return (
-		<>
+		<main>
 			<div className="container hero-container">
 				<div className="tags">
 					<div className="tag">МФТИ</div>
@@ -341,6 +341,6 @@ export default function Home() {
 					<UniversityBlock key={index} university={uni} palette={universityPalettes[uni.name]} />
 				))}
 			</div>
-		</>
+		</main>
 	);
 }
