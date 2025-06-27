@@ -12,9 +12,23 @@ interface StatsOverviewProps {
 
 function StatCircle ({ value, label }: StatCircleProps) {
   return (
-    <div className='flex flex-col items-center justify-center text-center bg-[#25252D] rounded-full w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 p-2 transition-all duration-200'>
-      <span className='text-xl md:text-2xl lg:text-3xl font-bold text-white'>{value}</span>
-      <span className='text-xs text-gray-400 mt-1'>{label}</span>
+    <div className='flex flex-col items-center justify-center text-center bg-[#25252D] rounded-full w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 p-2 transition-all duration-300 hover:bg-[#2A2A34] hover:scale-105 cursor-pointer'
+         style={{ 
+           transition: 'all 0.3s ease, box-shadow 0.3s ease',
+           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' 
+         }}
+         onMouseEnter={(e) => {
+           e.currentTarget.style.boxShadow = '0 6px 20px rgba(37, 37, 45, 0.6), 0 0 20px rgba(255, 255, 255, 0.1)'
+         }}
+         onMouseLeave={(e) => {
+           e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)'
+         }}
+    >
+      <span className='text-xl md:text-2xl lg:text-3xl font-bold text-white transition-all duration-300'
+            style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}>
+        {value}
+      </span>
+      <span className='text-xs text-gray-400 mt-1 transition-colors duration-300'>{label}</span>
     </div>
   )
 }

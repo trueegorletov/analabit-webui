@@ -14,6 +14,15 @@
   padding: 40px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   margin: 72px auto 0;
+  
+  /* Add subtle transition for smooth interactions */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  /* Add hover effect for better interactivity */
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 50px rgba(0,0,0,0.7);
+  }
 }
 
 @media (max-width: 768px) {
@@ -21,6 +30,12 @@
     padding: 20px;
     width: 95%;
     margin-top: 55px;
+    /* Consistent scaling with main page */
+    transform: scale(.96);
+    
+    &:hover {
+      transform: scale(.96) translateY(-1px);
+    }
   }
 }
 
@@ -28,6 +43,11 @@
   .dashboard-container {
     padding: 12px;
     margin-top: 45px;
+    transform: scale(.96);
+    
+    &:hover {
+      transform: scale(.96) translateY(-1px);
+    }
   }
 }
 
@@ -36,5 +56,10 @@
     padding: 10px;
     width: 99%;
     margin-top: 40px;
+    transform: scale(.95);
+    
+    &:hover {
+      transform: scale(.95) translateY(-1px);
+    }
   }
 }

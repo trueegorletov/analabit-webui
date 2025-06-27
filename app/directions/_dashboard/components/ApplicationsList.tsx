@@ -130,7 +130,7 @@ export default function ApplicationsList ({ applications }: ApplicationsListProp
       <h2 className='text-xl font-semibold text-white mb-4'>Applications list</h2>
       <div
         ref={resizableDivRef}
-        className='overflow-x-auto overflow-y-auto border border-gray-600 rounded-t-md relative bg-[#1C1C22]'
+        className='overflow-x-auto overflow-y-auto border border-gray-600 rounded-t-md relative bg-[#1C1C22] applications-scrollbar'
         style={{ height: `${currentHeight}px` }}
       >
         <table className='min-w-full text-sm'>
