@@ -18,9 +18,7 @@ export default function DashboardApp() {
       <div className="dashboard-container">
         <Header />
         <StatsOverview />
-        <div className="hidden md:block">
-          <AdmissionInfo passingScore={282} admittedRank={135} />
-        </div>
+        <AdmissionInfo passingScore={282} admittedRank={135} />
         <DrainedResults data={drainedResultsData} />
       </div>
 

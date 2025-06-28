@@ -65,13 +65,29 @@
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+    /* Enriched palette: warm orange, coral, aqua, violet, sun-yellow, and teal */
+    background:
+      /* warm orange */
+      radial-gradient(at 20% 20%, rgba(255, 153, 102, 0.35) 0px, transparent 55%),
+      /* coral red */
+      radial-gradient(at 82% 28%, rgba(255, 94, 98, 0.38) 0px, transparent 55%),
+      /* aqua blue */
+      radial-gradient(at 42% 82%, rgba(33, 212, 253, 0.34) 0px, transparent 55%),
+      /* vibrant violet */
+      radial-gradient(at 64% 15%, rgba(171, 40, 255, 0.38) 0px, transparent 55%),
+      /* sun yellow */
+      radial-gradient(at 12% 78%, rgba(255, 230, 102, 0.32) 0px, transparent 55%),
+      /* fresh teal */
+      radial-gradient(at 92% 76%, rgba(0, 255, 163, 0.32) 0px, transparent 55%),
+      /* dark base */
+      linear-gradient(135deg, #090909 0%, #1a1a1a 100%);
     color: #ffffff;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     min-height: 100vh;
+    position: relative; /* allow pseudo-element layering */
   }
 
   html {
@@ -645,4 +661,15 @@
   .directions-table td {
     padding: 6px 8px;
   }
+}
+
+/* Subtle repeating noise overlay for extra depth */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><filter id='noise' x='0%' y='0%' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='2.7' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23noise)' opacity='0.08'/></svg>");
+  background-repeat: repeat;
 }
