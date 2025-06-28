@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { gsap } from 'gsap';
-import LottiePlayer from './components/LottiePlayer';
+import dynamic from 'next/dynamic';
 import AnimatedBlob from './components/AnimatedBlob';
 import { flashThenIdle, type Palette } from './utils/glowHelpers';
 
@@ -203,11 +203,18 @@ const UniversityBlock = ({
   );
 };
 
+// Dynamically import the 3D volumetric blob so it only executes on the client
+const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
+  ssr: false,
+});
+
 function Animation() {
   const searchParams = useSearchParams();
-  const showBlob = searchParams.get('animation') === 'blob';
+  const showAnimatedBlob = searchParams.get('animation') === 'blob';
 
-  return showBlob ? <AnimatedBlob /> : <LottiePlayer />;
+  // If the query param "animation=blob" is present, render the original 2D AnimatedBlob.
+  // Otherwise, fall back to the new 3D VolumetricBlob.
+  return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob />;
 }
 
 export default function Home() {
