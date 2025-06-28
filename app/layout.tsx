@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from './components/Header';
+import ParallaxBackground from './components/ParallaxBackground';
 
 export const metadata: Metadata = {
   title: 'Analabit Admission',
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
+        <ParallaxBackground />
         <Header />
         {children}
       </body>

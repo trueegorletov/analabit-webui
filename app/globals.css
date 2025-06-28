@@ -35,6 +35,8 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    /* custom css var for parallax */
+    --bg-shift: 0;
   }
 
   .dark {
@@ -67,6 +69,8 @@
     @apply bg-background text-foreground;
     /* Enriched palette: warm orange, coral, aqua, violet, sun-yellow, and teal */
     background:
+      /* directional cool tint */
+      linear-gradient(120deg, rgba(33, 212, 253, 0.05) 0%, rgba(0, 0, 0, 0) 70%),
       /* warm orange */
       radial-gradient(at 20% 20%, rgba(255, 153, 102, 0.35) 0px, transparent 55%),
       /* coral red */
@@ -672,4 +676,38 @@ body::before {
   pointer-events: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><filter id='noise' x='0%' y='0%' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='2.7' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23noise)' opacity='0.08'/></svg>");
   background-repeat: repeat;
+}
+
+/* Parallax gradient layer */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  transform: translateY(calc(var(--bg-shift) * 1px));
+  will-change: transform;
+  background:
+    /* directional cool tint (duplicated but lighter) */
+    linear-gradient(120deg, rgba(33, 212, 253, 0.03) 0%, rgba(0, 0, 0, 0) 70%),
+    /* warm orange */
+    radial-gradient(at 20% 20%, rgba(255, 153, 102, 0.2) 0px, transparent 55%),
+    /* coral red */
+    radial-gradient(at 82% 28%, rgba(255, 94, 98, 0.22) 0px, transparent 55%),
+    /* aqua blue */
+    radial-gradient(at 42% 82%, rgba(33, 212, 253, 0.2) 0px, transparent 55%),
+    /* vibrant violet */
+    radial-gradient(at 64% 15%, rgba(171, 40, 255, 0.22) 0px, transparent 55%),
+    /* sun yellow */
+    radial-gradient(at 12% 78%, rgba(255, 230, 102, 0.18) 0px, transparent 55%),
+    /* fresh teal */
+    radial-gradient(at 92% 76%, rgba(0, 255, 163, 0.18) 0px, transparent 55%),
+    /* dark base */
+    linear-gradient(135deg, #090909 0%, #1a1a1a 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    transform: none !important;
+  }
 }

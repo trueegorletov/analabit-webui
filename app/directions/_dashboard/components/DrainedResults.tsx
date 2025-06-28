@@ -10,7 +10,7 @@ export default function DrainedResults({ data }: DrainedResultsProps) {
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-200 mb-3">
+      <h2 className="text-xl font-semibold text-white mb-4">
         Ослабленные результаты
       </h2>
       <div className="space-y-2">
