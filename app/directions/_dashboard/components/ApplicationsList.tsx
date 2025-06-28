@@ -25,7 +25,7 @@ import {
   OrigCeltStatus,
   AdmissionDecision,
 } from '@/hooks/useDashboardStats';
-import { CircleCheck, Circle, Check } from 'lucide-react';
+import { CircleCheck, Circle, Check, GripHorizontal } from 'lucide-react';
 
 const MIN_TABLE_HEIGHT = 150; // pixels
 const MAX_TABLE_HEIGHT = 700; // pixels
@@ -135,7 +135,9 @@ export default function ApplicationsList() {
 
   const renderOtherUnlv = (value?: number | 'check') => {
     if (value === 'check') {
-      return <Check className="w-5 h-5 text-gray-300 mx-auto" strokeWidth={2} />;
+      return (
+        <Check className="w-5 h-5 text-gray-300 mx-auto" strokeWidth={2} />
+      );
     }
     if (typeof value === 'number') {
       return <span className="text-gray-200">{value}</span>;
@@ -151,8 +153,10 @@ export default function ApplicationsList() {
         return (
           <span className="text-yellow-500 font-medium">Не конкурсует</span>
         );
-              case AdmissionDecision.ADMITTED_GREEN_CHECK:
-          return <Check className="w-5 h-5 text-green-500 mx-auto" strokeWidth={2.5} />;
+      case AdmissionDecision.ADMITTED_GREEN_CHECK:
+        return (
+          <Check className="w-5 h-5 text-green-500 mx-auto" strokeWidth={2.5} />
+        );
       default:
         return <span className="text-gray-500">-</span>;
     }
@@ -320,18 +324,7 @@ export default function ApplicationsList() {
         aria-label="Resize table height. Click to toggle between max and default height. Drag to resize."
         tabIndex={0}
       >
-        <svg
-          width="24"
-          height="4"
-          viewBox="0 0 24 4"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-6 h-1 text-gray-400"
-        >
-          <circle cx="2" cy="2" r="2" fill="currentColor" />
-          <circle cx="12" cy="2" r="2" fill="currentColor" />
-          <circle cx="22" cy="2" r="2" fill="currentColor" />
-        </svg>
+        <GripHorizontal className="w-6 h-4 text-gray-400" />
       </div>
     </div>
   );

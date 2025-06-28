@@ -1,0 +1,132 @@
+import { Meta, ArgTypes, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as ButtonStories from './Button.stories';
+
+<Meta of={ButtonStories} />
+
+# Button
+
+A versatile button component built with Radix UI and styled with Tailwind CSS. Part of the shadcn/ui component library.
+
+## Features
+
+- **Multiple Variants**: Default, destructive, outline, secondary, ghost, and link styles
+- **Size Options**: Small, default, large, and icon sizes
+- **Accessibility**: Built on Radix UI primitives for maximum accessibility
+- **Type Safety**: Full TypeScript support with proper prop types
+- **Customizable**: Easy to customize with Tailwind CSS utility classes
+
+## Variants
+
+### Default
+
+The primary button style used for main actions.
+
+<Canvas of={ButtonStories.Default} />
+
+### Destructive
+
+Used for dangerous actions like deleting or removing items.
+
+<Canvas of={ButtonStories.Destructive} />
+
+### Outline
+
+A button with border styling, good for secondary actions.
+
+<Canvas of={ButtonStories.Outline} />
+
+### Secondary
+
+Muted styling for less prominent actions.
+
+<Canvas of={ButtonStories.Secondary} />
+
+### Ghost
+
+Minimal styling that appears on hover/focus.
+
+<Canvas of={ButtonStories.Ghost} />
+
+### Link
+
+Styled to look like a text link.
+
+<Canvas of={ButtonStories.Link} />
+
+## Sizes
+
+### Large
+
+<Canvas of={ButtonStories.Large} />
+
+### Small
+
+<Canvas of={ButtonStories.Small} />
+
+## States
+
+### Disabled
+
+<Canvas of={ButtonStories.Disabled} />
+
+## Usage
+
+```tsx
+import { Button } from '@/components/ui/button';
+
+function MyComponent() {
+  return (
+    <div>
+      <Button>Click me</Button>
+      <Button variant="destructive">Delete</Button>
+      <Button variant="outline" size="sm">
+        Small
+      </Button>
+    </div>
+  );
+}
+```
+
+## Props
+
+<ArgTypes of={ButtonStories} />
+
+## Technical Implementation
+
+The Button component is built using:
+
+- **Radix UI**: For accessibility and behavior primitives
+- **class-variance-authority (cva)**: For managing variant styles
+- **Tailwind CSS**: For utility-first styling
+- **React.forwardRef**: For proper ref forwarding
+
+### Styling Architecture
+
+```tsx
+const buttonVariants = cva(
+  // Base styles
+  'inline-flex items-center justify-center rounded-md text-sm font-medium',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        // ...other variants
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        // ...other sizes
+      },
+    },
+  },
+);
+```
+
+This architecture allows for:
+
+- **Type-safe variants**: TypeScript ensures only valid combinations
+- **Easy customization**: Override styles with className prop
+- **Consistent API**: Same pattern across all UI components
+- **Performance**: Minimal runtime overhead with compile-time optimizations

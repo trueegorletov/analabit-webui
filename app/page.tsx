@@ -310,7 +310,8 @@ export default function Home() {
 
   return (
     <main>
-      <div className="container hero-container">
+      {/* Hero section with glass container styling */}
+      <div className="dashboard-container">
         <div className="tags">
           <div className="tag">МФТИ</div>
           <div className="tag">МГУ</div>
@@ -350,7 +351,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="container results-container">
+      {/* Results section with glass container styling */}
+      <div className="dashboard-container mt-8">
         <h2 className="results-title">Результаты по направлениям</h2>
         {universities.map((uni, index) => (
           <UniversityBlock

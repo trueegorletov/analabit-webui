@@ -10,12 +10,12 @@ import ApplicationsList from './components/ApplicationsList';
 import { drainedResultsData } from './constants';
 
 export default function DashboardApp() {
-  // Dashboard now uses unified container system for consistency with main page
+  // Dashboard now uses two separate glass panel containers like the original design
 
   return (
     <main>
-      {/* First container - unified styling with main page */}
-      <div className="container">
+      {/* First container - Main dashboard stats and info */}
+      <div className="dashboard-container">
         <Header />
         <StatsOverview />
         <div className="hidden md:block">
@@ -24,8 +24,8 @@ export default function DashboardApp() {
         <DrainedResults data={drainedResultsData} />
       </div>
 
-      {/* Second container - unified styling and spacing */}
-      <div className="container">
+      {/* Second container - Applications list and legend */}
+      <div className="dashboard-container mt-8">
         <ApplicationsList />
         {/* Legend component with top margin */}
         <div className="mt-6">

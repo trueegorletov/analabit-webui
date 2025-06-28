@@ -1,0 +1,648 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   Step 5: Modern CSS-based Theme Configuration  
+   Simplified approach compatible with current Next.js setup
+   ============================================================================= */
+
+@layer base {
+  :root {
+    /* shadcn/ui color tokens */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 93%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 0 0% 93%;
+    --muted: 0 0% 9%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 9%;
+    --accent-foreground: 0 0% 93%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 93%;
+    --border: 0 0% 9%;
+    --input: 0 0% 9%;
+    --ring: 0 0% 84%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+    color: #ffffff;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* =============================================================================
+   Glass Panel Component Classes (restored from deleted _dashboard-container.scss)
+   ============================================================================= */
+
+@layer components {
+  .dashboard-container {
+    @apply bg-glass-bg backdrop-blur-md backdrop-saturate-150 border border-glass-border;
+    @apply text-center rounded-2xl shadow-dashboard;
+    @apply w-[90%] max-w-[700px] p-10 mx-auto mt-20;
+    @apply transition-all duration-300 ease-out;
+
+    /* Add webkit prefix for Safari support */
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+
+  .dashboard-container:hover {
+    @apply -translate-y-0.5 shadow-dashboard-hover;
+  }
+
+  .block-container {
+    @apply bg-card-bg rounded-2xl border border-white/15 backdrop-blur-md transition-all;
+  }
+
+  .block-container-hover:hover {
+    @apply -translate-y-1 shadow-glow border-white/25;
+  }
+
+  /* Responsive scaling for dashboard container */
+  @media (max-width: 768px) {
+    .dashboard-container {
+      @apply p-5 w-[95%] mt-14;
+      transform: scale(0.96);
+    }
+
+    .dashboard-container:hover {
+      transform: scale(0.96) translateY(-1px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dashboard-container {
+      @apply p-3 mt-11;
+      transform: scale(0.96);
+    }
+
+    .dashboard-container:hover {
+      transform: scale(0.96) translateY(-1px);
+    }
+  }
+
+  @media (max-width: 320px) {
+    .dashboard-container {
+      @apply p-2.5 w-[99%] mt-10;
+      transform: scale(0.95);
+    }
+
+    .dashboard-container:hover {
+      transform: scale(0.95) translateY(-1px);
+    }
+  }
+}
+
+/* =============================================================================
+   Layout & Container Styles (restored from deleted _container.scss)
+   ============================================================================= */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hero-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 80px 20px 40px;
+  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.results-container {
+  padding: 80px 20px;
+  background: #0a0a0a;
+}
+
+/* =============================================================================
+   Wave/Blob Container Styles (restored from deleted _wave.scss)
+   ============================================================================= */
+
+.wave-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 40px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* =============================================================================
+   Typography & Content Styles (restored from deleted _body.scss)
+   ============================================================================= */
+
+.title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 40px 0 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.desc {
+  font-size: 1.25rem;
+  text-align: center;
+  margin: 0 auto 40px;
+  color: #b0b0b0;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.results-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 60px;
+  color: #ffffff;
+}
+
+/* =============================================================================
+   Input Group Styles (restored from deleted _body.scss)
+   ============================================================================= */
+
+.input-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin: 40px auto;
+  max-width: 500px;
+  flex-wrap: wrap;
+}
+
+.input-group input {
+  flex: 1;
+  min-width: 250px;
+  padding: 16px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+}
+
+.input-group input::placeholder {
+  color: #a0a0a0;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.input-group button {
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.input-group button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+/* =============================================================================
+   University Block Styles (restored from deleted _body.scss)
+   ============================================================================= */
+
+.university-block {
+  margin: 30px auto;
+  max-width: 900px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.university-block:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.block-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.toggle-btn {
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #ffffff;
+}
+
+.toggle-btn:hover {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.toggle-btn.expanded {
+  transform: rotate(180deg);
+}
+
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+/* =============================================================================
+   Landing page tag styles (PRESERVE: forbidden to change per plan)
+   These styles are essential for the animated university tags on the landing page
+   ============================================================================= */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: -20px;
+  position: relative;
+  z-index: 2;
+}
+
+.tag {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateZ(0);
+}
+
+.tag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+.tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tag:active {
+  transform: scale(0.95);
+}
+
+/* =============================================================================
+   Landing page directions table styles (used in UniversityBlock expansion)
+   ============================================================================= */
+
+.directions-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 100%;
+  max-width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.directions-table td {
+  padding: 8px 12px;
+  border-right: 2px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.directions-table tr {
+  transition: background-color 0.2s ease;
+}
+
+.directions-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.directions-table tr:hover td {
+  transform: scale(1.01);
+}
+
+.directions-table tr:hover .dir-name a {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.directions-table tr:hover .score {
+  color: #ffc947;
+  text-shadow: 0 0 6px rgba(255, 201, 71, 0.4);
+}
+
+.directions-table tr:hover .rank {
+  color: #7bb3f0;
+  text-shadow: 0 0 6px rgba(123, 179, 240, 0.4);
+}
+
+.directions-table td:last-child {
+  border-right: none;
+}
+
+.directions-table tr:last-child td {
+  border-bottom: none;
+}
+
+.directions-table .dir-name {
+  width: 60%;
+  min-width: 0;
+}
+
+.directions-table .dir-name a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
+}
+
+.directions-table .score {
+  color: #ffb74d;
+  font-weight: 600;
+  text-align: center;
+  width: 14%;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
+}
+
+.directions-table .rank {
+  color: #64b5f6;
+  font-weight: 600;
+  text-align: center;
+  width: 11%;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
+}
+
+.directions-table .range {
+  color: #90a4ae;
+  font-weight: 500;
+  text-align: center;
+  width: 15%;
+  white-space: nowrap;
+  font-size: 0.9em;
+  transition: color 0.2s ease;
+}
+
+.directions-table tr.hidden {
+  display: none;
+}
+
+/* =============================================================================
+   Dashboard Specific Styles (from ApplicationsList component)
+   ============================================================================= */
+
+.applications-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.applications-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.applications-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin: 4px;
+}
+
+.applications-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.applications-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.applications-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.5) 100%
+  );
+}
+
+.applications-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* =============================================================================
+   Responsive Design
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .desc {
+    font-size: 1rem;
+    padding: 0 20px;
+  }
+
+  .input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-group input,
+  .input-group button {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .hero-container {
+    padding: 60px 16px 40px;
+  }
+
+  .results-container {
+    padding: 60px 16px;
+  }
+
+  .wave-container {
+    width: 250px;
+    height: 250px;
+  }
+
+  .block-header {
+    padding: 20px 24px;
+  }
+
+  .block-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .results-title {
+    font-size: 2rem;
+  }
+
+  .wave-container {
+    width: 200px;
+    height: 200px;
+  }
+
+  .directions-table {
+    font-size: 0.85rem;
+  }
+
+  .directions-table td {
+    padding: 6px 8px;
+  }
+}

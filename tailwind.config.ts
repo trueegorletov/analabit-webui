@@ -1,11 +1,11 @@
 import type { Config } from 'tailwindcss';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 const config: Config = {
   darkMode: ['class'],
   content: [
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
-    './styles/**/*.{scss,css}',
     './app/directions/**/*.{ts,tsx}',
   ],
   theme: {
@@ -14,10 +14,21 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        xl: '16px',
+        '2xl': '24px',
+      },
+      boxShadow: {
+        glow: '0 0 18px rgba(255,255,255,0.1)',
+        'glow-hover': '0 12px 50px rgba(0,0,0,0.7)',
+        dashboard: '0 10px 40px rgba(0,0,0,0.6)',
+        'dashboard-hover': '0 12px 50px rgba(0,0,0,0.7)',
       },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        'card-bg': 'rgba(255,255,255,0.02)',
+        'glass-bg': 'rgba(11, 11, 11, 0.811)',
+        'glass-border': 'rgba(255,255,255,0.08)',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
@@ -57,9 +68,12 @@ const config: Config = {
           '5': 'hsl(var(--chart-5))',
         },
       },
+      backdropFilter: {
+        glass: 'blur(16px) saturate(160%)',
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;

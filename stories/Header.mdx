@@ -1,0 +1,77 @@
+import { Meta, ArgTypes, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as HeaderStories from './Header.stories';
+
+<Meta of={HeaderStories} />
+
+# Header
+
+The Header component provides a consistent navigation bar across the application with social media links and branding.
+
+## Features
+
+- **Responsive Design**: Adapts to different screen sizes
+- **Social Media Integration**: Links to Telegram, GitHub, and Boosty
+- **Accessibility**: Proper landmark roles and ARIA labels
+- **Blur Effect**: Modern backdrop-blur styling
+- **Icon Buttons**: Reusable IconButton component for social links
+
+## Implementation
+
+The Header has been refactored to use:
+
+- **Tailwind CSS**: For utility-first styling
+- **IconButton Component**: Extracted for reusability
+- **Semantic HTML**: With proper `role="banner"` landmark
+
+## Usage
+
+```tsx
+import Header from '@/app/components/Header';
+
+function App() {
+  return (
+    <div>
+      <Header />
+      {/* Rest of your app */}
+    </div>
+  );
+}
+```
+
+## Stories
+
+<Canvas of={HeaderStories.Default} />
+
+### Mobile Layout
+
+<Canvas of={HeaderStories.MobileLayout} />
+
+### Tablet Layout
+
+<Canvas of={HeaderStories.TabletLayout} />
+
+## Technical Details
+
+The Header component is a refactored version that:
+
+1. **Eliminates inline styles** in favor of Tailwind utility classes
+2. **Extracts IconButton** as a reusable component
+3. **Adds accessibility** with proper landmark roles
+4. **Maintains visual consistency** with the original design
+
+### Before (inline styles):
+
+```tsx
+<header style={{
+  backdropFilter: 'blur(24px)',
+  padding: '1rem 1.5rem'
+}}>
+```
+
+### After (Tailwind classes):
+
+```tsx
+<header className="backdrop-blur-md px-6 py-4" role="banner">
+```
+
+This refactor improves maintainability while preserving the exact visual appearance.
