@@ -192,7 +192,6 @@ const InteractiveBlob = (
   return (
     <mesh ref={meshRef} scale={Math.min(viewport.width, viewport.height) / 5}>
       <icosahedronGeometry args={[2, 128]} />
-      {/* @ts-expect-error – shaderMaterial intrinsic typings are provided by @react-three/fiber but not recognised by the linter here */}
       <shaderMaterial ref={materialRef} vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={uniforms} />
     </mesh>
   );
