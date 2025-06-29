@@ -187,6 +187,9 @@ export default function ApplicationsList() {
           {String(getValue())}
         </span>
       ),
+      meta: {
+        className: 'hidden xs:table-cell',
+      },
     },
     {
       accessorKey: 'priority',
@@ -196,6 +199,9 @@ export default function ApplicationsList() {
           {String(getValue())}
         </span>
       ),
+      meta: {
+        className: 'hidden sm:table-cell',
+      },
     },
     {
       accessorKey: 'score',
@@ -211,6 +217,9 @@ export default function ApplicationsList() {
       header: 'О,Ц',
       cell: ({ getValue }) => renderOrigCelt(getValue() as OrigCeltStatus),
       enableSorting: false,
+      meta: {
+        className: 'hidden xs:table-cell',
+      },
     },
     {
       accessorKey: 'otherUnlv',
@@ -218,6 +227,9 @@ export default function ApplicationsList() {
       cell: ({ getValue }) =>
         renderOtherUnlv(getValue() as number | 'check' | undefined),
       enableSorting: false,
+      meta: {
+        className: 'hidden sm:table-cell',
+      },
     },
     {
       accessorKey: 'admission',
@@ -261,7 +273,7 @@ export default function ApplicationsList() {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={`py-2 px-1 font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm ${
+                    className={`py-1.5 px-0.5 sm:py-2 sm:px-1 font-medium text-gray-400 sticky top-0 bg-[#1C1C22] z-10 text-xs sm:text-sm ${
                       header.column.id === 'rank' ||
                       header.column.id === 'studentId'
                         ? 'text-left'
@@ -269,7 +281,11 @@ export default function ApplicationsList() {
                             header.column.id === 'score'
                           ? 'text-right'
                           : 'text-center'
-                    } ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
+                    } ${header.column.getCanSort() ? 'cursor-pointer' : ''} ${
+                      header.column.columnDef.meta && 'className' in header.column.columnDef.meta 
+                        ? header.column.columnDef.meta.className 
+                        : ''
+                    }`}
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     {header.isPlaceholder
@@ -298,7 +314,7 @@ export default function ApplicationsList() {
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={`py-2 px-1 ${
+                    className={`py-1.5 px-0.5 sm:py-2 sm:px-1 ${
                       cell.column.id === 'rank' ||
                       cell.column.id === 'studentId'
                         ? 'text-left'
@@ -306,6 +322,10 @@ export default function ApplicationsList() {
                             cell.column.id === 'score'
                           ? 'text-right'
                           : 'text-center'
+                    } ${
+                      cell.column.columnDef.meta && 'className' in cell.column.columnDef.meta 
+                        ? cell.column.columnDef.meta.className 
+                        : ''
                     }`}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
