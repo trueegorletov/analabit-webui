@@ -46,12 +46,19 @@ export default function VolumetricBlob({ showPerformanceDebug = false }: Volumet
   }, []);
 
   return (
-    <div className="w-full h-full flex items-center justify-center relative">
+    <div className="w-full h-full flex items-center justify-center relative overflow-visible" style={{ zIndex: 0 }}>
       <Canvas 
         camera={{ position: [0, 0, 8], fov: 45 }} 
         key={key}
         dpr={dpr}
         frameloop={frameloop}
+        style={{
+          width: '140%',
+          height: '140%',
+          position: 'absolute',
+          top: '-20%',
+          left: '-20%',
+        }}
         gl={{
           powerPreference: 'high-performance',
           antialias: false, // Disabled for performance, especially at low DPR
