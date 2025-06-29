@@ -5,6 +5,7 @@ import { gsap } from 'gsap';
 import dynamic from 'next/dynamic';
 import AnimatedBlob from './components/AnimatedBlob';
 import { flashThenIdle, type Palette } from './utils/glowHelpers';
+import { useUniversityColors } from '../hooks/useUniversityColors';
 
 interface Direction {
   name: string;
@@ -86,28 +87,7 @@ const universities: University[] = [
   },
 ];
 
-const palettes = [
-  {
-    grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))',
-    glow: 'rgba(255, 120, 99, 0.3)',
-  },
-  {
-    grad: 'linear-gradient(120deg, rgba(95, 114, 190, 0.6), rgba(102, 153, 255, 0.6))',
-    glow: 'rgba(98, 135, 229, 0.3)',
-  },
-  {
-    grad: 'linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))',
-    glow: 'rgba(110, 190, 253, 0.3)',
-  },
-  {
-    grad: 'linear-gradient(120deg, rgba(255, 153, 102, 0.6), rgba(95, 114, 190, 0.6))',
-    glow: 'rgba(177, 135, 142, 0.3)',
-  },
-  {
-    grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(125, 226, 252, 0.6))',
-    glow: 'rgba(191, 143, 179, 0.3)',
-  },
-];
+
 
 const UniversityBlock = ({
   university,
@@ -218,24 +198,32 @@ function Animation() {
 }
 
 export default function Home() {
-  // Create consistent mapping between university names and palettes
+  // Use the new university colors system
+  const { getUniversityColor } = useUniversityColors();
+  
+  // Create legacy compatibility mapping for existing code
   const universityPalettes = useMemo(() => {
-    const mapping: { [key: string]: (typeof palettes)[0] } = {};
+    const mapping: { [key: string]: Palette } = {};
     const universityNames = universities.map((uni) => uni.name);
-    universityNames.forEach((name, index) => {
-      mapping[name] = palettes[index % palettes.length];
+    universityNames.forEach((name) => {
+      const color = getUniversityColor(name);
+      if (color) {
+        mapping[name] = {
+          grad: color.gradient,
+          glow: color.glow,
+        };
+      }
     });
     return mapping;
-  }, []);
+  }, [getUniversityColor]);
 
   useEffect(() => {
     const tags = gsap.utils.toArray<HTMLElement>('.tag');
     tags.forEach((tag) => {
       const universityName = tag.textContent?.trim();
-      const palette =
-        universityName && universityPalettes[universityName]
-          ? universityPalettes[universityName]
-          : palettes[Math.floor(Math.random() * palettes.length)];
+      const palette = universityName && universityPalettes[universityName]
+        ? universityPalettes[universityName]
+        : { grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))', glow: 'rgba(255, 120, 99, 0.3)' };
 
       gsap.set(tag, {
         background: palette.grad,
@@ -263,10 +251,9 @@ export default function Home() {
       gsap.utils.toArray<HTMLElement>('.university-block');
     universityBlocks.forEach((block) => {
       const universityName = block.querySelector('h3')?.textContent?.trim();
-      const palette =
-        universityName && universityPalettes[universityName]
-          ? universityPalettes[universityName]
-          : palettes[0];
+      const palette = universityName && universityPalettes[universityName]
+        ? universityPalettes[universityName]
+        : { grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))', glow: 'rgba(255, 120, 99, 0.3)' };
 
       gsap.set(block, {
         background: palette.grad,

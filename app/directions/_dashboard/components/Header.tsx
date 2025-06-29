@@ -1,8 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import { useUniversityColors } from '../../../../hooks/useUniversityColors';
 
 export default function Header() {
   const tagRef = useRef<HTMLDivElement>(null);
+  const { getUniversityColor } = useUniversityColors();
+  
+  // Get the color for СПбГУ from the new system
+  const spbguColor = getUniversityColor('СПбГУ');
+  const gradient = spbguColor?.gradient || 'linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))';
+  const glow = spbguColor?.glow || 'rgba(110, 190, 253, 0.3)';
 
   useEffect(() => {
     const tag = tagRef.current;
@@ -21,10 +28,9 @@ export default function Header() {
       ease: 'sine.inOut',
     });
 
-    // Glow effect animation like main page
+    // Glow effect animation using the new color system
     gsap.to(tag, {
-      boxShadow:
-        '0 0 18px 3px rgba(110, 190, 253, 0.3), 0 0 8px 1px rgba(255, 255, 255, 0.1)',
+      boxShadow: `0 0 18px 3px ${glow}, 0 0 8px 1px rgba(255, 255, 255, 0.1)`,
       duration: gsap.utils.random(6, 10),
       repeat: -1,
       yoyo: true,
@@ -45,7 +51,7 @@ export default function Header() {
       tag.removeEventListener('mouseenter', onEnter);
       tag.removeEventListener('mouseleave', onLeave);
     };
-  }, []);
+  }, [glow]);
 
   return (
     <div className="mb-8 text-center">
@@ -53,8 +59,7 @@ export default function Header() {
         ref={tagRef}
         className="tag-button-large inline-block mb-3 cursor-pointer transition-transform duration-200 ease-out"
         style={{
-          background:
-            'linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))',
+          background: gradient,
           backgroundSize: '200% 200%',
           padding: '8px 20px',
           borderRadius: '24px',
@@ -62,8 +67,7 @@ export default function Header() {
           fontWeight: '600',
           color: 'white',
           textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-          boxShadow:
-            '0 0 14px 3px rgba(110, 190, 253, 0.3), 0 0 6px 1.5px rgba(255, 255, 255, 0.12)',
+          boxShadow: `0 0 14px 3px ${glow}, 0 0 6px 1.5px rgba(255, 255, 255, 0.12)`,
           border: 'none',
         }}
       >
@@ -75,8 +79,7 @@ export default function Header() {
           <span
             className="absolute bottom-0 left-0 w-full h-0.5 opacity-60"
             style={{
-              background:
-                'linear-gradient(90deg, transparent, rgba(125, 226, 252, 0.8), transparent)',
+              background: `linear-gradient(90deg, transparent, ${spbguColor?.accent || 'rgba(125, 226, 252, 0.8)'}, transparent)`,
               transform: 'translateY(4px)',
             }}
           />
