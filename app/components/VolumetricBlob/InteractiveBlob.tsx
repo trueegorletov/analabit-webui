@@ -112,7 +112,7 @@ export const InteractiveBlob = ({
   });
 
   return (
-    <mesh ref={meshRef} scale={Math.min(viewport.width, viewport.height) / 6.22}>
+    <mesh ref={meshRef} scale={Math.min(viewport.width, viewport.height) / 6.66}>
       <primitive object={geometry} attach="geometry" />
       <shaderMaterial 
         ref={materialRef} 
