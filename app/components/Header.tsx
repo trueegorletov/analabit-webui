@@ -7,7 +7,7 @@ import { Poppins } from 'next/font/google';
 import CustomIcon from './CustomIcon';
 
 // Fancy font just for the brand logo
-const brandFont = Poppins({ weight: '600', subsets: ['latin'] });
+const brandFont = Poppins({ weight: '400', subsets: ['latin'] });
 
 // Shared IconButton component as suggested in the plan
 const IconButton = ({
