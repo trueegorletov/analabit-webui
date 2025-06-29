@@ -57,7 +57,7 @@ function Header() {
           href="/"
           className={`${brandFont.className} text-2xl md:text-3xl font-semibold tracking-tight text-white no-underline visited:text-white hover:no-underline focus-visible:no-underline flex items-center gap-2`}
         >
-          <CustomIcon className="w-8 h-8 md:w-10 md:h-10 text-white" />
+          <CustomIcon className="w-7 h-7 md:w-8 md:h-8 text-white" />
           analabit
         </Link>
         <div className="flex items-center gap-2">
