@@ -682,7 +682,10 @@ body::before {
 body::after {
   content: '';
   position: fixed;
-  inset: 0;
+  top: -300px;
+  left: 0;
+  right: 0;
+  bottom: -300px;
   z-index: -2;
   pointer-events: none;
   transform: translateY(calc(var(--bg-shift) * 1px));

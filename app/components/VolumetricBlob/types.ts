@@ -13,4 +13,8 @@ export interface ColorPalette {
 export interface InteractiveBlobProps extends BlobShapeParams {
   palettes: ColorPalette[];
   transitionDuration?: number;
+}
+
+export interface VolumetricBlobProps {
+  showPerformanceDebug?: boolean;
 } 
