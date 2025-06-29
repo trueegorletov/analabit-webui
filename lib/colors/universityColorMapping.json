@@ -1,31 +1,21 @@
 {
   "generatedAt": "2025-06-29T10:56:13.664Z",
   "universities": [
-    "МФТИ",
-    "МГУ",
-    "СПбГУ",
-    "ВШЭ",
-    "ИТМО",
-    "ТГУ",
-    "ЮФУ",
-    "НГУ",
-    "ТПУ",
-    "МЭИ",
-    "РУДН",
-    "КФУ",
-    "ДВФУ",
-    "РАНХиГС",
-    "СПбГЭТУ",
-    "РГГУ",
-    "МИЭТ",
-    "ПНИПУ",
-    "НИУ МИЭТ",
-    "СФУ",
-    "ТюмГУ",
-    "НИЯУ МИФИ"
+    "mfti",
+    "mgu",
+    "spbgu",
+    "hse_msk",
+    "itmo",
+    "tgu",
+    "yufu",
+    "ngu",
+    "hse_spb",
+    "bauman",
+    "spbpu",
+    "ural_fed"
   ],
   "mapping": {
-    "МФТИ": {
+    "mfti": {
       "paletteIndex": 0,
       "palette": {
         "name": "coral-orange",
@@ -34,7 +24,7 @@
         "accent": "#ff6b6b"
       }
     },
-    "МГУ": {
+    "mgu": {
       "paletteIndex": 16,
       "palette": {
         "name": "sky-blue",
@@ -43,7 +33,7 @@
         "accent": "#0ea5e9"
       }
     },
-    "СПбГУ": {
+    "spbgu": {
       "paletteIndex": 9,
       "palette": {
         "name": "indigo-blue",
@@ -52,7 +42,7 @@
         "accent": "#4f46e5"
       }
     },
-    "ВШЭ": {
+    "hse_msk": {
       "paletteIndex": 24,
       "palette": {
         "name": "pink-rose",
@@ -61,7 +51,7 @@
         "accent": "#ec4899"
       }
     },
-    "ИТМО": {
+    "itmo": {
       "paletteIndex": 8,
       "palette": {
         "name": "amber-yellow",
@@ -70,7 +60,7 @@
         "accent": "#f59e0b"
       }
     },
-    "ТГУ": {
+    "tgu": {
       "paletteIndex": 1,
       "palette": {
         "name": "blue-purple",
@@ -79,7 +69,7 @@
         "accent": "#5f72be"
       }
     },
-    "ЮФУ": {
+    "yufu": {
       "paletteIndex": 22,
       "palette": {
         "name": "lime-green",
@@ -88,7 +78,7 @@
         "accent": "#84cc16"
       }
     },
-    "НГУ": {
+    "ngu": {
       "paletteIndex": 19,
       "palette": {
         "name": "purple-indigo",
@@ -97,7 +87,7 @@
         "accent": "#9333ea"
       }
     },
-    "ТПУ": {
+    "hse_spb": {
       "paletteIndex": 2,
       "palette": {
         "name": "cyan-blue",
@@ -106,7 +96,7 @@
         "accent": "#7de2fc"
       }
     },
-    "МЭИ": {
+    "bauman": {
       "paletteIndex": 3,
       "palette": {
         "name": "orange-purple",
@@ -115,7 +105,7 @@
         "accent": "#ff9966"
       }
     },
-    "РУДН": {
+    "spbpu": {
       "paletteIndex": 4,
       "palette": {
         "name": "coral-cyan",
@@ -124,103 +114,13 @@
         "accent": "#ff5e62"
       }
     },
-    "КФУ": {
+    "ural_fed": {
       "paletteIndex": 7,
       "palette": {
         "name": "rose-pink",
         "gradient": "linear-gradient(120deg, rgba(244, 63, 94, 0.6), rgba(236, 72, 153, 0.6))",
         "glow": "rgba(240, 67, 123, 0.3)",
         "accent": "#f43f5e"
-      }
-    },
-    "ДВФУ": {
-      "paletteIndex": 21,
-      "palette": {
-        "name": "rose-red",
-        "gradient": "linear-gradient(120deg, rgba(244, 63, 94, 0.6), rgba(239, 68, 68, 0.6))",
-        "glow": "rgba(241, 65, 81, 0.3)",
-        "accent": "#f43f5e"
-      }
-    },
-    "РАНХиГС": {
-      "paletteIndex": 6,
-      "palette": {
-        "name": "emerald-teal",
-        "gradient": "linear-gradient(120deg, rgba(16, 185, 129, 0.6), rgba(20, 184, 166, 0.6))",
-        "glow": "rgba(18, 184, 147, 0.3)",
-        "accent": "#10b981"
-      }
-    },
-    "СПбГЭТУ": {
-      "paletteIndex": 5,
-      "palette": {
-        "name": "purple-violet",
-        "gradient": "linear-gradient(120deg, rgba(138, 43, 226, 0.6), rgba(74, 0, 224, 0.6))",
-        "glow": "rgba(106, 21, 225, 0.3)",
-        "accent": "#8a2be2"
-      }
-    },
-    "РГГУ": {
-      "paletteIndex": 10,
-      "palette": {
-        "name": "green-lime",
-        "gradient": "linear-gradient(120deg, rgba(34, 197, 94, 0.6), rgba(132, 204, 22, 0.6))",
-        "glow": "rgba(83, 200, 58, 0.3)",
-        "accent": "#22c55e"
-      }
-    },
-    "МИЭТ": {
-      "paletteIndex": 23,
-      "palette": {
-        "name": "yellow-amber",
-        "gradient": "linear-gradient(120deg, rgba(234, 179, 8, 0.6), rgba(245, 158, 11, 0.6))",
-        "glow": "rgba(239, 168, 9, 0.3)",
-        "accent": "#eab308"
-      }
-    },
-    "ПНИПУ": {
-      "paletteIndex": 14,
-      "palette": {
-        "name": "slate-gray",
-        "gradient": "linear-gradient(120deg, rgba(71, 85, 105, 0.6), rgba(100, 116, 139, 0.6))",
-        "glow": "rgba(85, 100, 122, 0.3)",
-        "accent": "#475569"
-      }
-    },
-    "НИУ МИЭТ": {
-      "paletteIndex": 12,
-      "palette": {
-        "name": "violet-purple",
-        "gradient": "linear-gradient(120deg, rgba(139, 92, 246, 0.6), rgba(168, 85, 247, 0.6))",
-        "glow": "rgba(153, 88, 246, 0.3)",
-        "accent": "#8b5cf6"
-      }
-    },
-    "СФУ": {
-      "paletteIndex": 18,
-      "palette": {
-        "name": "orange-red",
-        "gradient": "linear-gradient(120deg, rgba(249, 115, 22, 0.6), rgba(239, 68, 68, 0.6))",
-        "glow": "rgba(244, 91, 45, 0.3)",
-        "accent": "#f97316"
-      }
-    },
-    "ТюмГУ": {
-      "paletteIndex": 17,
-      "palette": {
-        "name": "emerald-green",
-        "gradient": "linear-gradient(120deg, rgba(16, 185, 129, 0.6), rgba(34, 197, 94, 0.6))",
-        "glow": "rgba(25, 191, 111, 0.3)",
-        "accent": "#10b981"
-      }
-    },
-    "НИЯУ МИФИ": {
-      "paletteIndex": 15,
-      "palette": {
-        "name": "fuchsia-magenta",
-        "gradient": "linear-gradient(120deg, rgba(217, 70, 239, 0.6), rgba(236, 72, 153, 0.6))",
-        "glow": "rgba(226, 71, 196, 0.3)",
-        "accent": "#d946ef"
       }
     }
   }

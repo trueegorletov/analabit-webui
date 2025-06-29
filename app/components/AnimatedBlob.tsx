@@ -200,6 +200,7 @@ export default function AnimatedBlob() {
     <svg
       viewBox="0 0 500 500"
       className="block mx-auto max-w-[600px] max-h-[220px] w-full h-full"
+      style={{ width: '100%', height: '100%', transform: 'rotate(-10deg)', transition: 'transform 0.5s ease' }}
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>

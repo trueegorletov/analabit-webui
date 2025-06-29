@@ -1,187 +1,14 @@
 'use client';
-import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
+import { useEffect, useMemo, Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { gsap } from 'gsap';
 import dynamic from 'next/dynamic';
 import AnimatedBlob from './components/AnimatedBlob';
-import { flashThenIdle, type Palette } from './utils/glowHelpers';
+import { type Palette } from './utils/glowHelpers';
 import { useUniversityColors } from '../hooks/useUniversityColors';
-
-interface Direction {
-  name: string;
-  score: number;
-  rank: string;
-  range: string;
-}
-
-interface University {
-  name: string;
-  directions: Direction[];
-}
-
-const universities: University[] = [
-  {
-    name: 'МФТИ',
-    directions: [
-      { name: 'Математика', score: 283, rank: '#12', range: '283..271' },
-      {
-        name: 'Прикладная математика и информатика',
-        score: 272,
-        rank: '#73',
-        range: '272..259',
-      },
-      { name: 'Геология', score: 301, rank: '#127', range: '301..290' },
-      { name: 'Науки о данных', score: 290, rank: '#34', range: '290..280' },
-      { name: 'История', score: 265, rank: '#54', range: '265..250' },
-      { name: 'Физика', score: 275, rank: '#23', range: '275..260' },
-    ],
-  },
-  {
-    name: 'МГУ',
-    directions: [
-      { name: 'История', score: 265, rank: '#54', range: '265..250' },
-      { name: 'Филология', score: 280, rank: '#60', range: '280..270' },
-      { name: 'Политология', score: 258, rank: '#45', range: '258..245' },
-      { name: 'Журналистика', score: 290, rank: '#33', range: '290..275' },
-      { name: 'Экономика', score: 275, rank: '#67', range: '275..265' },
-      {
-        name: 'Международные отношения',
-        score: 295,
-        rank: '#28',
-        range: '295..285',
-      },
-    ],
-  },
-  {
-    name: 'СПбГУ',
-    directions: [
-      {
-        name: 'Программная инженерия',
-        score: 285,
-        rank: '#42',
-        range: '285..270',
-      },
-      { name: 'Биология', score: 260, rank: '#78', range: '260..245' },
-      { name: 'Химия', score: 268, rank: '#55', range: '268..255' },
-      { name: 'Физика', score: 277, rank: '#39', range: '277..265' },
-    ],
-  },
-  {
-    name: 'ВШЭ',
-    directions: [
-      {
-        name: 'Бизнес-информатика',
-        score: 295,
-        rank: '#25',
-        range: '295..280',
-      },
-      { name: 'Менеджмент', score: 270, rank: '#68', range: '270..255' },
-      {
-        name: 'Прикладная математика',
-        score: 288,
-        rank: '#31',
-        range: '288..275',
-      },
-      { name: 'Дизайн', score: 255, rank: '#82', range: '255..240' },
-    ],
-  },
-];
-
-
-
-const UniversityBlock = ({
-  university,
-  palette,
-}: {
-  university: University;
-  palette: Palette;
-}) => {
-  const [expanded, setExpanded] = useState(false);
-  const blockRef = useRef<HTMLDivElement>(null);
-  // Persist glow timeline across renders so we can reliably kill it
-  const glowTl = useRef<gsap.core.Timeline | null>(null);
-
-  const handleToggle = () => {
-    setExpanded((prev) => !prev);
-  };
-
-  // Handle glow logic on expand/collapse
-  useEffect(() => {
-    const el = blockRef.current;
-    if (!el) return;
-
-    if (expanded) {
-      // Start combined flash → idle timeline
-      glowTl.current?.kill();
-      glowTl.current = flashThenIdle(el, palette);
-      return () => {
-        // Cleanup when dependencies change (palette switch)
-        glowTl.current?.kill();
-      };
-    }
-
-    // collapsed — kill tweens and reset styles
-    gsap.killTweensOf(el, 'boxShadow');
-    el.style.boxShadow = 'none';
-    glowTl.current?.kill();
-    return () => {
-      // Ensure any in-progress timeline is killed on unmount
-      glowTl.current?.kill();
-    };
-  }, [expanded, palette]);
-
-  return (
-    <div
-      ref={blockRef}
-      className="university-block"
-      data-expanded={expanded}
-      onClick={handleToggle}
-    >
-      <div className="block-header">
-        <h3>{university.name}</h3>
-        <button
-          className={`toggle-btn ${expanded ? 'expanded' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggle();
-          }}
-        >
-          <svg
-            className="arrow-icon"
-            viewBox="0 0 12 8"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M1.5 1.5L6 6.5L10.5 1.5"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-      {expanded && (
-        <table className="directions-table">
-          <tbody>
-            {university.directions.map((dir: Direction, index: number) => (
-              <tr key={index}>
-                <td className="dir-name">
-                  <a href="#" title={dir.name}>
-                    {dir.name}
-                  </a>
-                </td>
-                <td className="score">{dir.score}</td>
-                <td className="rank">{dir.rank}</td>
-                <td className="range">{dir.range}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-};
+import { useUniversitiesData } from '../hooks/useUniversitiesData';
+import { UniversityBlock } from './components/UniversityBlock';
+import { CriticalLoadingScreen, CriticalErrorScreen } from './components/LoadingComponents';
 
 // Dynamically import the 3D volumetric blob so it only executes on the client
 const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
@@ -198,31 +25,93 @@ function Animation() {
 }
 
 export default function Home() {
-  // Use the new university colors system
+  // Use the universities data hook
+  const {
+    universities,
+    universitiesLoading,
+    universitiesError,
+    retryCount,
+    directionsCache,
+    fetchUniversityDirections,
+    refreshUniversities,
+    scrollToUniversity,
+  } = useUniversitiesData();
+
+  // Use the university colors system
   const { getUniversityColor } = useUniversityColors();
   
-  // Create legacy compatibility mapping for existing code
+  // Create palettes mapping for universities using codes
   const universityPalettes = useMemo(() => {
     const mapping: { [key: string]: Palette } = {};
-    const universityNames = universities.map((uni) => uni.name);
-    universityNames.forEach((name) => {
-      const color = getUniversityColor(name);
+    universities.forEach((university) => {
+      const color = getUniversityColor(university.code); // Use code for color mapping
       if (color) {
-        mapping[name] = {
+        mapping[university.code] = {
           grad: color.gradient,
           glow: color.glow,
+        };
+      } else {
+        // Fallback palette
+        mapping[university.code] = {
+          grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))',
+          glow: 'rgba(255, 120, 99, 0.3)',
         };
       }
     });
     return mapping;
-  }, [getUniversityColor]);
+  }, [universities, getUniversityColor]);
+
+  const [pendingScroll, setPendingScroll] = useState<string | null>(null);
+
+  // modified handleTagClick
+  const handleTagClick = (universityCode: string) => {
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${universityCode}`);
+    }
+    const ok = scrollToUniversity(universityCode);
+    if (!ok) {
+      setPendingScroll(universityCode);
+    }
+  };
 
   useEffect(() => {
+    if (!pendingScroll) return;
+    const success = scrollToUniversity(pendingScroll);
+    if (success) {
+      setPendingScroll(null);
+    }
+  }, [pendingScroll, universities]);
+
+  // Scroll to university block if URL already contains a hash (direct access)
+  useEffect(() => {
+    if (universities.length === 0) return;
+
+    const handleHashChange = () => {
+      const code = window.location.hash.replace('#', '');
+      if (code) {
+        scrollToUniversity(code);
+      }
+    };
+
+    // On initial load
+    handleHashChange();
+
+    // Listen for subsequent hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [universities, scrollToUniversity]);
+
+  // Handle tag animations and university block styling
+  useEffect(() => {
+    if (universities.length === 0) return;
+
     const tags = gsap.utils.toArray<HTMLElement>('.tag');
     tags.forEach((tag) => {
-      const universityName = tag.textContent?.trim();
-      const palette = universityName && universityPalettes[universityName]
-        ? universityPalettes[universityName]
+      const universityCode = tag.dataset.universityCode;
+      const palette = universityCode && universityPalettes[universityCode]
+        ? universityPalettes[universityCode]
         : { grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))', glow: 'rgba(255, 120, 99, 0.3)' };
 
       gsap.set(tag, {
@@ -247,12 +136,11 @@ export default function Home() {
     });
 
     // Apply gradients to university blocks
-    const universityBlocks =
-      gsap.utils.toArray<HTMLElement>('.university-block');
+    const universityBlocks = gsap.utils.toArray<HTMLElement>('.university-block');
     universityBlocks.forEach((block) => {
-      const universityName = block.querySelector('h3')?.textContent?.trim();
-      const palette = universityName && universityPalettes[universityName]
-        ? universityPalettes[universityName]
+      const universityCode = block.dataset.universityCode;
+      const palette = universityCode && universityPalettes[universityCode]
+        ? universityPalettes[universityCode]
         : { grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))', glow: 'rgba(255, 120, 99, 0.3)' };
 
       gsap.set(block, {
@@ -268,6 +156,7 @@ export default function Home() {
       });
     });
 
+    // Tag floating animations
     tags.forEach((tag, index) => {
       const amplitude = gsap.utils.random(3, 8);
       const duration = gsap.utils.random(4, 7);
@@ -282,7 +171,7 @@ export default function Home() {
       });
     });
 
-    // Simple hover scaling using GSAP so it doesn't conflict with inline transforms
+    // Simple hover scaling using GSAP
     const removeListeners: Array<() => void> = [];
     tags.forEach((tag) => {
       const onEnter = () =>
@@ -300,35 +189,89 @@ export default function Home() {
     return () => {
       removeListeners.forEach((fn) => fn());
     };
-  }, [universityPalettes]);
+  }, [universities, universityPalettes]);
+
+  // Debug: Log universities data
+  useEffect(() => {
+    if (universities.length > 0) {
+      console.log('[DEBUG] Universities loaded:', universities.map(u => ({ name: u.name, code: u.code })));
+    }
+  }, [universities]);
+
+  // Debug: Add global click listener
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      console.log('[DEBUG] Global click detected on:', target.tagName, target.className);
+      if (target.classList.contains('tag')) {
+        console.log('[DEBUG] Tag clicked globally! Code:', target.dataset.universityCode);
+      }
+    };
+    
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, []);
+
+  // Show critical loading screen while universities are loading
+  if (universitiesLoading) {
+    return (
+      <CriticalLoadingScreen 
+        message="Загружаем университеты..."
+        subMessage={retryCount > 1 ? `Попытка ${retryCount}` : 'Подождите, это займет несколько секунд'}
+      />
+    );
+  }
+
+  // Show critical error screen if universities failed to load
+  if (universitiesError) {
+    return (
+      <CriticalErrorScreen 
+        error={universitiesError}
+        onRetry={refreshUniversities}
+        retryCount={retryCount}
+      />
+    );
+  }
+
+  // Don't show main content if no universities loaded
+  if (universities.length === 0) {
+    return (
+      <CriticalErrorScreen 
+        error="Университеты не найдены"
+        onRetry={refreshUniversities}
+        retryCount={retryCount}
+      />
+    );
+  }
+
+  const renderUniversityBlocks = () => {
+    return universities.map((university) => (
+      <UniversityBlock
+        key={university.code}
+        university={university}
+        palette={universityPalettes[university.code]}
+        directionsState={directionsCache[university.code]}
+        onFetchDirections={fetchUniversityDirections}
+      />
+    ));
+  };
 
   return (
     <main>
       {/* Hero section with glass container styling */}
       <div className="dashboard-container">
+        {/* Dynamic tag buttons based on loaded universities */}
         <div className="tags">
-          <div className="tag">МФТИ</div>
-          <div className="tag">МГУ</div>
-          <div className="tag">СПбГУ</div>
-          <div className="tag">ВШЭ</div>
-          <div className="tag">ИТМО</div>
-          <div className="tag">ТГУ</div>
-          <div className="tag">ЮФУ</div>
-          <div className="tag">НГУ</div>
-          <div className="tag">ТПУ</div>
-          <div className="tag">МЭИ</div>
-          <div className="tag">РУДН</div>
-          <div className="tag">КФУ</div>
-          <div className="tag">ДВФУ</div>
-          <div className="tag">РАНХиГС</div>
-          <div className="tag">СПбГЭТУ</div>
-          <div className="tag">РГГУ</div>
-          <div className="tag">МИЭТ</div>
-          <div className="tag">ПНИПУ</div>
-          <div className="tag">НИУ МИЭТ</div>
-          <div className="tag">СФУ</div>
-          <div className="tag">ТюмГУ</div>
-          <div className="tag">НИЯУ МИФИ</div>
+          {universities.map((university) => (
+            <div 
+              key={university.code} 
+              className="tag"
+              data-university-code={university.code}
+              onClick={() => handleTagClick(university.code)}
+            >
+              {university.name}
+            </div>
+          ))}
         </div>
         <div className="wave-container">
           <Suspense fallback={<div>Loading...</div>}>
@@ -348,14 +291,10 @@ export default function Home() {
       {/* Results section with glass container styling */}
       <div className="dashboard-container mt-8">
         <h2 className="results-title">Результаты по направлениям</h2>
-        {universities.map((uni, index) => (
-          <UniversityBlock
-            key={index}
-            university={uni}
-            palette={universityPalettes[uni.name]}
-          />
-        ))}
+        {renderUniversityBlocks()}
       </div>
+
+
     </main>
   );
 }

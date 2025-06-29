@@ -3,11 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SiGithub, SiTelegram, SiBoosty } from 'react-icons/si';
-import { Poppins } from 'next/font/google';
 import CustomIcon from './CustomIcon';
-
-// Fancy font just for the brand logo
-const brandFont = Poppins({ weight: '400', subsets: ['latin'] });
 
 // Shared IconButton component as suggested in the plan
 const IconButton = ({
@@ -55,7 +51,7 @@ function Header() {
       >
         <Link
           href="/"
-          className={`${brandFont.className} text-2xl md:text-3xl font-semibold tracking-tight text-white no-underline visited:text-white hover:no-underline focus-visible:no-underline flex items-center gap-2`}
+          className="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-white no-underline visited:text-white hover:no-underline focus-visible:no-underline flex items-center gap-2"
         >
           <CustomIcon className="w-7 h-7 md:w-8 md:h-8 text-white" />
           analabit
