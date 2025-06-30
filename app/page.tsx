@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, Suspense, useState } from 'react';
+import { useEffect, useMemo, Suspense, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { gsap } from 'gsap';
 import dynamic from 'next/dynamic';
@@ -167,6 +167,8 @@ export default function Home() {
   const TOOLTIP_VISIBLE_DURATION = 5500; // ms for tooltip
   const [blobError, setBlobError] = useState(false);
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   const handleCheckStatus = () => {
     if (!/^\d+$/.test(studentIdInput.trim())) {
       // Trigger input error UI
@@ -179,6 +181,14 @@ export default function Home() {
       }, ERROR_DURATION);
       // Hide tooltip after new duration
       setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
+      // animate button shake
+      if (buttonRef.current) {
+        gsap.fromTo(
+          buttonRef.current,
+          { x: -8 },
+          { x: 8, duration: 0.11, ease: 'power2.inOut', yoyo: true, repeat: 7, onComplete: () => { gsap.set(buttonRef.current, { x: 0 }); } },
+        );
+      }
       return;
     }
 
@@ -474,6 +484,7 @@ export default function Home() {
             </div>
           </div>
           <button
+            ref={buttonRef}
             onClick={handleCheckStatus}
             disabled={loadingStatus}
             className={(loadingStatus ? 'opacity-60 cursor-wait ' : '') + 'inline-flex items-center justify-center px-6 py-2 rounded-md bg-violet-600 hover:bg-violet-700 transition-colors'}

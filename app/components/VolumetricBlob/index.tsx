@@ -35,9 +35,18 @@ const PULSE_CONFIG_LOAD = {
 } as const;
 
 const PULSE_CONFIG_ERROR = {
-  minScale: 0.95, // more gentle
-  duration: 0.6,
+  minScale: 0.9, // more gentle
+  duration: 0.5,
   easing: 'sine.inOut',
+} as const;
+
+// Error impulse config (separate from loading)
+const ERROR_IMPULSE_CONFIG = {
+  impulseLoopsMin: 1,               // min full rotations on error
+  impulseLoopsMax: 2,               // max full rotations on error
+  impulseDurationPerLoop: 2.5,      // seconds per rotation
+  impulseEasing: 'expo.out',        // easing for impulse decay
+  delayBeforeImpulse: 0.6,          // start spin after palette nearly done
 } as const;
 
 // Minimal subset of OrbitControls API we use
@@ -64,6 +73,9 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
 
   // Store previous loading state to detect rising edge
   const prevLoading = useRef<boolean>(false);
+
+  // Store previous error state to detect rising edge
+  const prevError = useRef<boolean>(false);
 
   // Pulse & animation speed adjustment based on props.loading
   useEffect(() => {
@@ -129,6 +141,45 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
       },
     });
   }, [loading]);
+
+  // Impulse spin on error start (rotate camera via OrbitControls, not the blob)
+  useEffect(() => {
+    if (!error || prevError.current === error) {
+      prevError.current = error;
+      return;
+    }
+    prevError.current = error;
+
+    if (!controlsRef.current) return;
+
+    const controls = controlsRef.current;
+
+    const dir = Math.random() < 0.5 ? -1 : 1; // random direction
+    const loops = Math.floor(Math.random() * (ERROR_IMPULSE_CONFIG.impulseLoopsMax - ERROR_IMPULSE_CONFIG.impulseLoopsMin + 1)) + ERROR_IMPULSE_CONFIG.impulseLoopsMin;
+    const magnitude = dir * (Math.PI * 2 * loops);
+
+    const startAngle = controls.getAzimuthalAngle();
+
+    const targetObj = { angle: startAngle };
+
+    // Schedule rotation after delay to sync with palette fade
+    const delayed = gsap.delayedCall(ERROR_IMPULSE_CONFIG.delayBeforeImpulse, () => {
+      gsap.to(targetObj, {
+        angle: startAngle + magnitude,
+        duration: loops * ERROR_IMPULSE_CONFIG.impulseDurationPerLoop,
+        ease: ERROR_IMPULSE_CONFIG.impulseEasing,
+        onUpdate: function () {
+          controls.setAzimuthalAngle(targetObj.angle);
+          controls.update();
+        },
+      });
+    });
+
+    // Cleanup: kill delayed call if component unmounts / deps change
+    return () => {
+      delayed.kill();
+    };
+  }, [error]);
 
   // Memoize lights to prevent recreation
   const lights = useMemo(() => (
