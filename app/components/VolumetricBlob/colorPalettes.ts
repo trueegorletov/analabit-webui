@@ -13,4 +13,19 @@ export const colorPalettes: ColorPalette[] = [
   { a: '#373B44', b: '#4286f4', c: '#ffffff' },
   { a: '#ff0000', b: '#00ff00', c: '#0000ff' },
   { a: '#2c3e50', b: '#bdc3c7', c: '#ffffff' },
-]; 
+];
+
+export const errorPalettes: ColorPalette[] = [
+  { a: '#ff2d55', b: '#ff5e5e', c: '#ff8b8b' },
+  { a: '#ff1744', b: '#ff616f', c: '#ff8a80' },
+  { a: '#ff5252', b: '#ff867f', c: '#ffb4ae' },
+];
+
+/**
+ * Get color palettes based on context
+ * @param options Configuration for palette selection
+ * @returns Array of color palettes
+ */
+export const getPalettes = (options: { error?: boolean } = {}): ColorPalette[] => {
+  return options.error ? errorPalettes : colorPalettes;
+}; 

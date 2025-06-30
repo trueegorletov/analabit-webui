@@ -4,14 +4,10 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { useFrame, useThree, type RootState } from '@react-three/fiber';
 import * as THREE from 'three';
 import { vertexShader, fragmentShader } from './shaders';
+import { errorPalettes } from './colorPalettes';
+import { getAdaptiveDetail } from './utils';
 import type { InteractiveBlobProps } from './types';
 import { gsap } from 'gsap';
-
-const ERROR_PALETTES = [
-  { a: '#ff2d55', b: '#ff5e5e', c: '#ff8b8b' },
-  { a: '#ff1744', b: '#ff616f', c: '#ff8a80' },
-  { a: '#ff5252', b: '#ff867f', c: '#ffb4ae' },
-] as const;
 
 export const InteractiveBlob = ({
   speed,
@@ -30,21 +26,25 @@ export const InteractiveBlob = ({
   const transitionProgress = useRef(0);
   const errorPaletteIndex = useRef(0);
   const errorTransitionProgress = useRef(0);
-  const errorMix = useRef({ value: 0 });
 
-  // Performance optimization: Adaptive detail based on viewport size
+  // Performance optimization: Adaptive detail based on viewport size using shared utility
   const detail = useMemo(() => {
-    const isMobile = viewport.width < 6; // Rough mobile detection in r3f units
-    
-    if (isMobile) return 24;      // Mobile: ~10k vertices
-    return 32;                    // Desktop: ~41k vertices (down from 655k!)
-  }, [viewport.width]);
+    const { detail } = getAdaptiveDetail(viewport);
+    return detail;
+  }, [viewport]);
 
   // Memoize geometry to prevent recreation
   const geometry = useMemo(
     () => new THREE.IcosahedronGeometry(2, detail),
     [detail],
   );
+
+  // Cleanup geometry on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      geometry.dispose();
+    };
+  }, [geometry]);
 
   // Pre-convert color palettes to THREE.Color objects and cache them
   const colorPalettes = useMemo(
@@ -60,7 +60,7 @@ export const InteractiveBlob = ({
   // Memoize error color palettes
   const errorColorPalettes = useMemo(
     () =>
-      ERROR_PALETTES.map((p) => ({
+      errorPalettes.map((p) => ({
         a: new THREE.Color(p.a),
         b: new THREE.Color(p.b),
         c: new THREE.Color(p.c),
@@ -96,25 +96,33 @@ export const InteractiveBlob = ({
   const tempErrorColorB = useMemo(() => new THREE.Color(), []);
   const tempErrorColorC = useMemo(() => new THREE.Color(), []);
 
-  // Performance: Frame rate control
-  const frameCount = useRef(0);
+  // Performance: Time-based throttling for ~30fps independent of display refresh rate
+  const accumulatedTime = useRef(0);
   const lastMouseUpdate = useRef(0);
+  const TARGET_FPS = 30; // Target 30fps for non-critical updates
+  const UPDATE_INTERVAL = 1 / TARGET_FPS; // ~33ms
 
   useEffect(() => {
-    gsap.to(errorMix.current, {
-      value: error ? 1 : 0,
-      duration: 1.9, // Quick but smooth
-      ease: 'power2.inOut',
-    });
+    // Animate shader uniform directly instead of using indirect reference
+    if (materialRef.current) {
+      gsap.to(materialRef.current.uniforms.u_error_mix_factor, {
+        value: error ? 1 : 0,
+        duration: 1.9, // Quick but smooth
+        ease: 'power2.inOut',
+      });
+    }
   }, [error]);
 
   useFrame((state: RootState, delta: number) => {
     if (!materialRef.current) return;
 
-    frameCount.current += 1;
+    accumulatedTime.current += delta;
     
-    // Performance: Skip every other frame for non-critical updates (30fps effective rate)
-    const shouldUpdate = frameCount.current % 2 === 0;
+    // Performance: Time-based throttling for ~30fps independent of display refresh rate
+    const shouldUpdate = accumulatedTime.current >= UPDATE_INTERVAL;
+    if (shouldUpdate) {
+      accumulatedTime.current = 0;
+    }
 
     // Always update time for smooth animation
     materialRef.current.uniforms.u_time.value = state.clock.getElapsedTime();
@@ -141,8 +149,7 @@ export const InteractiveBlob = ({
       errorPaletteIndex.current = 0;
     }
 
-    // Always update the error mix factor uniform
-    uniforms.u_error_mix_factor.value = errorMix.current.value;
+    // Error mix factor is now animated directly by GSAP, no manual update needed
 
     // Normal color transition logic - only update when necessary
     if (shouldUpdate) {
