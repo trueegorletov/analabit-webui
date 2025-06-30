@@ -55,6 +55,7 @@ export const vertexShader = `
   uniform float u_frequency;
   uniform float u_speed;
   uniform vec2 u_mouse;
+  uniform float u_loading;
 
   varying vec3 v_normal;
   varying vec3 v_position;
@@ -82,6 +83,7 @@ export const fragmentShader = `
   uniform vec3 u_colorA;
   uniform vec3 u_colorB;
   uniform vec3 u_colorC;
+  uniform float u_loading;
 
   varying vec3 v_normal;
   varying vec3 v_position;
@@ -101,6 +103,10 @@ export const fragmentShader = `
     color = mix(color, u_colorB, time_factor * 0.3);
 
     color = mix(color, u_colorC, fresnel);
+
+    // Loading shimmer – subtle brightness pulsing when u_loading > 0
+    float shimmer = (sin(u_time * 6.0) * 0.5 + 0.5) * 0.2 * u_loading;
+    color += shimmer;
 
     gl_FragColor = vec4(color, 1.0);
   }

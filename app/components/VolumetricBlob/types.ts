@@ -10,11 +10,17 @@ export interface ColorPalette {
   c: string;
 }
 
-export interface InteractiveBlobProps extends BlobShapeParams {
+export interface InteractiveBlobProps {
+  speed: number;
+  frequency: number;
+  amplitude: number;
   palettes: ColorPalette[];
   transitionDuration?: number;
+  loading?: boolean;
 }
 
 export interface VolumetricBlobProps {
   showPerformanceDebug?: boolean;
+  /** Whether parent is in loading state – used to accelerate colors & trigger pulse */
+  loading?: boolean;
 } 

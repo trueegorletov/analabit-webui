@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerformanceMonitor } from '@react-three/drei';
 import { InteractiveBlob } from './InteractiveBlob';
 import { PerformanceDebug } from './PerformanceDebug';
 import { colorPalettes } from './colorPalettes';
 import { generateRandomParams, getNextKey } from './utils';
+import { gsap } from 'gsap';
+import type { VolumetricBlobProps } from './types';
 
 // Adaptive device pixel ratio function
 const getAdaptiveDPR = () => {
@@ -15,16 +17,112 @@ const getAdaptiveDPR = () => {
   return Math.min(maxDPR, typeof window !== 'undefined' ? window.devicePixelRatio : 1);
 };
 
-interface VolumetricBlobProps {
-  showPerformanceDebug?: boolean;
+// Centralized tuning parameters for rotation/impulse
+const ROTATION_CONFIG = {
+  baseAutoRotateSpeed: 0.17,           // default when not loading
+  loadingAutoRotateSpeed: 0.55,      // noticeably faster during loading
+  impulseLoopsMin: 3,               // min full rotations
+  impulseLoopsMax: 5,               // max full rotations
+  impulseDurationPerLoop: 1.8,      // seconds per rotation (slower initial speed)
+  impulseEasing: 'expo.out',        // easing for impulse decay
+} as const;
+
+// Pulse (scale) config
+const PULSE_CONFIG = {
+  minScale: 0.8,           // lower -> bigger amplitude
+  duration: 0.8,
+  easing: 'sine.inOut',
+} as const;
+
+// Minimal subset of OrbitControls API we use
+interface SimpleOrbitControls {
+  getAzimuthalAngle: () => number;
+  setAzimuthalAngle: (angle: number) => void;
+  update: () => void;
+  autoRotate: boolean;
+  autoRotateSpeed: number;
 }
 
-export default function VolumetricBlob({ showPerformanceDebug = false }: VolumetricBlobProps) {
+export default function VolumetricBlob({ showPerformanceDebug = false, loading = false }: VolumetricBlobProps) {
   const [blobParams] = useState(() => ({ key: getNextKey(), ...generateRandomParams() }));
   const [dpr, setDpr] = useState(getAdaptiveDPR);
   const [frameloop, setFrameloop] = useState<'always' | 'never'>('always');
 
   const { key, ...shapeParams } = blobParams;
+
+  // Ref to the container for pulse animation
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Ref to OrbitControls for camera impulse rotation
+  const controlsRef = useRef<SimpleOrbitControls | null>(null);
+
+  // Store previous loading state to detect rising edge
+  const prevLoading = useRef<boolean>(false);
+
+  // Pulse & animation speed adjustment based on props.loading
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (loading) {
+      // Start pulsating & accelerate colors by regenerating params with faster speed
+      gsap.to(containerRef.current, {
+        scale: PULSE_CONFIG.minScale,
+        duration: PULSE_CONFIG.duration,
+        yoyo: true,
+        repeat: -1,
+        ease: PULSE_CONFIG.easing,
+      });
+    } else {
+      // Stop pulse, reset scale
+      gsap.killTweensOf(containerRef.current);
+      gsap.to(containerRef.current, { scale: 1, duration: 0.3, ease: 'power1.out' });
+    }
+    return () => {
+      gsap.killTweensOf(containerRef.current);
+    };
+  }, [loading]);
+
+  // Add effect to toggle autoRotate according to loading state
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    if (loading) {
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = ROTATION_CONFIG.loadingAutoRotateSpeed;
+    } else {
+      controls.autoRotate = false;
+      controls.autoRotateSpeed = ROTATION_CONFIG.baseAutoRotateSpeed;
+    }
+  }, [loading]);
+
+  // Impulse spin on loading start (rotate camera via OrbitControls, not the blob)
+  useEffect(() => {
+    if (!loading || prevLoading.current === loading) {
+      prevLoading.current = loading;
+      return;
+    }
+    prevLoading.current = loading;
+
+    if (!controlsRef.current) return;
+
+    const controls = controlsRef.current;
+
+    const dir = Math.random() < 0.5 ? -1 : 1; // left/right
+    const loops = Math.floor(Math.random() * (ROTATION_CONFIG.impulseLoopsMax - ROTATION_CONFIG.impulseLoopsMin + 1)) + ROTATION_CONFIG.impulseLoopsMin;
+    const magnitude = dir * (Math.PI * 2 * loops);
+
+    const startAngle = controls.getAzimuthalAngle();
+
+    gsap.to({ angle: startAngle }, {
+      angle: startAngle + magnitude,
+      duration: loops * ROTATION_CONFIG.impulseDurationPerLoop,
+      ease: ROTATION_CONFIG.impulseEasing,
+      onUpdate: function () {
+        controls.setAzimuthalAngle(this.targets()[0].angle);
+        controls.update();
+      },
+    });
+  }, [loading]);
 
   // Memoize lights to prevent recreation
   const lights = useMemo(() => (
@@ -46,7 +144,7 @@ export default function VolumetricBlob({ showPerformanceDebug = false }: Volumet
   }, []);
 
   return (
-    <div className="w-full h-full flex items-center justify-center relative overflow-visible" style={{ zIndex: -1 }}>
+    <div ref={containerRef} className="w-full h-full flex items-center justify-center relative overflow-visible" style={{ zIndex: -1 }}>
       <Canvas 
         camera={{ position: [0, 0, 8], fov: 45 }} 
         key={key}
@@ -84,13 +182,14 @@ export default function VolumetricBlob({ showPerformanceDebug = false }: Volumet
           }}
         >
           {lights}
-          <InteractiveBlob key={key} {...shapeParams} palettes={colorPalettes} />
+          <InteractiveBlob key={key} {...shapeParams} palettes={colorPalettes} transitionDuration={loading ? 2 : 5} loading={loading} />
           <OrbitControls 
             enableZoom={false} 
-            enablePan={false} 
-            autoRotate 
-            autoRotateSpeed={0.2} // Reduced from 0.5 for better performance
-            makeDefault // Performance: make this the default controls to avoid conflicts
+            dampingFactor={0.1} 
+            enablePan={false}
+            ref={(instance) => {
+              controlsRef.current = instance as unknown as SimpleOrbitControls;
+            }}
           />
           <PerformanceDebug enabled={showPerformanceDebug} />
         </PerformanceMonitor>

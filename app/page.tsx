@@ -17,13 +17,13 @@ const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
   ssr: false,
 });
 
-function Animation() {
+function Animation({ loading }: { loading: boolean }) {
   const searchParams = useSearchParams();
   const showAnimatedBlob = searchParams.get('animation') === 'blob';
 
   // If the query param "animation=blob" is present, render the original 2D AnimatedBlob.
   // Otherwise, fall back to the new 3D VolumetricBlob.
-  return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob />;
+  return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob loading={loading} />;
 }
 
 // ------------------ Mock admission generator ------------------
@@ -160,15 +160,24 @@ export default function Home() {
   const [studentIdInput, setStudentIdInput] = useState('');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<AdmissionMock | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
 
   const handleCheckStatus = () => {
-    if (/^\d+$/.test(studentIdInput.trim())) {
+    if (!/^\d+$/.test(studentIdInput.trim())) {
+      alert('Пожалуйста, введите числовой ID');
+      return;
+    }
+
+    // Simulate network delay & loading effect
+    setLoadingStatus(true);
+
+    const delay = 3000 + Math.random() * 1000; // 3-4s artificial delay
+    setTimeout(() => {
       const data = generateAdmissionData();
       setPopupData(data);
       setIsPopupOpen(true);
-    } else {
-      alert('Пожалуйста, введите числовой ID');
-    }
+      setLoadingStatus(false);
+    }, delay);
   };
 
   const closePopup = () => setIsPopupOpen(false);
@@ -420,7 +429,7 @@ export default function Home() {
         </div>
         <div className="wave-container">
           <Suspense fallback={<div>Loading...</div>}>
-            <Animation />
+            <Animation loading={loadingStatus} />
           </Suspense>
         </div>
         <div className="title">Проверка статуса поступления</div>
@@ -434,7 +443,20 @@ export default function Home() {
             value={studentIdInput}
             onChange={(e) => setStudentIdInput(e.target.value)}
           />
-          <button onClick={handleCheckStatus}>Проверить</button>
+          <button
+            onClick={handleCheckStatus}
+            disabled={loadingStatus}
+            className={(loadingStatus ? 'opacity-60 cursor-wait ' : '') + 'inline-flex items-center justify-center px-6 py-2 rounded-md bg-violet-600 hover:bg-violet-700 transition-colors'}
+          >
+            {loadingStatus ? (
+              <svg className="animate-spin h-5 w-5 text-white" style={{ animationDuration: '0.6s' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+            ) : (
+              'Проверить'
+            )}
+          </button>
         </div>
       </div>
 

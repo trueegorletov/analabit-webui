@@ -12,6 +12,7 @@ export const InteractiveBlob = ({
   amplitude,
   palettes,
   transitionDuration = 5,
+  loading = false,
 }: InteractiveBlobProps) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
@@ -56,6 +57,7 @@ export const InteractiveBlob = ({
       u_colorB: { value: colorPalettes[0].b.clone() },
       u_colorC: { value: colorPalettes[0].c.clone() },
       u_mouse: { value: new THREE.Vector2(0, 0) },
+      u_loading: { value: 0 },
     }),
     [amplitude, frequency, speed, colorPalettes],
   );
@@ -86,6 +88,13 @@ export const InteractiveBlob = ({
       materialRef.current.uniforms.u_mouse.value.lerp(state.mouse, 0.05);
       lastMouseUpdate.current = now;
     }
+
+    // Smoothly update loading uniform for shimmer effect
+    uniforms.u_loading.value = THREE.MathUtils.lerp(
+      uniforms.u_loading.value as number,
+      loading ? 1 : 0,
+      0.05,
+    );
 
     // Color transition logic - only update when necessary
     if (shouldUpdate) {
