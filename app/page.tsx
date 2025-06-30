@@ -163,15 +163,19 @@ export default function Home() {
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [inputError, setInputError] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const ERROR_DURATION = 5211; // ms for blob
+  const [tooltipText, setTooltipText] = useState('');
+  const ERROR_DURATION = 3511; // ms for blob
   const TOOLTIP_VISIBLE_DURATION = 5500; // ms for tooltip
   const [blobError, setBlobError] = useState(false);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleCheckStatus = () => {
-    if (!/^\d+$/.test(studentIdInput.trim())) {
-      // Trigger input error UI
+    const trimmedId = studentIdInput.trim();
+
+    if (!/^\d+$/.test(trimmedId)) {
+      // Trigger input format error UI
+      setTooltipText('Неверный формат ID');
       setInputError(true);
       setShowTooltip(true);
       // Trigger blob error for same duration
@@ -181,7 +185,7 @@ export default function Home() {
       }, ERROR_DURATION);
       // Hide tooltip after new duration
       setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
-      // animate button shake
+      // animate button shake (exclusive for format error)
       if (buttonRef.current) {
         gsap.fromTo(
           buttonRef.current,
@@ -197,6 +201,22 @@ export default function Home() {
 
     const delay = 3000 + Math.random() * 1000; // 3-4s artificial delay
     setTimeout(() => {
+      if (trimmedId === '1488') {
+        // Simulate "student not found" response
+        setTooltipText('Абитуриент не найден');
+        setInputError(true);
+        setShowTooltip(true);
+        // Trigger blob error animation
+        setBlobError(true);
+        setTimeout(() => {
+          setBlobError(false);
+        }, ERROR_DURATION);
+        // Hide tooltip after duration
+        setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
+        setLoadingStatus(false);
+        return;
+      }
+
       const data = generateAdmissionData();
       setPopupData(data);
       setIsPopupOpen(true);
@@ -224,7 +244,7 @@ export default function Home() {
     if (success) {
       setPendingScroll(null);
     }
-  }, [pendingScroll, universities]);
+  }, [pendingScroll, universities, scrollToUniversity]);
 
   // Scroll to university block if URL already contains a hash (direct access)
   useEffect(() => {
@@ -479,7 +499,7 @@ export default function Home() {
             />
             <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{opacity: showTooltip ? 1 : 0}}>
               <span className="whitespace-nowrap px-4 py-2 rounded-lg bg-red-600/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
-                Неверный формат ID
+                {tooltipText || 'Неверный формат ID'}
               </span>
             </div>
           </div>

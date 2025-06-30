@@ -1,5 +1,7 @@
+'use client';
 import React, { useState } from 'react';
 import { useUniversityColors } from '../../hooks/useUniversityColors';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProgramRow {
   priority: number;
@@ -77,6 +79,12 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
     return init;
   });
 
+  const [isVisible, setIsVisible] = useState(true);
+
+  const closePopup = () => {
+    setIsVisible(false);
+  };
+
   // Helper to trigger loading and regenerate data
   const handleTabClick = (code: string, newTab: string) => {
     // Ignore if this tab is already selected or loading is in progress
@@ -133,7 +141,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         data-university-code={code}
         onClick={(e) => {
           e.stopPropagation();
-          onClose?.();
+          closePopup();
         }}
         className="tag popup-tag"
         style={{
@@ -155,9 +163,21 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
     <p className="text-sm sm:text-base text-gray-400">Абитуриент ещё не подал оригинал аттестата</p>
   );
   return (
-    <>
-      <div
+    <AnimatePresence
+      mode="wait"
+      onExitComplete={() => {
+        /* notify parent after animation fully completes */
+        onClose?.();
+      }}
+    >
+      {isVisible && (
+      <motion.div
+        key="popup"
         className="popup-outer relative w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl overflow-hidden rounded-2xl backdrop-blur-lg bg-black/60 shadow-2xl ring-1 ring-white/10"
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         {/* decorative gradient border */}
         <span className="pointer-events-none absolute inset-0 -z-10 rounded-2xl border border-transparent before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-fuchsia-500/30 before:via-violet-500/10 before:to-indigo-500/30 before:opacity-40"></span>
@@ -287,7 +307,8 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           );
         })}
         </div> {/* end of scrollable wrapper */}
-      </div>
+      </motion.div>
+      )}
 
       {/* Scrollbar styling scoped to this component */}
       <style jsx>{`
@@ -314,7 +335,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           background: linear-gradient(180deg, #c084fc 0%, #8b5cf6 100%);
         }
       `}</style>
-    </>
+    </AnimatePresence>
   );
 };
 

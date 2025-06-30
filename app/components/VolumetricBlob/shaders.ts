@@ -123,7 +123,11 @@ export const fragmentShader = `
 
     // Loading shimmer – subtle brightness pulsing when u_loading > 0
     float shimmer = (sin(u_time * 6.0) * 0.5 + 0.5) * 0.2 * u_loading;
-    final_color += shimmer;
+    
+    // Error glow – similar white pulsing tied to error state
+    float errorGlow = (sin(u_time * 8.0 + v_position.y * 3.0) * 0.5 + 0.5) * 0.25 * u_error_mix_factor;
+
+    final_color += shimmer + errorGlow;
 
     gl_FragColor = vec4(final_color, 1.0);
   }

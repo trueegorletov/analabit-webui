@@ -40,15 +40,6 @@ const PULSE_CONFIG_ERROR = {
   easing: 'sine.inOut',
 } as const;
 
-// Error impulse config (separate from loading)
-const ERROR_IMPULSE_CONFIG = {
-  impulseLoopsMin: 1,               // min full rotations on error
-  impulseLoopsMax: 2,               // max full rotations on error
-  impulseDurationPerLoop: 2.5,      // seconds per rotation
-  impulseEasing: 'expo.out',        // easing for impulse decay
-  delayBeforeImpulse: 0.6,          // start spin after palette nearly done
-} as const;
-
 // Minimal subset of OrbitControls API we use
 interface SimpleOrbitControls {
   getAzimuthalAngle: () => number;
@@ -79,10 +70,11 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
 
   // Pulse & animation speed adjustment based on props.loading
   useEffect(() => {
-    if (!containerRef.current) return;
+    const el = containerRef.current;
+    if (!el) return;
     if (loading || error) {
       const config = loading ? PULSE_CONFIG_LOAD : PULSE_CONFIG_ERROR;
-      gsap.to(containerRef.current, {
+      gsap.to(el, {
         scale: config.minScale,
         duration: config.duration,
         yoyo: true,
@@ -91,11 +83,11 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
       });
     } else {
       // Stop pulse, reset scale
-      gsap.killTweensOf(containerRef.current);
-      gsap.to(containerRef.current, { scale: 1, duration: 0.3, ease: 'power1.out' });
+      gsap.killTweensOf(el);
+      gsap.to(el, { scale: 1, duration: 0.3, ease: 'power1.out' });
     }
     return () => {
-      gsap.killTweensOf(containerRef.current);
+      gsap.killTweensOf(el);
     };
   }, [loading, error]);
 
@@ -142,43 +134,12 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
     });
   }, [loading]);
 
-  // Impulse spin on error start (rotate camera via OrbitControls, not the blob)
+  // Impulse spin on error was removed to lighten GPU/CPU load; keep only pulse + color change
   useEffect(() => {
-    if (!error || prevError.current === error) {
+    // Track state transitions, but intentionally do nothing on error start
+    if (prevError.current !== error) {
       prevError.current = error;
-      return;
     }
-    prevError.current = error;
-
-    if (!controlsRef.current) return;
-
-    const controls = controlsRef.current;
-
-    const dir = Math.random() < 0.5 ? -1 : 1; // random direction
-    const loops = Math.floor(Math.random() * (ERROR_IMPULSE_CONFIG.impulseLoopsMax - ERROR_IMPULSE_CONFIG.impulseLoopsMin + 1)) + ERROR_IMPULSE_CONFIG.impulseLoopsMin;
-    const magnitude = dir * (Math.PI * 2 * loops);
-
-    const startAngle = controls.getAzimuthalAngle();
-
-    const targetObj = { angle: startAngle };
-
-    // Schedule rotation after delay to sync with palette fade
-    const delayed = gsap.delayedCall(ERROR_IMPULSE_CONFIG.delayBeforeImpulse, () => {
-      gsap.to(targetObj, {
-        angle: startAngle + magnitude,
-        duration: loops * ERROR_IMPULSE_CONFIG.impulseDurationPerLoop,
-        ease: ERROR_IMPULSE_CONFIG.impulseEasing,
-        onUpdate: function () {
-          controls.setAzimuthalAngle(targetObj.angle);
-          controls.update();
-        },
-      });
-    });
-
-    // Cleanup: kill delayed call if component unmounts / deps change
-    return () => {
-      delayed.kill();
-    };
   }, [error]);
 
   // Memoize lights to prevent recreation
