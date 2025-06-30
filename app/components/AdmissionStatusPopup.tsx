@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useUniversityColors } from '../../hooks/useUniversityColors';
 
 interface ProgramRow {
@@ -54,6 +54,75 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   onClose,
 }) => {
   const { getUniversityColor } = useUniversityColors();
+
+  // Local state to manage per-section UI (selected tab, loading, program data, highlighted row)
+  type SectionRuntime = {
+    selectedTab: string;
+    loading: boolean;
+    programs: ProgramRow[];
+    highlightPriority: number;
+  };
+
+  // Initialize runtime state for each section (keyed by section code)
+  const [sectionsState, setSectionsState] = useState<Record<string, SectionRuntime>>(() => {
+    const init = {} as Record<string, SectionRuntime>;
+    [passingSection, ...secondarySections].forEach((s) => {
+      init[s.code] = {
+        selectedTab: selectedProbabilityTab,
+        loading: false,
+        programs: s.programs,
+        highlightPriority: s.highlightPriority ?? 1,
+      };
+    });
+    return init;
+  });
+
+  // Helper to trigger loading and regenerate data
+  const handleTabClick = (code: string, newTab: string) => {
+    // Ignore if this tab is already selected or loading is in progress
+    if (sectionsState[code]?.selectedTab === newTab || sectionsState[code]?.loading) {
+      return;
+    }
+    setSectionsState((prev) => ({
+      ...prev,
+      [code]: { ...prev[code], selectedTab: newTab, loading: true },
+    }));
+
+    // Simulate server latency 1-2s
+    const delay = 1000 + Math.random() * 1000;
+    setTimeout(() => {
+      setSectionsState((prev) => {
+        const current = prev[code];
+        // Create new mock data – mutate rank and delta randomly
+        const newPrograms: ProgramRow[] = current.programs.map((p) => {
+          const rankChange = Math.floor(Math.random() * 40) - 20; // -20..+19
+          const newRank = Math.max(1, p.rank + rankChange);
+          return {
+            ...p,
+            rank: newRank,
+            delta: rankChange === 0 ? undefined : (rankChange > 0 ? `+${rankChange}` : `${rankChange}`),
+          };
+        });
+
+        // Maybe switch highlighted priority randomly 20% chance
+        let newHighlight = current.highlightPriority;
+        if (Math.random() < 0.2) {
+          const priorities = newPrograms.map((p) => p.priority);
+          newHighlight = priorities[Math.floor(Math.random() * priorities.length)];
+        }
+
+        return {
+          ...prev,
+          [code]: {
+            ...current,
+            loading: false,
+            programs: newPrograms,
+            highlightPriority: newHighlight,
+          },
+        };
+      });
+    }, delay);
+  };
 
   const allSections: UniversitySection[] = [passingSection, ...secondarySections];
   const FlairButton = (code: string, label: string) => {
@@ -115,7 +184,9 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           const divider = idx !== 0 ? (
             <hr key={`div-${section.code}`} className="my-6 border-white/10" />
           ) : null;
-          const highlightDir = section.programs.find((p) => p.priority === (section.highlightPriority ?? 1));
+          const runtime = sectionsState[section.code];
+          const dirName = runtime?.programs.find((p) => p.priority === runtime.highlightPriority)?.name;
+          const isLoading = runtime?.loading;
           return (
             <React.Fragment key={section.code}>
               {divider}
@@ -130,7 +201,13 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                     </div>
-                    <span className="text-sm sm:text-base font-medium whitespace-nowrap">{highlightDir?.name}</span>
+                    <span className="text-sm sm:text-base font-medium whitespace-nowrap">
+                      {isLoading ? (
+                        <span className="inline-block h-4 w-20 sm:w-24 bg-white/20 rounded animate-pulse" />
+                      ) : (
+                        dirName
+                      )}
+                    </span>
                   </div>
                 </div>
 
@@ -146,8 +223,8 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {section.programs.map((row) => {
-                        const isHighlight = row.priority === (section.highlightPriority ?? 1);
+                      {(runtime?.programs ?? section.programs).map((row) => {
+                        const isHighlight = row.priority === runtime?.highlightPriority;
                         return (
                           <tr
                             key={row.priority}
@@ -161,13 +238,19 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
                             <td className="px-4 py-2 whitespace-nowrap">{row.name}</td>
                             <td className="px-4 py-2 font-semibold text-right">{row.score}</td>
                             <td className="px-4 py-2 text-right">
-                              {row.rank}
-                              {row.delta && (
-                                <span
-                                  className={`ml-1 text-xs ${row.delta.includes('-') ? 'text-red-400' : 'text-green-400'}`}
-                                >
-                                  {row.delta}
-                                </span>
+                              {isLoading ? (
+                                <span className="inline-block h-4 w-10 bg-white/20 rounded animate-pulse" />
+                              ) : (
+                                <>
+                                  {row.rank}
+                                  {row.delta && (
+                                    <span
+                                      className={`ml-1 text-xs ${row.delta.includes('-') ? 'text-red-400' : 'text-green-400'}`}
+                                    >
+                                      {row.delta}
+                                    </span>
+                                  )}
+                                </>
                               )}
                             </td>
                           </tr>
@@ -182,10 +265,11 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
                   <p className="text-gray-400 text-sm mb-2">При оттоке оригиналов на:</p>
                   <div className="flex justify-between gap-2">
                     {probabilityTabs.map((tab) => {
-                      const selected = tab === selectedProbabilityTab;
+                      const selected = tab === (sectionsState[section.code]?.selectedTab ?? selectedProbabilityTab);
                       return (
                         <button
                           key={tab}
+                          onClick={() => handleTabClick(section.code, tab)}
                           className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors backdrop-blur-sm ${
                             selected
                               ? 'bg-gradient-to-r from-fuchsia-600/40 to-violet-600/40 border border-white/20 shadow-inner'
