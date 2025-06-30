@@ -56,6 +56,7 @@ export const vertexShader = `
   uniform float u_speed;
   uniform vec2 u_mouse;
   uniform float u_loading;
+  uniform float u_error_mix_factor;
 
   varying vec3 v_normal;
   varying vec3 v_position;
@@ -65,11 +66,14 @@ export const vertexShader = `
     float time = u_time * u_speed;
     float displacement = snoise(position * u_frequency + time);
 
+    // Add error jitter that fades in with the error color
+    float error_jitter = snoise(position * 20.0 + time * 5.0) * u_error_mix_factor * 0.05;
+
     vec3 mouse_effect = vec3(u_mouse * 2.0, 0.0);
     float mouse_influence = snoise(position * 0.5 + mouse_effect);
 
     v_noise = snoise(position * u_frequency + time);
-    vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.1);
+    vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.1 + error_jitter);
 
     v_normal = normalize(normal);
     v_position = newPosition;
@@ -84,6 +88,10 @@ export const fragmentShader = `
   uniform vec3 u_colorB;
   uniform vec3 u_colorC;
   uniform float u_loading;
+  uniform vec3 u_error_colorA;
+  uniform vec3 u_error_colorB;
+  uniform vec3 u_error_colorC;
+  uniform float u_error_mix_factor;
 
   varying vec3 v_normal;
   varying vec3 v_position;
@@ -94,20 +102,29 @@ export const fragmentShader = `
     float fresnel = 1.0 - dot(view_dir, v_normal);
     fresnel = pow(fresnel, 2.0);
 
-    vec3 color = mix(u_colorA, u_colorB, v_noise * 0.5 + 0.5);
+    // Calculate normal color
+    vec3 normal_color = mix(u_colorA, u_colorB, v_noise * 0.5 + 0.5);
+    float normal_swirl = sin(dot(v_position.xy, vec2(5.0, 5.0)) + u_time * 0.5) * 0.5 + 0.5;
+    normal_color = mix(normal_color, u_colorA, normal_swirl * 0.5);
+    float normal_time_factor = sin(u_time * 0.5 + v_position.y * 2.0) * 0.5 + 0.5;
+    normal_color = mix(normal_color, u_colorB, normal_time_factor * 0.3);
+    normal_color = mix(normal_color, u_colorC, fresnel);
 
-    float swirl = sin(dot(v_position.xy, vec2(5.0, 5.0)) + u_time * 0.5) * 0.5 + 0.5;
-    color = mix(color, u_colorA, swirl * 0.5);
-
-    float time_factor = sin(u_time * 0.5 + v_position.y * 2.0) * 0.5 + 0.5;
-    color = mix(color, u_colorB, time_factor * 0.3);
-
-    color = mix(color, u_colorC, fresnel);
+    // Calculate error color (using same logic, different colors)
+    vec3 error_color = mix(u_error_colorA, u_error_colorB, v_noise * 0.5 + 0.5);
+    float error_swirl = sin(dot(v_position.xy, vec2(5.0, 5.0)) + u_time * 0.5) * 0.5 + 0.5;
+    error_color = mix(error_color, u_error_colorA, error_swirl * 0.5);
+    float error_time_factor = sin(u_time * 0.5 + v_position.y * 2.0) * 0.5 + 0.5;
+    error_color = mix(error_color, u_error_colorB, error_time_factor * 0.3);
+    error_color = mix(error_color, u_error_colorC, fresnel);
+    
+    // Mix between normal and error colors
+    vec3 final_color = mix(normal_color, error_color, u_error_mix_factor);
 
     // Loading shimmer – subtle brightness pulsing when u_loading > 0
     float shimmer = (sin(u_time * 6.0) * 0.5 + 0.5) * 0.2 * u_loading;
-    color += shimmer;
+    final_color += shimmer;
 
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(final_color, 1.0);
   }
 `; 

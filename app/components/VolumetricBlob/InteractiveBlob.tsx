@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { useFrame, useThree, type RootState } from '@react-three/fiber';
 import * as THREE from 'three';
 import { vertexShader, fragmentShader } from './shaders';
 import type { InteractiveBlobProps } from './types';
+import { gsap } from 'gsap';
+
+const ERROR_PALETTES = [
+  { a: '#ff2d55', b: '#ff5e5e', c: '#ff8b8b' },
+  { a: '#ff1744', b: '#ff616f', c: '#ff8a80' },
+  { a: '#ff5252', b: '#ff867f', c: '#ffb4ae' },
+] as const;
 
 export const InteractiveBlob = ({
   speed,
@@ -13,6 +20,7 @@ export const InteractiveBlob = ({
   palettes,
   transitionDuration = 5,
   loading = false,
+  error = false,
 }: InteractiveBlobProps) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
@@ -20,6 +28,9 @@ export const InteractiveBlob = ({
 
   const paletteIndex = useRef(0);
   const transitionProgress = useRef(0);
+  const errorPaletteIndex = useRef(0);
+  const errorTransitionProgress = useRef(0);
+  const errorMix = useRef({ value: 0 });
 
   // Performance optimization: Adaptive detail based on viewport size
   const detail = useMemo(() => {
@@ -46,6 +57,17 @@ export const InteractiveBlob = ({
     [palettes],
   );
 
+  // Memoize error color palettes
+  const errorColorPalettes = useMemo(
+    () =>
+      ERROR_PALETTES.map((p) => ({
+        a: new THREE.Color(p.a),
+        b: new THREE.Color(p.b),
+        c: new THREE.Color(p.c),
+      })),
+    [],
+  );
+
   // Memoize uniforms to prevent recreation
   const uniforms = useMemo(
     () => ({
@@ -58,6 +80,10 @@ export const InteractiveBlob = ({
       u_colorC: { value: colorPalettes[0].c.clone() },
       u_mouse: { value: new THREE.Vector2(0, 0) },
       u_loading: { value: 0 },
+      u_error_mix_factor: { value: 0 },
+      u_error_colorA: { value: new THREE.Color() },
+      u_error_colorB: { value: new THREE.Color() },
+      u_error_colorC: { value: new THREE.Color() },
     }),
     [amplitude, frequency, speed, colorPalettes],
   );
@@ -66,10 +92,21 @@ export const InteractiveBlob = ({
   const tempColorA = useMemo(() => new THREE.Color(), []);
   const tempColorB = useMemo(() => new THREE.Color(), []);
   const tempColorC = useMemo(() => new THREE.Color(), []);
+  const tempErrorColorA = useMemo(() => new THREE.Color(), []);
+  const tempErrorColorB = useMemo(() => new THREE.Color(), []);
+  const tempErrorColorC = useMemo(() => new THREE.Color(), []);
 
   // Performance: Frame rate control
   const frameCount = useRef(0);
   const lastMouseUpdate = useRef(0);
+
+  useEffect(() => {
+    gsap.to(errorMix.current, {
+      value: error ? 1 : 0,
+      duration: 1.9, // Quick but smooth
+      ease: 'power2.inOut',
+    });
+  }, [error]);
 
   useFrame((state: RootState, delta: number) => {
     if (!materialRef.current) return;
@@ -96,7 +133,18 @@ export const InteractiveBlob = ({
       0.05,
     );
 
-    // Color transition logic - only update when necessary
+    // Synchronous safety check
+    if (paletteIndex.current >= colorPalettes.length) {
+      paletteIndex.current = 0;
+    }
+    if (errorPaletteIndex.current >= errorColorPalettes.length) {
+      errorPaletteIndex.current = 0;
+    }
+
+    // Always update the error mix factor uniform
+    uniforms.u_error_mix_factor.value = errorMix.current.value;
+
+    // Normal color transition logic - only update when necessary
     if (shouldUpdate) {
       transitionProgress.current += delta / transitionDuration;
 
@@ -105,8 +153,9 @@ export const InteractiveBlob = ({
         paletteIndex.current = (paletteIndex.current + 1) % colorPalettes.length;
       }
 
-      const currentPalette = colorPalettes[paletteIndex.current];
-      const nextPalette = colorPalettes[(paletteIndex.current + 1) % colorPalettes.length];
+      const safeIndex = paletteIndex.current % colorPalettes.length;
+      const currentPalette = colorPalettes[safeIndex];
+      const nextPalette = colorPalettes[(safeIndex + 1) % colorPalettes.length];
 
       // Use cached color objects instead of .copy() to avoid allocation
       tempColorA.copy(currentPalette.a).lerp(nextPalette.a, transitionProgress.current);
@@ -118,6 +167,23 @@ export const InteractiveBlob = ({
       materialRef.current.uniforms.u_colorB.value.copy(tempColorB);
       materialRef.current.uniforms.u_colorC.value.copy(tempColorC);
     }
+
+    // Error color transition (runs in parallel)
+    errorTransitionProgress.current += delta / (error ? 1 : 5);
+    if (errorTransitionProgress.current > 1.0) {
+      errorTransitionProgress.current = 0.0;
+      errorPaletteIndex.current = (errorPaletteIndex.current + 1) % errorColorPalettes.length;
+    }
+    const currentErrorPalette = errorColorPalettes[errorPaletteIndex.current];
+    const nextErrorPalette = errorColorPalettes[(errorPaletteIndex.current + 1) % errorColorPalettes.length];
+    
+    tempErrorColorA.copy(currentErrorPalette.a).lerp(nextErrorPalette.a, errorTransitionProgress.current);
+    tempErrorColorB.copy(currentErrorPalette.b).lerp(nextErrorPalette.b, errorTransitionProgress.current);
+    tempErrorColorC.copy(currentErrorPalette.c).lerp(nextErrorPalette.c, errorTransitionProgress.current);
+
+    uniforms.u_error_colorA.value.copy(tempErrorColorA);
+    uniforms.u_error_colorB.value.copy(tempErrorColorB);
+    uniforms.u_error_colorC.value.copy(tempErrorColorC);
   });
 
   return (

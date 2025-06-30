@@ -28,9 +28,15 @@ const ROTATION_CONFIG = {
 } as const;
 
 // Pulse (scale) config
-const PULSE_CONFIG = {
-  minScale: 0.8,           // lower -> bigger amplitude
+const PULSE_CONFIG_LOAD = {
+  minScale: 0.8,
   duration: 0.8,
+  easing: 'sine.inOut',
+} as const;
+
+const PULSE_CONFIG_ERROR = {
+  minScale: 0.95, // more gentle
+  duration: 0.6,
   easing: 'sine.inOut',
 } as const;
 
@@ -43,7 +49,7 @@ interface SimpleOrbitControls {
   autoRotateSpeed: number;
 }
 
-export default function VolumetricBlob({ showPerformanceDebug = false, loading = false }: VolumetricBlobProps) {
+export default function VolumetricBlob({ showPerformanceDebug = false, loading = false, error = false }: VolumetricBlobProps) {
   const [blobParams] = useState(() => ({ key: getNextKey(), ...generateRandomParams() }));
   const [dpr, setDpr] = useState(getAdaptiveDPR);
   const [frameloop, setFrameloop] = useState<'always' | 'never'>('always');
@@ -62,14 +68,14 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
   // Pulse & animation speed adjustment based on props.loading
   useEffect(() => {
     if (!containerRef.current) return;
-    if (loading) {
-      // Start pulsating & accelerate colors by regenerating params with faster speed
+    if (loading || error) {
+      const config = loading ? PULSE_CONFIG_LOAD : PULSE_CONFIG_ERROR;
       gsap.to(containerRef.current, {
-        scale: PULSE_CONFIG.minScale,
-        duration: PULSE_CONFIG.duration,
+        scale: config.minScale,
+        duration: config.duration,
         yoyo: true,
         repeat: -1,
-        ease: PULSE_CONFIG.easing,
+        ease: config.easing,
       });
     } else {
       // Stop pulse, reset scale
@@ -79,18 +85,18 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
     return () => {
       gsap.killTweensOf(containerRef.current);
     };
-  }, [loading]);
+  }, [loading, error]);
 
   // Add effect to toggle autoRotate according to loading state
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
 
+    // Enable autorotate always; adjust speed depending on state
+    controls.autoRotate = true;
     if (loading) {
-      controls.autoRotate = true;
       controls.autoRotateSpeed = ROTATION_CONFIG.loadingAutoRotateSpeed;
     } else {
-      controls.autoRotate = false;
       controls.autoRotateSpeed = ROTATION_CONFIG.baseAutoRotateSpeed;
     }
   }, [loading]);
@@ -182,13 +188,24 @@ export default function VolumetricBlob({ showPerformanceDebug = false, loading =
           }}
         >
           {lights}
-          <InteractiveBlob key={key} {...shapeParams} palettes={colorPalettes} transitionDuration={loading ? 2 : 5} loading={loading} />
+          <InteractiveBlob
+            key={key}
+            {...shapeParams}
+            palettes={colorPalettes}
+            transitionDuration={loading ? 2 : 5}
+            loading={loading}
+            error={error}
+          />
           <OrbitControls 
             enableZoom={false} 
             dampingFactor={0.1} 
             enablePan={false}
             ref={(instance) => {
-              controlsRef.current = instance as unknown as SimpleOrbitControls;
+              if (!instance) return;
+              const c = instance as unknown as SimpleOrbitControls;
+              c.autoRotate = true;
+              c.autoRotateSpeed = ROTATION_CONFIG.baseAutoRotateSpeed;
+              controlsRef.current = c;
             }}
           />
           <PerformanceDebug enabled={showPerformanceDebug} />

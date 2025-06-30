@@ -17,10 +17,12 @@ export interface InteractiveBlobProps {
   palettes: ColorPalette[];
   transitionDuration?: number;
   loading?: boolean;
+  error?: boolean;
 }
 
 export interface VolumetricBlobProps {
   showPerformanceDebug?: boolean;
   /** Whether parent is in loading state – used to accelerate colors & trigger pulse */
   loading?: boolean;
+  error?: boolean;
 } 

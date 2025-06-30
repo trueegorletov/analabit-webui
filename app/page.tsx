@@ -17,13 +17,13 @@ const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
   ssr: false,
 });
 
-function Animation({ loading }: { loading: boolean }) {
+function Animation({ loading, error }: { loading: boolean; error: boolean }) {
   const searchParams = useSearchParams();
   const showAnimatedBlob = searchParams.get('animation') === 'blob';
 
   // If the query param "animation=blob" is present, render the original 2D AnimatedBlob.
   // Otherwise, fall back to the new 3D VolumetricBlob.
-  return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob loading={loading} />;
+  return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob loading={loading} error={error} />;
 }
 
 // ------------------ Mock admission generator ------------------
@@ -161,10 +161,24 @@ export default function Home() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<AdmissionMock | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const [inputError, setInputError] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const ERROR_DURATION = 5211; // ms for blob
+  const TOOLTIP_VISIBLE_DURATION = 5500; // ms for tooltip
+  const [blobError, setBlobError] = useState(false);
 
   const handleCheckStatus = () => {
     if (!/^\d+$/.test(studentIdInput.trim())) {
-      alert('Пожалуйста, введите числовой ID');
+      // Trigger input error UI
+      setInputError(true);
+      setShowTooltip(true);
+      // Trigger blob error for same duration
+      setBlobError(true);
+      setTimeout(() => {
+        setBlobError(false);
+      }, ERROR_DURATION);
+      // Hide tooltip after new duration
+      setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
       return;
     }
 
@@ -177,6 +191,7 @@ export default function Home() {
       setPopupData(data);
       setIsPopupOpen(true);
       setLoadingStatus(false);
+      setInputError(false);
     }, delay);
   };
 
@@ -429,20 +444,35 @@ export default function Home() {
         </div>
         <div className="wave-container">
           <Suspense fallback={<div>Loading...</div>}>
-            <Animation loading={loadingStatus} />
+            <Animation loading={loadingStatus} error={blobError} />
           </Suspense>
         </div>
         <div className="title">Проверка статуса поступления</div>
         <div className="desc">
           Введите ID абитуриента, чтобы узнать, в какие университеты он зачислен
         </div>
-        <div className="input-group">
-          <input
-            type="text"
-            placeholder="ID студента"
-            value={studentIdInput}
-            onChange={(e) => setStudentIdInput(e.target.value)}
-          />
+        <div className="input-group flex gap-4 items-start">
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="ID студента"
+              value={studentIdInput}
+              onChange={(e) => {
+                setStudentIdInput(e.target.value);
+                if (inputError) setInputError(false);
+              }}
+              className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${
+                inputError
+                  ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
+                  : 'focus:ring-2 focus:ring-violet-500/80'
+              }`}
+            />
+            <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{opacity: showTooltip ? 1 : 0}}>
+              <span className="whitespace-nowrap px-4 py-2 rounded-lg bg-red-600/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
+                Неверный формат ID
+              </span>
+            </div>
+          </div>
           <button
             onClick={handleCheckStatus}
             disabled={loadingStatus}
