@@ -458,6 +458,7 @@ export default function Home() {
                 originalKnown={popupData.originalKnown}
                 passingSection={popupData.passingSection}
                 secondarySections={popupData.secondarySections}
+                onClose={closePopup}
               />
             )}
           </div>
