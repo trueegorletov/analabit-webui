@@ -10,6 +10,7 @@ import { useUniversitiesData } from '../hooks/useUniversitiesData';
 import { UniversityBlock } from './components/UniversityBlock';
 import { CriticalLoadingScreen, CriticalErrorScreen } from './components/LoadingComponents';
 import { AdmissionStatusPopup } from './components/AdmissionStatusPopup';
+import { mockUniversities, mockDirections } from '../lib/api/mockData';
 
 // Dynamically import the 3D volumetric blob so it only executes on the client
 const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
@@ -23,6 +24,97 @@ function Animation() {
   // If the query param "animation=blob" is present, render the original 2D AnimatedBlob.
   // Otherwise, fall back to the new 3D VolumetricBlob.
   return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob />;
+}
+
+// ------------------ Mock admission generator ------------------
+interface ProgramRow {
+  priority: number;
+  name: string;
+  score: number;
+  rank: number;
+  delta?: string | null;
+}
+
+interface UniSection {
+  university: string;
+  code: string;
+  programs: ProgramRow[];
+  highlightPriority: number;
+}
+
+interface AdmissionMock {
+  passingSection: UniSection;
+  secondarySections: UniSection[];
+  originalKnown: boolean;
+}
+
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[randomInt(0, arr.length - 1)];
+}
+
+function generateAdmissionData(): { passingSection: UniSection; secondarySections: UniSection[]; originalKnown: boolean } {
+  const universitiesPool = [...mockUniversities];
+  const uniCount = randomInt(2, 5);
+  const selectedUnis: typeof mockUniversities = [];
+  while (selectedUnis.length < uniCount && universitiesPool.length) {
+    const idx = randomInt(0, universitiesPool.length - 1);
+    selectedUnis.push(universitiesPool.splice(idx, 1)[0]);
+  }
+
+  const sections: UniSection[] = selectedUnis.map((uni) => {
+    const dirPool = mockDirections[uni.code] || [];
+    const dirCount = Math.min(randomInt(2, 10), dirPool.length > 0 ? dirPool.length : 10);
+    const programs: ProgramRow[] = [];
+    const usedNames = new Set<string>();
+    while (programs.length < dirCount) {
+      let dirName: string;
+      if (dirPool.length) {
+        const dir = pickRandom(dirPool);
+        dirName = dir.name;
+      } else {
+        dirName = `Направление ${programs.length + 1}`;
+      }
+      if (usedNames.has(dirName)) continue;
+      usedNames.add(dirName);
+      const priority = programs.length + 1;
+      programs.push({
+        priority,
+        name: dirName,
+        score: randomInt(240, 300),
+        rank: randomInt(1, 120),
+      });
+    }
+
+    const highlightPriority = randomInt(1, programs.length);
+
+    programs.forEach((p) => {
+      if (p.priority < highlightPriority) {
+        p.delta = '-' + randomInt(1, 99).toString();
+      } else if (p.priority === highlightPriority) {
+        const v = randomInt(0, 20);
+        p.delta = v === 0 ? '0' : '+' + v.toString();
+      } else {
+        const sign = Math.random() < 0.5 ? '+' : '-';
+        p.delta = sign + randomInt(1, 50).toString();
+      }
+    });
+
+    return {
+      university: uni.name,
+      code: uni.code,
+      programs,
+      highlightPriority,
+    };
+  });
+
+  const passingSection = sections[0];
+  const secondarySections = sections.slice(1);
+  const originalKnown = Math.random() < 0.8; // 80% we know
+  return { passingSection, secondarySections, originalKnown };
 }
 
 export default function Home() {
@@ -67,9 +159,12 @@ export default function Home() {
   // Popup state handling
   const [studentIdInput, setStudentIdInput] = useState('');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupData, setPopupData] = useState<AdmissionMock | null>(null);
 
   const handleCheckStatus = () => {
     if (/^\d+$/.test(studentIdInput.trim())) {
+      const data = generateAdmissionData();
+      setPopupData(data);
       setIsPopupOpen(true);
     } else {
       alert('Пожалуйста, введите числовой ID');
@@ -227,6 +322,41 @@ export default function Home() {
     return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
 
+  // Prevent background scrolling when popup is open
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    if (isPopupOpen) {
+      // Save current scroll position and lock the body
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // Clean up in case component unmounts while popup open
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+    };
+  }, [isPopupOpen]);
+
   // Show critical loading screen while universities are loading
   if (universitiesLoading) {
     return (
@@ -317,32 +447,19 @@ export default function Home() {
       {/* Popup overlay */}
       {isPopupOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto overscroll-contain"
           onClick={closePopup}
         >
           <div onClick={(e) => e.stopPropagation()}>
-            {/* Using demo props for now */}
-            <AdmissionStatusPopup
-              studentId={studentIdInput.trim()}
-              mainStatus="Original submitted to SPbSU"
-              subtitle="Enrollment is possible only at this university"
-              passingSection={{
-                university: 'SPbSU',
-                highlightPriority: 1,
-                programs: [
-                  { priority: 1, name: 'Informatics', score: 271, rank: 49, delta: '+10' },
-                  { priority: 2, name: 'Computer Science', score: 269, rank: 65, delta: '+14' },
-                  { priority: 3, name: 'Precision Mechanics and Optics', score: 296, rank: 36 },
-                ],
-              }}
-              secondarySections={[{
-                university: 'MSU',
-                programs: [
-                  { priority: 1, name: 'Applied Mathematics', score: 295, rank: 67, delta: '67' },
-                  { priority: 2, name: 'Fundamental Informatics', score: 281, rank: 84, delta: '+17' },
-                ],
-              }]}
-            />
+            {popupData && (
+              <AdmissionStatusPopup
+                studentId={studentIdInput.trim()}
+                mainStatus="Статус подачи документов"
+                originalKnown={popupData.originalKnown}
+                passingSection={popupData.passingSection}
+                secondarySections={popupData.secondarySections}
+              />
+            )}
           </div>
         </div>
       )}
