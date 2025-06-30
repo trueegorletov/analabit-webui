@@ -56,26 +56,25 @@ export default function Header() {
 
   return (
     <div className="mb-8 text-center">
-      <Link href="/#spbgu" legacyBehavior>
-        <a
-          ref={tagRef}
-          className="tag-button-large inline-block mb-3 cursor-pointer transition-transform duration-200 ease-out"
-          style={{
-            background: gradient,
-            backgroundSize: '200% 200%',
-            padding: '8px 20px',
-            borderRadius: '24px',
-            fontSize: '16px',
-            fontWeight: '600',
-            color: 'white',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-            boxShadow: `0 0 14px 3px ${glow}, 0 0 6px 1.5px rgba(255, 255, 255, 0.12)`,
-            border: 'none',
-            textDecoration: 'none',
-          }}
-        >
-          СПбГУ
-        </a>
+      <Link 
+        href="/#spbgu"
+        ref={tagRef}
+        className="tag-button-large inline-block mb-3 cursor-pointer transition-transform duration-200 ease-out"
+        style={{
+          background: gradient,
+          backgroundSize: '200% 200%',
+          padding: '8px 20px',
+          borderRadius: '24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          color: 'white',
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+          boxShadow: `0 0 14px 3px ${glow}, 0 0 6px 1.5px rgba(255, 255, 255, 0.12)`,
+          border: 'none',
+          textDecoration: 'none',
+        }}
+      >
+        СПбГУ
       </Link>
       <div className="mx-auto max-w-fit">
         <h1 className="text-4xl md:text-4xl sm:text-3xl xs:text-2xl font-bold text-white mb-1 transition-all duration-300 hover:text-gray-100 relative inline-block">

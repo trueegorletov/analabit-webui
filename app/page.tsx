@@ -9,6 +9,7 @@ import { useUniversityColors } from '../hooks/useUniversityColors';
 import { useUniversitiesData } from '../hooks/useUniversitiesData';
 import { UniversityBlock } from './components/UniversityBlock';
 import { CriticalLoadingScreen, CriticalErrorScreen } from './components/LoadingComponents';
+import { AdmissionStatusPopup } from './components/AdmissionStatusPopup';
 
 // Dynamically import the 3D volumetric blob so it only executes on the client
 const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
@@ -62,6 +63,20 @@ export default function Home() {
   }, [universities, getUniversityColor]);
 
   const [pendingScroll, setPendingScroll] = useState<string | null>(null);
+
+  // Popup state handling
+  const [studentIdInput, setStudentIdInput] = useState('');
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const handleCheckStatus = () => {
+    if (/^\d+$/.test(studentIdInput.trim())) {
+      setIsPopupOpen(true);
+    } else {
+      alert('Пожалуйста, введите числовой ID');
+    }
+  };
+
+  const closePopup = () => setIsPopupOpen(false);
 
   // modified handleTagClick
   const handleTagClick = (universityCode: string) => {
@@ -283,8 +298,13 @@ export default function Home() {
           Введите ID абитуриента, чтобы узнать, в какие университеты он зачислен
         </div>
         <div className="input-group">
-          <input type="text" placeholder="ID студента" />
-          <button>Проверить</button>
+          <input
+            type="text"
+            placeholder="ID студента"
+            value={studentIdInput}
+            onChange={(e) => setStudentIdInput(e.target.value)}
+          />
+          <button onClick={handleCheckStatus}>Проверить</button>
         </div>
       </div>
 
@@ -294,6 +314,38 @@ export default function Home() {
         {renderUniversityBlocks()}
       </div>
 
+      {/* Popup overlay */}
+      {isPopupOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={closePopup}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            {/* Using demo props for now */}
+            <AdmissionStatusPopup
+              studentId={studentIdInput.trim()}
+              mainStatus="Original submitted to SPbSU"
+              subtitle="Enrollment is possible only at this university"
+              passingSection={{
+                university: 'SPbSU',
+                highlightPriority: 1,
+                programs: [
+                  { priority: 1, name: 'Informatics', score: 271, rank: 49, delta: '+10' },
+                  { priority: 2, name: 'Computer Science', score: 269, rank: 65, delta: '+14' },
+                  { priority: 3, name: 'Precision Mechanics and Optics', score: 296, rank: 36 },
+                ],
+              }}
+              secondarySections={[{
+                university: 'MSU',
+                programs: [
+                  { priority: 1, name: 'Applied Mathematics', score: 295, rank: 67, delta: '67' },
+                  { priority: 2, name: 'Fundamental Informatics', score: 281, rank: 84, delta: '+17' },
+                ],
+              }]}
+            />
+          </div>
+        </div>
+      )}
 
     </main>
   );
