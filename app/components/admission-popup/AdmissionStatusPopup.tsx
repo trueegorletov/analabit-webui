@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useReducer, useEffect } from 'react';
 import { PopupHeader } from './PopupHeader';
 import { UniversitySection } from './UniversitySection';
@@ -126,7 +128,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   const allSections = [passingSection, ...secondarySections];
 
   return (
-    <div className="popup-outer relative w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl overflow-hidden rounded-2xl backdrop-blur-lg bg-black/60 shadow-2xl ring-1 ring-white/10" data-testid="admission-popup">
+    <div className="popup-outer relative w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl overflow-hidden rounded-2xl backdrop-blur-lg bg-black/60 shadow-2xl ring-1 ring-white/10" data-testid="admission-popup">
       {/* decorative gradient border */}
       <span className="pointer-events-none absolute inset-0 -z-10 rounded-2xl border border-transparent before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-fuchsia-500/30 before:via-violet-500/10 before:to-indigo-500/30 before:opacity-40"></span>
 
@@ -140,11 +142,11 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           onClose={onClose ?? (() => {})}
         />
 
-        <hr className="my-4 border-white/10" />
+        <hr className="my-2 border-white/10" />
 
         {allSections.map((section, idx) => (
           <React.Fragment key={section.code}>
-            {idx !== 0 && <hr className="my-6 border-white/10" />}
+            {idx !== 0 && <hr className="my-4 border-white/10" />}
             <UniversitySection
               section={section}
               runtime={sectionsState[section.code]}
