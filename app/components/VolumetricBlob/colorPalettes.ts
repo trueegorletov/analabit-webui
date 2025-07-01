@@ -13,7 +13,7 @@ export const colorPalettes: ColorPalette[] = [
   { a: '#373B44', b: '#4286f4', c: '#ffffff' },
   { a: '#ff0000', b: '#00ff00', c: '#0000ff' },
   { a: '#2c3e50', b: '#bdc3c7', c: '#ffffff' },
-];
+]; 
 
 export const errorPalettes: ColorPalette[] = [
   { a: '#ff2d55', b: '#ff5e5e', c: '#ff8b8b' },

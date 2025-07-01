@@ -9,7 +9,7 @@ export interface Direction {
   id: string;
   name: string;
   score: number;
-  rank: string;
+  rank: number | string;
   range: string;
   universityCode: string;
 }

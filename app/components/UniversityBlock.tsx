@@ -65,36 +65,68 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
     };
   }, [expanded, palette]);
 
+  // Trigger fetch on first expansion if data is missing
+  useEffect(() => {
+    if (expanded && !hasTriedFetch && !directionsState) {
+      (async () => {
+        await onFetchDirections(university.code);
+        setHasTriedFetch(true);
+      })();
+    }
+  }, [expanded, hasTriedFetch, directionsState, onFetchDirections, university.code]);
+
   const renderDirectionsContent = () => {
     // Only show the directions table if we have actual directions data
     if (directionsState?.directions && directionsState.directions.length > 0) {
       return (
-        <table className="directions-table">
-          <tbody>
-            {directionsState.directions.map((direction: Direction) => (
-              <tr key={direction.id}>
-                <td className="dir-name">
-                  <a href={`/directions/${direction.id}`} title={direction.name}>
-                    {direction.name}
-                  </a>
-                </td>
-                <td className="score">{direction.score}</td>
-                <td className="rank">{direction.rank}</td>
-                <td className="range">{direction.range}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="directions-grid">
+          {/* Header */}
+          <div className="grid-header">
+            <div className="grid-cell">Направление</div>
+            <div className="grid-cell text-center">Баллы</div>
+            <div className="grid-cell text-center">Место</div>
+          </div>
+
+          {/* Body */}
+          {directionsState.directions.map((direction: Direction) => (
+            <div key={direction.id} className="grid-row">
+              <div className="grid-cell dir-name">
+                <a href={`/directions/${direction.id}`} title={direction.name}>
+                  {direction.name}
+                </a>
+              </div>
+              <div className="grid-cell points">
+                {(() => {
+                  if (direction.range && direction.range.includes('..')) {
+                    const [max, min] = direction.range.split('..');
+                    return (
+                      <span className="inline-flex items-baseline gap-1">
+                        <span className="max font-mono text-base sm:text-lg text-green-400 leading-none">
+                          {max}
+                        </span>
+                        <span className="min font-mono text-[10px] sm:text-xs text-amber-400 leading-none">
+                          {min}
+                        </span>
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="font-mono text-base sm:text-lg text-green-400">
+                      {direction.score}
+                    </span>
+                  );
+                })()}
+              </div>
+              <div className="grid-cell rank font-mono text-center">
+                #{typeof direction.rank === 'string' ? direction.rank.replace(/^#/, '') : direction.rank}
+              </div>
+            </div>
+          ))}
+        </div>
       );
     }
 
     // For ALL other cases (no data, loading, error, empty), show loading placeholder
-    // This ensures we never show error blocks or "not found" messages
-    if (!hasTriedFetch) {
-      onFetchDirections(university.code);
-      setHasTriedFetch(true);
-    }
-    
     return <DirectionsLoadingPlaceholder />;
   };
 
@@ -136,7 +168,10 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
             </button>
           </div>
         </div>
-        {expanded && renderDirectionsContent()}
+        {/* Animated container for directions table */}
+        <div className="directions-container">
+          {renderDirectionsContent()}
+        </div>
       </div>
 
       <style jsx>{`

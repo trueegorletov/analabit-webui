@@ -106,10 +106,10 @@ export const InteractiveBlob = ({
     // Animate shader uniform directly instead of using indirect reference
     if (materialRef.current) {
       gsap.to(materialRef.current.uniforms.u_error_mix_factor, {
-        value: error ? 1 : 0,
-        duration: 1.9, // Quick but smooth
-        ease: 'power2.inOut',
-      });
+      value: error ? 1 : 0,
+      duration: 1.9, // Quick but smooth
+      ease: 'power2.inOut',
+    });
     }
   }, [error]);
 

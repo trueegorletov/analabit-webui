@@ -10,7 +10,7 @@ export const generateRandomParams = (): BlobShapeParams => ({
 
 export const getNextKey = (): number => {
   return keyCounter++;
-};
+}; 
 
 /**
  * Shared detail estimation utility for adaptive geometry detail

@@ -17,11 +17,11 @@ export const mockUniversities: University[] = [
 
 export const mockDirections: Record<string, Direction[]> = {
   'mfti': [
-    { id: 'dir-mfti-001', name: 'Математика', score: 283, rank: '#12', range: '283..271', universityCode: 'mfti' },
-    { id: 'dir-mfti-002', name: 'Прикладная математика и информатика', score: 272, rank: '#73', range: '272..259', universityCode: 'mfti' },
-    { id: 'dir-mfti-003', name: 'Физика', score: 275, rank: '#23', range: '275..260', universityCode: 'mfti' },
-    { id: 'dir-mfti-004', name: 'Системный анализ и управление', score: 268, rank: '#45', range: '268..255', universityCode: 'mfti' },
-    { id: 'dir-mfti-005', name: 'Прикладные математика и физика', score: 285, rank: '#8', range: '285..275', universityCode: 'mfti' },
+    { id: 'dir-mfti-001', name: 'Математика', score: 283, rank: 12, range: '283..271', universityCode: 'mfti' },
+    { id: 'dir-mfti-002', name: 'Прикладная математика и информатика', score: 272, rank: 73, range: '272..259', universityCode: 'mfti' },
+    { id: 'dir-mfti-003', name: 'Физика', score: 275, rank: 23, range: '275..260', universityCode: 'mfti' },
+    { id: 'dir-mfti-004', name: 'Системный анализ и управление', score: 268, rank: 45, range: '268..255', universityCode: 'mfti' },
+    { id: 'dir-mfti-005', name: 'Прикладные математика и физика', score: 285, rank: 8, range: '285..275', universityCode: 'mfti' },
   ],
   'mgu': [
     { id: 'dir-mgu-001', name: 'История', score: 265, rank: '#54', range: '265..250', universityCode: 'mgu' },
