@@ -3,7 +3,7 @@ import type { BlobShapeParams } from './types';
 let keyCounter = 0;
 
 export const generateRandomParams = (): BlobShapeParams => ({
-  speed: Math.random() * 0.15 + 0.05,
+  speed: Math.random() * 0.2 + 0.05,
   frequency: Math.random() * 0.6 + 1.2,
   amplitude: Math.random() * 0.15 + 0.1,
 });
