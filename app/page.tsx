@@ -2,6 +2,8 @@
 import { useEffect, useMemo, Suspense, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { gsap } from 'gsap';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import dynamic from 'next/dynamic';
 import AnimatedBlob from './components/AnimatedBlob';
 import { type Palette } from './utils/glowHelpers';
@@ -11,6 +13,8 @@ import { UniversityBlock } from './components/UniversityBlock';
 import { CriticalLoadingScreen, CriticalErrorScreen } from './components/LoadingComponents';
 import { AdmissionStatusPopup } from './components/AdmissionStatusPopup';
 import { mockUniversities, mockDirections } from '../lib/api/mockData';
+
+gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 // Dynamically import the 3D volumetric blob so it only executes on the client
 const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
@@ -170,59 +174,116 @@ export default function Home() {
 
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const handleCheckStatus = () => {
-    const trimmedId = studentIdInput.trim();
+  const handleInputKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleCheckStatus();
+    }
+  };
 
-    if (!/^\d+$/.test(trimmedId)) {
-      // Trigger input format error UI
-      setTooltipText('Неверный формат ID');
-      setInputError(true);
+  const handleIdInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const originalValue = event.target.value;
+    const sanitizedValue = originalValue.replace(/\D/g, '');
+    if (sanitizedValue !== originalValue) {
+      setTooltipText('Допускаются только цифры');
       setShowTooltip(true);
-      // Trigger blob error for same duration
-      setBlobError(true);
       setTimeout(() => {
-        setBlobError(false);
-      }, ERROR_DURATION);
-      // Hide tooltip after new duration
-      setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
-      // animate button shake (exclusive for format error)
-      if (buttonRef.current) {
-        gsap.fromTo(
-          buttonRef.current,
-          { x: -8 },
-          { x: 8, duration: 0.11, ease: 'power2.inOut', yoyo: true, repeat: 7, onComplete: () => { gsap.set(buttonRef.current, { x: 0 }); } },
-        );
-      }
-      return;
+        setShowTooltip(false);
+      }, TOOLTIP_VISIBLE_DURATION);
+    }
+    setStudentIdInput(sanitizedValue);
+    if (inputError) setInputError(false);
+  };
+
+  const handleCheckStatus = () => {
+    // Immediately blur the button to prevent focus-related scroll conflicts
+    if (buttonRef.current) {
+      buttonRef.current.blur();
     }
 
-    // Simulate network delay & loading effect
-    setLoadingStatus(true);
+    // Globally disable all pointer events to prevent any interference
+    document.body.style.pointerEvents = 'none';
 
-    const delay = 3000 + Math.random() * 1000; // 3-4s artificial delay
-    setTimeout(() => {
-      if (trimmedId === '1488') {
-        // Simulate "student not found" response
-        setTooltipText('Абитуриент не найден');
+    // Disable all ScrollTriggers to prevent interference from the parallax background
+    ScrollTrigger.getAll().forEach((trigger) => trigger.disable());
+    document.dispatchEvent(new CustomEvent('disableParallax'));
+
+    const executeCheck = () => {
+      // Re-enable everything now that the scroll animation is complete
+      document.body.style.pointerEvents = 'auto';
+      ScrollTrigger.getAll().forEach((trigger) => trigger.enable());
+      document.dispatchEvent(new CustomEvent('enableParallax'));
+
+      const trimmedId = studentIdInput.trim();
+
+      if (!trimmedId) {
+        setTooltipText('Введите СНИЛС или ID');
         setInputError(true);
         setShowTooltip(true);
-        // Trigger blob error animation
         setBlobError(true);
         setTimeout(() => {
           setBlobError(false);
         }, ERROR_DURATION);
-        // Hide tooltip after duration
         setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
-        setLoadingStatus(false);
+        if (buttonRef.current) {
+          gsap.fromTo(
+            buttonRef.current,
+            { x: -8 },
+            {
+              x: 8,
+              duration: 0.11,
+              ease: 'power2.inOut',
+              yoyo: true,
+              repeat: 7,
+              onComplete: () => {
+                gsap.set(buttonRef.current, { x: 0 });
+              },
+            },
+          );
+        }
         return;
       }
 
-      const data = generateAdmissionData();
-      setPopupData(data);
-      setIsPopupOpen(true);
-      setLoadingStatus(false);
-      setInputError(false);
-    }, delay);
+      // Simulate network delay & loading effect
+      setLoadingStatus(true);
+
+      const delay = 3000 + Math.random() * 1000; // 3-4s artificial delay
+      setTimeout(() => {
+        if (trimmedId === '1488') {
+          // Simulate "student not found" response
+          setTooltipText('Абитуриент не найден');
+          setInputError(true);
+          setShowTooltip(true);
+          // Trigger blob error animation
+          setBlobError(true);
+          setTimeout(() => {
+            setBlobError(false);
+          }, ERROR_DURATION);
+          // Hide tooltip after duration
+          setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
+          setLoadingStatus(false);
+          return;
+        }
+
+        const data = generateAdmissionData();
+        setPopupData(data);
+        setIsPopupOpen(true);
+        setLoadingStatus(false);
+        setInputError(false);
+      }, delay);
+    };
+
+    gsap.to(window, {
+      duration: 0.8,
+      scrollTo: 0,
+      ease: 'power2.out',
+      onComplete: executeCheck,
+      onInterrupt: () => {
+        // Also re-enable if the scroll is interrupted by the user
+        document.body.style.pointerEvents = 'auto';
+        ScrollTrigger.getAll().forEach((trigger) => trigger.enable());
+        document.dispatchEvent(new CustomEvent('enableParallax'));
+      },
+    });
   };
 
   const closePopup = () => setIsPopupOpen(false);
@@ -485,12 +546,12 @@ export default function Home() {
           <div className="relative flex-grow">
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="ID студента"
               value={studentIdInput}
-              onChange={(e) => {
-                setStudentIdInput(e.target.value);
-                if (inputError) setInputError(false);
-              }}
+              onChange={handleIdInputChange}
+              onKeyDown={handleInputKeydown}
               className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${
                 inputError
                   ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
