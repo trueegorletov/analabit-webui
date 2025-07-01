@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useMemo, useRef, useEffect } from 'react';
-import { useFrame, useThree, type RootState } from '@react-three/fiber';
+import { useFrame, useThree, type RootState, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { vertexShader, fragmentShader } from './shaders';
-import { errorPalettes } from './colorPalettes';
 import { getAdaptiveDetail } from './utils';
 import type { InteractiveBlobProps } from './types';
 import { gsap } from 'gsap';
@@ -22,34 +21,36 @@ const PULSE_CONFIG_ERROR = {
   easing: 'sine.inOut',
 } as const;
 
-export const InteractiveBlob = ({
-  speed,
-  frequency,
-  amplitude,
+const MAX_RIPPLES = 5; // Must match the #define in the shader
+
+// GSAP Transition settings for color and error state changes
+const TRANSITION_CONFIG = {
+  duration: 5, // Default transition duration
+  loadingDuration: 2, // Faster transition when loading
+  errorDuration: 0.3, // Very fast transition for error state
+  easing: 'sine.inOut',
+} as const;
+
+export const InteractiveBlob: React.FC<InteractiveBlobProps> = ({
+  speed = 0.2,
+  frequency = 0.6,
+  amplitude = 0.3,
   palettes,
-  transitionDuration = 5,
   loading = false,
   error = false,
-}: InteractiveBlobProps) => {
+}) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
-  const { viewport } = useThree();
+  const { viewport, clock } = useThree();
 
   const paletteIndex = useRef(0);
-  const transitionProgress = useRef(0);
-  const errorPaletteIndex = useRef(0);
-  const errorTransitionProgress = useRef(0);
+  const transitionProgress = useRef(1);
 
-  // Performance optimization: Adaptive detail based on viewport size using shared utility
-  const detail = useMemo(() => {
-    const { detail } = getAdaptiveDetail(viewport);
-    return detail;
-  }, [viewport]);
-
-  // Memoize geometry to prevent recreation
+  // The geometry is memoized to prevent expensive recalculations on every render.
+  // The detail level is determined adaptively based on the viewport size.
   const geometry = useMemo(
-    () => new THREE.IcosahedronGeometry(2, detail),
-    [detail],
+    () => new THREE.IcosahedronGeometry(2, getAdaptiveDetail(viewport).detail),
+    [viewport],
   );
 
   // Cleanup geometry on unmount to prevent memory leaks
@@ -70,17 +71,6 @@ export const InteractiveBlob = ({
     [palettes],
   );
 
-  // Memoize error color palettes
-  const errorColorPalettes = useMemo(
-    () =>
-      errorPalettes.map((p) => ({
-        a: new THREE.Color(p.a),
-        b: new THREE.Color(p.b),
-        c: new THREE.Color(p.c),
-      })),
-    [],
-  );
-
   // Memoize uniforms to prevent recreation
   const uniforms = useMemo(
     () => ({
@@ -97,23 +87,37 @@ export const InteractiveBlob = ({
       u_error_colorA: { value: new THREE.Color() },
       u_error_colorB: { value: new THREE.Color() },
       u_error_colorC: { value: new THREE.Color() },
+      // Uniforms for click-based ripple effect, now using arrays for stacking
+      u_click_pos: { value: Array.from({ length: MAX_RIPPLES }, () => new THREE.Vector3()) },
+      u_click_time: { value: Array.from({ length: MAX_RIPPLES }, () => -1.0) },
     }),
     [amplitude, frequency, speed, colorPalettes],
   );
 
-  // Cached color objects to avoid .copy().lerp() allocation every frame
+  const nextRippleIndex = useRef(0);
+
   const tempColorA = useMemo(() => new THREE.Color(), []);
   const tempColorB = useMemo(() => new THREE.Color(), []);
   const tempColorC = useMemo(() => new THREE.Color(), []);
-  const tempErrorColorA = useMemo(() => new THREE.Color(), []);
-  const tempErrorColorB = useMemo(() => new THREE.Color(), []);
-  const tempErrorColorC = useMemo(() => new THREE.Color(), []);
+
+  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+
+    if (materialRef.current) {
+      const index = nextRippleIndex.current;
+      
+      // Update the uniforms at the current index
+      materialRef.current.uniforms.u_click_pos.value[index].copy(event.point);
+      materialRef.current.uniforms.u_click_time.value[index] = clock.getElapsedTime();
+
+      // Move to the next index, wrapping around to the start if needed
+      nextRippleIndex.current = (index + 1) % MAX_RIPPLES;
+    }
+  };
 
   // Performance: Time-based throttling for ~30fps independent of display refresh rate
   const accumulatedTime = useRef(0);
-  const lastMouseUpdate = useRef(0);
-  const TARGET_FPS = 30; // Target 30fps for non-critical updates
-  const UPDATE_INTERVAL = 1 / TARGET_FPS; // ~33ms
+  const frameInterval = 1 / 30; // Target ~30fps
 
   useEffect(() => {
     // Animate shader uniform directly instead of using indirect reference
@@ -164,49 +168,39 @@ export const InteractiveBlob = ({
   }, [loading, error]);
 
   useFrame((state: RootState, delta: number) => {
-    if (!materialRef.current) return;
-
     accumulatedTime.current += delta;
+    if (accumulatedTime.current < frameInterval) return;
+    accumulatedTime.current = 0;
     
-    // Performance: Time-based throttling for ~30fps independent of display refresh rate
-    const shouldUpdate = accumulatedTime.current >= UPDATE_INTERVAL;
-    if (shouldUpdate) {
-      accumulatedTime.current = 0;
-    }
+    const { clock, mouse } = state;
+    if (materialRef.current) {
+      materialRef.current.uniforms.u_time.value = clock.getElapsedTime();
 
-    // Always update time for smooth animation
-    materialRef.current.uniforms.u_time.value = state.clock.getElapsedTime();
+      // Smoothly interpolate mouse position for hover effect.
+      // A lower value creates more "drag" or inertia. Adjusted from 0.02 to 0.035 for less drag.
+      materialRef.current.uniforms.u_mouse.value.lerp(mouse, 0.035);
+    }
     
-    // Mouse interaction with throttling (only update periodically)
-    const now = state.clock.getElapsedTime();
-    if (shouldUpdate || now - lastMouseUpdate.current > 0.016) { // ~60fps max mouse updates
-      materialRef.current.uniforms.u_mouse.value.lerp(state.mouse, 0.05);
-      lastMouseUpdate.current = now;
-    }
-
     // Smoothly update loading uniform for shimmer effect
-    uniforms.u_loading.value = THREE.MathUtils.lerp(
-      uniforms.u_loading.value as number,
-      loading ? 1 : 0,
-      0.05,
-    );
-
-    // Synchronous safety check
-    if (paletteIndex.current >= colorPalettes.length) {
-      paletteIndex.current = 0;
-    }
-    if (errorPaletteIndex.current >= errorColorPalettes.length) {
-      errorPaletteIndex.current = 0;
+    if (uniforms.u_loading) {
+      uniforms.u_loading.value = THREE.MathUtils.lerp(
+        uniforms.u_loading.value as number,
+        loading ? 1 : 0,
+        0.05,
+      );
     }
 
-    // Error mix factor is now animated directly by GSAP, no manual update needed
+    // Dynamic color transitions
+    const transitionDuration = loading
+      ? TRANSITION_CONFIG.loadingDuration
+      : TRANSITION_CONFIG.duration;
 
-    // Normal color transition logic - only update when necessary
-    if (shouldUpdate) {
+    if (transitionProgress.current < 1) {
       transitionProgress.current += delta / transitionDuration;
 
-      if (transitionProgress.current > 1.0) {
-        transitionProgress.current = 0.0;
+      // When transition completes, select next palette and reset progress
+      if (transitionProgress.current >= 1.0) {
+        transitionProgress.current = 0.0; // Reset for next transition
         paletteIndex.current = (paletteIndex.current + 1) % colorPalettes.length;
       }
 
@@ -214,37 +208,25 @@ export const InteractiveBlob = ({
       const currentPalette = colorPalettes[safeIndex];
       const nextPalette = colorPalettes[(safeIndex + 1) % colorPalettes.length];
 
-      // Use cached color objects instead of .copy() to avoid allocation
+      // Use cached color objects to avoid creating new THREE.Color instances per frame
       tempColorA.copy(currentPalette.a).lerp(nextPalette.a, transitionProgress.current);
       tempColorB.copy(currentPalette.b).lerp(nextPalette.b, transitionProgress.current);
       tempColorC.copy(currentPalette.c).lerp(nextPalette.c, transitionProgress.current);
-
-      // Update uniform values directly
-      materialRef.current.uniforms.u_colorA.value.copy(tempColorA);
-      materialRef.current.uniforms.u_colorB.value.copy(tempColorB);
-      materialRef.current.uniforms.u_colorC.value.copy(tempColorC);
+      
+      if (materialRef.current) {
+        materialRef.current.uniforms.u_colorA.value.copy(tempColorA);
+        materialRef.current.uniforms.u_colorB.value.copy(tempColorB);
+        materialRef.current.uniforms.u_colorC.value.copy(tempColorC);
+      }
     }
-
-    // Error color transition (runs in parallel)
-    errorTransitionProgress.current += delta / (error ? 1 : 5);
-    if (errorTransitionProgress.current > 1.0) {
-      errorTransitionProgress.current = 0.0;
-      errorPaletteIndex.current = (errorPaletteIndex.current + 1) % errorColorPalettes.length;
-    }
-    const currentErrorPalette = errorColorPalettes[errorPaletteIndex.current];
-    const nextErrorPalette = errorColorPalettes[(errorPaletteIndex.current + 1) % errorColorPalettes.length];
-    
-    tempErrorColorA.copy(currentErrorPalette.a).lerp(nextErrorPalette.a, errorTransitionProgress.current);
-    tempErrorColorB.copy(currentErrorPalette.b).lerp(nextErrorPalette.b, errorTransitionProgress.current);
-    tempErrorColorC.copy(currentErrorPalette.c).lerp(nextErrorPalette.c, errorTransitionProgress.current);
-
-    uniforms.u_error_colorA.value.copy(tempErrorColorA);
-    uniforms.u_error_colorB.value.copy(tempErrorColorB);
-    uniforms.u_error_colorC.value.copy(tempErrorColorC);
   });
 
   return (
-    <mesh ref={meshRef} scale={Math.min(viewport.width, viewport.height) / 6.66}>
+    <mesh
+      ref={meshRef}
+      scale={Math.min(viewport.width, viewport.height) / 6.66}
+      onPointerDown={handlePointerDown}
+    >
       <primitive object={geometry} attach="geometry" />
       <shaderMaterial 
         ref={materialRef} 

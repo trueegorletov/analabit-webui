@@ -58,6 +58,11 @@ export const vertexShader = `
   uniform float u_loading;
   uniform float u_error_mix_factor;
 
+  // Uniforms for click-based ripple effect (now an array for stacking)
+  #define MAX_RIPPLES 5
+  uniform vec3 u_click_pos[MAX_RIPPLES];
+  uniform float u_click_time[MAX_RIPPLES];
+
   varying vec3 v_normal;
   varying vec3 v_position;
   varying float v_noise;
@@ -73,10 +78,12 @@ export const vertexShader = `
     float corruption = snoise(position * 40.0 + time * 20.0) * u_error_mix_factor * 0.4;
 
     vec3 mouse_effect = vec3(u_mouse * 2.0, 0.0);
-    float mouse_influence = snoise(position * 0.5 + mouse_effect);
+    // Frequency reduced from 2.5 to 1.0 for a broader, smoother "push" effect
+    float mouse_influence = snoise(position * 1.0 + mouse_effect);
 
     v_noise = snoise(position * u_frequency + time);
-    vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.1 + error_jitter + corruption);
+    // Intensity increased to 0.4 as a medium between the previous subtle and intense values
+    vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.4 + error_jitter + corruption);
 
     // Subtle pixelation – mixes in when error occurs to emphasise glitch
     newPosition = mix(newPosition, floor(newPosition * 4.0) / 4.0, u_error_mix_factor);
@@ -98,6 +105,11 @@ export const fragmentShader = `
   uniform vec3 u_error_colorB;
   uniform vec3 u_error_colorC;
   uniform float u_error_mix_factor;
+
+  // Uniforms for click-based ripple effect (now an array for stacking)
+  #define MAX_RIPPLES 5
+  uniform vec3 u_click_pos[MAX_RIPPLES];
+  uniform float u_click_time[MAX_RIPPLES];
 
   varying vec3 v_normal;
   varying vec3 v_position;
@@ -126,6 +138,32 @@ export const fragmentShader = `
     
     // Mix between normal and error colors
     vec3 final_color = mix(normal_color, error_color, u_error_mix_factor);
+
+    // Click ripple effect: multiple white rings that expand and fade
+    float total_ripple_effect = 0.0;
+    for (int i = 0; i < MAX_RIPPLES; i++) {
+      if (u_click_time[i] > 0.0) {
+        float time_since_click = u_time - u_click_time[i];
+        
+        if (time_since_click < 2.0) {
+          // Ripple speed reduced by 20% (from 3.0 to 2.4) for a gentler effect
+          float ripple_speed = 2.4;
+          float ripple_width = 0.2;
+          float ripple_fade_duration = 1.5;
+
+          float dist_from_click = distance(v_position, u_click_pos[i]);
+          float current_radius = time_since_click * ripple_speed;
+          
+          float ring = smoothstep(current_radius - ripple_width, current_radius, dist_from_click) - 
+                       smoothstep(current_radius, current_radius + ripple_width, dist_from_click);
+
+          float fade_factor = 1.0 - smoothstep(0.0, ripple_fade_duration, time_since_click);
+          total_ripple_effect += ring * fade_factor;
+        }
+      }
+    }
+    // Add the combined glowing rings to the final color
+    final_color += vec3(1.0, 1.0, 1.0) * total_ripple_effect * 0.5;
 
     // Loading shimmer – subtle brightness pulsing when u_loading > 0
     float shimmer = (sin(u_time * 6.0) * 0.5 + 0.5) * 0.2 * u_loading;
