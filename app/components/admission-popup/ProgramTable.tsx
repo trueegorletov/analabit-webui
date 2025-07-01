@@ -26,7 +26,7 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({ programs, highlightP
           return (
             <div
               key={row.priority}
-              className={`col-span-4 grid grid-cols-[auto_1fr_auto_auto] transition-colors ${
+              className={`col-span-4 grid grid-cols-subgrid transition-colors ${
                 isHighlight
                   ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 hover:from-violet-600/30 hover:to-fuchsia-600/30'
                   : 'hover:bg-gray-700/30'
