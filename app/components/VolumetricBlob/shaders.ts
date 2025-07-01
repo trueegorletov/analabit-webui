@@ -82,11 +82,37 @@ export const vertexShader = `
     float mouse_influence = snoise(position * 1.0 + mouse_effect);
 
     v_noise = snoise(position * u_frequency + time);
-    // Intensity increased to 0.4 as a medium between the previous subtle and intense values
+    // Intensity reduced from 0.5 to 0.3 for a more subtle hover effect
     vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.4 + error_jitter + corruption);
 
     // Subtle pixelation – mixes in when error occurs to emphasise glitch
     newPosition = mix(newPosition, floor(newPosition * 4.0) / 4.0, u_error_mix_factor);
+
+    // Plan A: Add subtle shape-morphing ripple on click
+    float total_shape_ripple_effect = 0.0;
+    for (int i = 0; i < MAX_RIPPLES; i++) {
+      if (u_click_time[i] > 0.0) {
+        float time_since_click = u_time - u_click_time[i];
+        
+        // This effect should be slower and last a bit longer than the light ripple
+        if (time_since_click < 2.5) {
+          float shape_ripple_speed = 1.8; // Slowest ripple
+          float shape_ripple_width = 0.4; // Broader wave
+          float shape_ripple_amplitude = 0.05; // Very subtle displacement
+
+          float dist_from_click = distance(position, u_click_pos[i]);
+          float current_radius = time_since_click * shape_ripple_speed;
+          
+          // Create a smooth wave "bump"
+          float bump = smoothstep(current_radius - shape_ripple_width, current_radius, dist_from_click) - 
+                       smoothstep(current_radius, current_radius + shape_ripple_width, dist_from_click);
+
+          float fade_factor = 1.0 - smoothstep(0.5, 2.0, time_since_click);
+          total_shape_ripple_effect += bump * shape_ripple_amplitude * fade_factor;
+        }
+      }
+    }
+    newPosition += normal * total_shape_ripple_effect;
 
     v_normal = normalize(normal);
     v_position = newPosition;
@@ -140,30 +166,48 @@ export const fragmentShader = `
     vec3 final_color = mix(normal_color, error_color, u_error_mix_factor);
 
     // Click ripple effect: multiple white rings that expand and fade
-    float total_ripple_effect = 0.0;
+    float total_light_ripple_effect = 0.0;
+    float total_color_ripple_effect = 0.0;
     for (int i = 0; i < MAX_RIPPLES; i++) {
       if (u_click_time[i] > 0.0) {
         float time_since_click = u_time - u_click_time[i];
         
+        // --- Main light ripple (fastest) ---
         if (time_since_click < 2.0) {
-          // Ripple speed reduced by 20% (from 3.0 to 2.4) for a gentler effect
-          float ripple_speed = 2.4;
-          float ripple_width = 0.2;
-          float ripple_fade_duration = 1.5;
+          float light_ripple_speed = 2.4;
+          float light_ripple_width = 0.2;
+          float light_ripple_fade_duration = 1.5;
 
           float dist_from_click = distance(v_position, u_click_pos[i]);
-          float current_radius = time_since_click * ripple_speed;
+          float current_radius = time_since_click * light_ripple_speed;
           
-          float ring = smoothstep(current_radius - ripple_width, current_radius, dist_from_click) - 
-                       smoothstep(current_radius, current_radius + ripple_width, dist_from_click);
+          float ring = smoothstep(current_radius - light_ripple_width, current_radius, dist_from_click) - 
+                       smoothstep(current_radius, current_radius + light_ripple_width, dist_from_click);
 
-          float fade_factor = 1.0 - smoothstep(0.0, ripple_fade_duration, time_since_click);
-          total_ripple_effect += ring * fade_factor;
+          float fade_factor = 1.0 - smoothstep(0.0, light_ripple_fade_duration, time_since_click);
+          total_light_ripple_effect += ring * fade_factor;
+        }
+
+        // --- Plan B: Lagging color ripple (slower) ---
+        if (time_since_click < 2.2) {
+          float color_ripple_speed = 2.1;
+          float color_ripple_width = 0.3;
+
+          float dist_from_click = distance(v_position, u_click_pos[i]);
+          float current_radius = time_since_click * color_ripple_speed;
+
+          float ring = smoothstep(current_radius - color_ripple_width, current_radius, dist_from_click) - 
+                       smoothstep(current_radius, current_radius + color_ripple_width, dist_from_click);
+          
+          float fade_factor = 1.0 - smoothstep(0.2, 1.8, time_since_click);
+          total_color_ripple_effect += ring * fade_factor;
         }
       }
     }
-    // Add the combined glowing rings to the final color
-    final_color += vec3(1.0, 1.0, 1.0) * total_ripple_effect * 0.5;
+    // Add the glowing rings to the final color
+    final_color += vec3(1.0, 1.0, 1.0) * total_light_ripple_effect * 0.5;
+    // Add the subtle, colored afterglow (using one of the blob's own palette colors)
+    final_color += u_colorB * total_color_ripple_effect * 0.3;
 
     // Loading shimmer – subtle brightness pulsing when u_loading > 0
     float shimmer = (sin(u_time * 6.0) * 0.5 + 0.5) * 0.2 * u_loading;
