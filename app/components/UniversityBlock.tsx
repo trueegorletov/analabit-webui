@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
+import { Copy } from 'lucide-react';
 import { flashThenIdle, type Palette } from '../utils/glowHelpers';
 import type { University, Direction, UniversityDirectionsState } from '../../lib/api/types';
 import { 
@@ -22,8 +24,46 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [hasTriedFetch, setHasTriedFetch] = useState(false);
   const blockRef = useRef<HTMLDivElement>(null);
+  const [showCopyTooltip, setShowCopyTooltip] = useState(false);
+  const copyButtonRef = useRef<HTMLButtonElement>(null);
+  const [tooltipData, setTooltipData] = useState<{ top: number; left: number } | null>(null);
   // Persist glow timeline across renders so we can reliably kill it
   const glowTl = useRef<gsap.core.Timeline | null>(null);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the block from toggling
+    if (!copyButtonRef.current) return;
+
+    const rect = copyButtonRef.current.getBoundingClientRect();
+    setTooltipData({
+      top: rect.top - 10, // Position above the button, relative to viewport
+      left: rect.left + rect.width / 2, // Center horizontally, relative to viewport
+    });
+
+    const url = `${window.location.origin}/#${university.code}`;
+    navigator.clipboard.writeText(url);
+  };
+
+  useEffect(() => {
+    if (tooltipData) {
+      const showTimer = setTimeout(() => {
+        setShowCopyTooltip(true);
+      }, 10); // Brief delay to allow mounting before fade-in
+
+      const hideTimer = setTimeout(() => {
+        setShowCopyTooltip(false);
+        const unmountTimer = setTimeout(() => {
+          setTooltipData(null);
+        }, 300); // Duration of fade-out transition
+        return () => clearTimeout(unmountTimer);
+      }, 1500); // Visible duration
+
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+      };
+    }
+  }, [tooltipData]);
 
   const handleToggle = async () => {
     const newExpanded = !expanded;
@@ -142,7 +182,31 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
         <div className="block-header">
           <h3>{university.name}</h3>
           <div className="header-info">
-            <span className="university-code">{university.code}</span>
+            <div className="relative">
+              <button
+                ref={copyButtonRef}
+                className="university-code-copy-btn"
+                onClick={handleCopy}
+              >
+                <span className="university-code">{university.code}</span>
+                <Copy size={12} className="copy-icon" />
+              </button>
+              {tooltipData && ReactDOM.createPortal(
+                <div
+                  className={`fixed pointer-events-none transition-opacity duration-300 ease-in-out -translate-x-1/2 -translate-y-full ${showCopyTooltip ? 'opacity-100' : 'opacity-0'}`}
+                  style={{ 
+                    left: tooltipData.left, 
+                    top: tooltipData.top,
+                    zIndex: 9999,
+                  }}
+                >
+                  <span className="whitespace-nowrap px-4 py-2 rounded-lg bg-neutral-800/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
+                    Скопировано
+                  </span>
+                </div>,
+                document.body,
+              )}
+            </div>
             <button
               className={`toggle-btn ${expanded ? 'expanded' : ''}`}
               data-expand-button
@@ -181,12 +245,36 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
           gap: 0.75rem;
         }
 
-        .university-code {
-          font-size: 0.75rem;
-          color: rgba(255, 255, 255, 0.6);
+        .university-code-copy-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
           background: rgba(255, 255, 255, 0.1);
           padding: 0.25rem 0.5rem;
           border-radius: 0.25rem;
+          cursor: pointer;
+          transition: all 0.2s ease-in-out;
+          border: 1px solid transparent;
+        }
+        
+        .university-code-copy-btn:hover {
+          transform: scale(1.05);
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .university-code-copy-btn .copy-icon {
+          color: rgba(255, 255, 255, 0.5);
+          transition: color 0.2s;
+        }
+
+        .university-code-copy-btn:hover .copy-icon {
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .university-code {
+          font-size: 0.75rem;
+          color: rgba(255, 255, 255, 0.6);
           font-family: monospace;
         }
       `}</style>
