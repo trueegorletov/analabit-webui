@@ -24,19 +24,6 @@ const ROTATION_CONFIG = {
   impulseEasing: 'expo.out',        // easing for impulse decay
 } as const;
 
-// Pulse (scale) config
-const PULSE_CONFIG_LOAD = {
-  minScale: 0.8,
-  duration: 0.8,
-  easing: 'sine.inOut',
-} as const;
-
-const PULSE_CONFIG_ERROR = {
-  minScale: 0.9, // more gentle
-  duration: 0.5,
-  easing: 'sine.inOut',
-} as const;
-
 export default function VolumetricBlobContainer({ 
   showPerformanceDebug = false, 
   loading = false, 
@@ -48,7 +35,7 @@ export default function VolumetricBlobContainer({
 
   const { key, ...shapeParams } = blobParams;
 
-  // Ref to the container for pulse animation
+  // Container ref retained only for layout reference (no animation applied)
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Ref to OrbitControls for camera impulse rotation
@@ -59,29 +46,6 @@ export default function VolumetricBlobContainer({
 
   // Store previous error state to detect rising edge
   const prevError = useRef<boolean>(false);
-
-  // Pulse & animation speed adjustment based on props.loading
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (loading || error) {
-      const config = loading ? PULSE_CONFIG_LOAD : PULSE_CONFIG_ERROR;
-      gsap.to(el, {
-        scale: config.minScale,
-        duration: config.duration,
-        yoyo: true,
-        repeat: -1,
-        ease: config.easing,
-      });
-    } else {
-      // Stop pulse, reset scale
-      gsap.killTweensOf(el);
-      gsap.to(el, { scale: 1, duration: 0.3, ease: 'power1.out' });
-    }
-    return () => {
-      gsap.killTweensOf(el);
-    };
-  }, [loading, error]);
 
   // Add effect to toggle autoRotate according to loading state
   useEffect(() => {

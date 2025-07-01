@@ -9,6 +9,19 @@ import { getAdaptiveDetail } from './utils';
 import type { InteractiveBlobProps } from './types';
 import { gsap } from 'gsap';
 
+// Pulse (scale) config moved here to animate mesh directly instead of DOM container
+const PULSE_CONFIG_LOAD = {
+  minScale: 0.8,
+  duration: 0.8,
+  easing: 'sine.inOut',
+} as const;
+
+const PULSE_CONFIG_ERROR = {
+  minScale: 0.9, // more gentle pulse on error
+  duration: 0.5,
+  easing: 'sine.inOut',
+} as const;
+
 export const InteractiveBlob = ({
   speed,
   frequency,
@@ -112,6 +125,43 @@ export const InteractiveBlob = ({
     });
     }
   }, [error]);
+
+  // Pulsation animation on the mesh scale to replace previous DOM-based approach
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+
+    // Determine base (original) scale from current scale.x (they are uniform)
+    const baseScale = mesh.scale.x;
+
+    if (loading || error) {
+      const config = loading ? PULSE_CONFIG_LOAD : PULSE_CONFIG_ERROR;
+      gsap.to(mesh.scale, {
+        x: baseScale * config.minScale,
+        y: baseScale * config.minScale,
+        z: baseScale * config.minScale,
+        duration: config.duration,
+        yoyo: true,
+        repeat: -1,
+        ease: config.easing,
+      });
+    } else {
+      // Stop ongoing tweens on mesh scale and restore base scale
+      gsap.killTweensOf(mesh.scale);
+      gsap.to(mesh.scale, {
+        x: baseScale,
+        y: baseScale,
+        z: baseScale,
+        duration: 0.3,
+        ease: 'power1.out',
+      });
+    }
+
+    // Cleanup on unmount
+    return () => {
+      gsap.killTweensOf(mesh.scale);
+    };
+  }, [loading, error]);
 
   useFrame((state: RootState, delta: number) => {
     if (!materialRef.current) return;
