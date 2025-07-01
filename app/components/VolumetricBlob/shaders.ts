@@ -69,11 +69,17 @@ export const vertexShader = `
     // Add error jitter that fades in with the error color
     float error_jitter = snoise(position * 20.0 + time * 5.0) * u_error_mix_factor * 0.05;
 
+    // High-frequency corruption displacement for error state (Plan C) – reduced intensity
+    float corruption = snoise(position * 40.0 + time * 20.0) * u_error_mix_factor * 0.25;
+
     vec3 mouse_effect = vec3(u_mouse * 2.0, 0.0);
     float mouse_influence = snoise(position * 0.5 + mouse_effect);
 
     v_noise = snoise(position * u_frequency + time);
-    vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.1 + error_jitter);
+    vec3 newPosition = position + normal * (v_noise * u_amplitude + mouse_influence * 0.1 + error_jitter + corruption);
+
+    // Subtle pixelation – mixes in when error occurs to emphasise glitch
+    newPosition = mix(newPosition, floor(newPosition * 4.0) / 4.0, u_error_mix_factor);
 
     v_normal = normalize(normal);
     v_position = newPosition;
