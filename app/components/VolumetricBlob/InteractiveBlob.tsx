@@ -4,6 +4,7 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { useFrame, useThree, type RootState, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { vertexShader, fragmentShader } from './shaders';
+import { errorPalettes } from './colorPalettes';
 import { getAdaptiveDetail } from './utils';
 import type { InteractiveBlobProps } from './types';
 import { gsap } from 'gsap';
@@ -44,7 +45,7 @@ export const InteractiveBlob: React.FC<InteractiveBlobProps> = ({
   const { viewport, clock } = useThree();
 
   const paletteIndex = useRef(0);
-  const transitionProgress = useRef(1);
+  const transitionProgress = useRef(0);
 
   // The geometry is memoized to prevent expensive recalculations on every render.
   // The detail level is determined adaptively based on the viewport size.
@@ -69,6 +70,17 @@ export const InteractiveBlob: React.FC<InteractiveBlobProps> = ({
         c: new THREE.Color(p.c),
       })),
     [palettes],
+  );
+
+  // Memoize error color palettes
+  const errorColorPalettes = useMemo(
+    () =>
+      errorPalettes.map((p) => ({
+        a: new THREE.Color(p.a),
+        b: new THREE.Color(p.b),
+        c: new THREE.Color(p.c),
+      })),
+    [],
   );
 
   // Memoize uniforms to prevent recreation
@@ -122,13 +134,19 @@ export const InteractiveBlob: React.FC<InteractiveBlobProps> = ({
   useEffect(() => {
     // Animate shader uniform directly instead of using indirect reference
     if (materialRef.current) {
+      // Set the target error colors
+      const errorPalette = errorColorPalettes[0];
+      materialRef.current.uniforms.u_error_colorA.value.copy(errorPalette.a);
+      materialRef.current.uniforms.u_error_colorB.value.copy(errorPalette.b);
+      materialRef.current.uniforms.u_error_colorC.value.copy(errorPalette.c);
+      
       gsap.to(materialRef.current.uniforms.u_error_mix_factor, {
-      value: error ? 1 : 0,
-      duration: 1.9, // Quick but smooth
-      ease: 'power2.inOut',
-    });
+        value: error ? 1 : 0,
+        duration: 1.9, // Quick but smooth
+        ease: 'power2.inOut',
+      });
     }
-  }, [error]);
+  }, [error, errorColorPalettes]);
 
   // Pulsation animation on the mesh scale to replace previous DOM-based approach
   useEffect(() => {
