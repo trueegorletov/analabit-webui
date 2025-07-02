@@ -371,6 +371,25 @@ export default function ApplicationsList() {
     };
   }, [popupOpen]);
 
+  // --- Tooltip handling helpers (moved above to satisfy hook dependency order) ---
+  const scheduleFadeOut = () => {
+    setOrigTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
+    origTooltipTimeoutRef.current = setTimeout(() => {
+      setOrigTooltip(null);
+      origTooltipTimeoutRef.current = null;
+    }, FADE_DURATION);
+  };
+
+  const hideOrigTooltip = useCallback(() => {
+    if (origTooltipTimeoutRef.current) {
+      clearTimeout(origTooltipTimeoutRef.current);
+      origTooltipTimeoutRef.current = null;
+    }
+    origTooltipTimeoutRef.current = setTimeout(() => {
+      scheduleFadeOut();
+    }, HOVER_LEAVE_DELAY);
+  }, []);
+
   const showOrigTooltip = useCallback(
     (
       e: React.MouseEvent<HTMLDivElement>,
@@ -395,27 +414,8 @@ export default function ApplicationsList() {
         }, 2000);
       }
     },
-    [],
+    [hideOrigTooltip],
   );
-
-  const scheduleFadeOut = () => {
-    setOrigTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
-    origTooltipTimeoutRef.current = setTimeout(() => {
-      setOrigTooltip(null);
-      origTooltipTimeoutRef.current = null;
-    }, FADE_DURATION);
-  };
-
-  const hideOrigTooltip = useCallback(() => {
-    // Не скрываем моментально – даём небольшую задержку, чтобы курсор мог перейти на SVG внутри ячейки без мерцания
-    if (origTooltipTimeoutRef.current) {
-      clearTimeout(origTooltipTimeoutRef.current);
-      origTooltipTimeoutRef.current = null;
-    }
-    origTooltipTimeoutRef.current = setTimeout(() => {
-      scheduleFadeOut();
-    }, HOVER_LEAVE_DELAY);
-  }, []);
 
   return (
     <div>
