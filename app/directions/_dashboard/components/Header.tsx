@@ -77,7 +77,7 @@ export default function Header() {
         СПбГУ
       </Link>
       <div className="mx-auto max-w-fit">
-        <h1 className="text-4xl md:text-4xl sm:text-3xl xs:text-2xl font-bold text-white mb-1 transition-all duration-300 hover:text-gray-100 relative inline-block">
+        <h1 className="title">
           Программная инженерия
         </h1>
       </div>

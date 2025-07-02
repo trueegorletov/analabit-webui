@@ -7,7 +7,6 @@ import AdmissionInfo from './components/AdmissionInfo';
 import DrainedResults from './components/DrainedResults';
 import Legend from './components/Legend';
 import ApplicationsList from './components/ApplicationsList';
-import { drainedResultsData } from './constants';
 
 export default function DashboardApp() {
   return (
@@ -19,11 +18,11 @@ export default function DashboardApp() {
         <Header />
         <StatsOverview />
         <AdmissionInfo passingScore={282} admittedRank={135} />
-        <DrainedResults data={drainedResultsData} />
+        <DrainedResults />
       </div>
 
       {/* Applications list */}
-      <div className="dashboard-container mt-8">
+      <div className="dashboard-container mt-1 sm:mt-2 md:mt-8">
         <ApplicationsList />
         
         {/* Legend with improved spacing and typography */}

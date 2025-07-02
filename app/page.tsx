@@ -538,7 +538,7 @@ export default function Home() {
             <Animation loading={loadingStatus} error={blobError} />
           </Suspense>
         </div>
-        <div className="title">Проверка статуса поступления</div>
+        <div className="title hero-title">Проверка статуса поступления</div>
         <div className="desc">
           Введите ID абитуриента, чтобы узнать, в какие университеты он зачислен
         </div>
@@ -583,8 +583,8 @@ export default function Home() {
       </div>
 
       {/* Results section with glass container styling */}
-      <div className="dashboard-container mt-8">
-        <h2 className="results-title">Результаты по направлениям</h2>
+      <div className="dashboard-container mt-1 sm:mt-2 md:mt-8">
+        <h2 className="section-title">Результаты по направлениям</h2>
         {renderUniversityBlocks()}
       </div>
 

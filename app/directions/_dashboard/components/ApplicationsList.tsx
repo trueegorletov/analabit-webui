@@ -11,7 +11,7 @@ import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
 import { mockUniversities, mockDirections } from '@/lib/api/mockData';
 
 const MIN_TABLE_HEIGHT = 150; // pixels
-const INITIAL_TABLE_HEIGHT = 320; // pixels
+const INITIAL_TABLE_HEIGHT = 880; // pixels (increased 2.75x)
 const CLICK_DRAG_THRESHOLD = 5; // pixels
 
 // Utility types copied from popup component
@@ -314,12 +314,12 @@ export default function ApplicationsList() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-white mb-4">
+      <h2 className="section-title">
         Список заявлений
       </h2>
       <div
         ref={resizableDivRef}
-        className="rounded-t-xl bg-white/5 border border-white/10 border-b-0 overflow-hidden applications-scrollbar"
+        className="rounded-t-xl bg-white/5 border border-white/10 border-b-0 overflow-hidden applications-scrollbar mt-4 sm:mt-5 md:mt-6"
         style={{ height: `${currentHeight}px` }}
       >
         <div ref={contentRef} className="overflow-y-auto overflow-x-hidden h-full">
