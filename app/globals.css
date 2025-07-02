@@ -113,7 +113,8 @@
     @apply w-[90%] max-w-[700px] p-10 mx-auto mt-20;
     @apply transition-all duration-300 ease-out;
 
-    /* Add webkit prefix for Safari support */
+    /* Backdrop filter for all browsers with Safari prefix */
+    backdrop-filter: blur(16px) saturate(160%);
     -webkit-backdrop-filter: blur(16px) saturate(160%);
   }
 
@@ -535,6 +536,11 @@
   .points .max {
     font-size: 14px;
   }
+
+  /* University block heading – two steps smaller on xs */
+  .block-header h3 {
+    font-size: 0.5rem;
+  }
 }
 
 /* =============================================================================
@@ -663,6 +669,14 @@
   }
 }
 
+/* One step smaller heading on screens ≤ 640px */
+@media (max-width: 640px) {
+  .block-header h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Two steps smaller heading on screens ≤ 480px */
 @media (max-width: 480px) {
   .title {
     font-size: 2rem;
@@ -687,6 +701,15 @@
 
   .points .max {
     font-size: 14px;
+  }
+
+  /* University block heading – two steps smaller on xs */
+  .block-header h3 {
+    font-size: 0.85rem;
+  }
+
+  .block-header {
+    padding-left: 0.5rem;
   }
 }
 

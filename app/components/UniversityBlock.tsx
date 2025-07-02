@@ -30,7 +30,7 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
   // Persist glow timeline across renders so we can reliably kill it
   const glowTl = useRef<gsap.core.Timeline | null>(null);
 
-  const handleCopy = (e: React.MouseEvent) => {
+  const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the block from toggling
     if (!copyButtonRef.current) return;
 
@@ -41,7 +41,29 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
     });
 
     const url = `${window.location.origin}/#${university.code}`;
-    navigator.clipboard.writeText(url);
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Fallback for iOS Safari
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Fallback copy failed', err);
+        }
+        textarea.remove();
+      }
+    } catch (err) {
+      console.error('Clipboard write failed', err);
+    }
   };
 
   useEffect(() => {
@@ -276,6 +298,35 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
           font-size: 0.75rem;
           color: rgba(255, 255, 255, 0.6);
           font-family: monospace;
+        }
+
+        /* Responsive downsizing */
+        @media (max-width: 640px) {
+          .university-code-copy-btn {
+            padding: 0.2rem 0.45rem;
+            gap: 0.3rem;
+          }
+          .university-code {
+            font-size: 0.65rem;
+          }
+          .university-code-copy-btn .copy-icon {
+            width: 10px;
+            height: 10px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .university-code-copy-btn {
+            padding: 0.15rem 0.4rem;
+            gap: 0.25rem;
+          }
+          .university-code {
+            font-size: 0.55rem;
+          }
+          .university-code-copy-btn .copy-icon {
+            width: 9px;
+            height: 9px;
+          }
         }
       `}</style>
     </>

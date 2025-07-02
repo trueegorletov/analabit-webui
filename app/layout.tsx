@@ -3,6 +3,7 @@ import './globals.css';
 import Header from './components/Header';
 import ParallaxBackground from './components/ParallaxBackground';
 import Footer from './components/Footer';
+import HelpButton from './components/HelpButton';
 
 export const metadata: Metadata = {
   title: 'Analabit Admission',
@@ -21,6 +22,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
+        <HelpButton />
       </body>
     </html>
   );
