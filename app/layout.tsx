@@ -4,6 +4,8 @@ import Header from './components/Header';
 import ParallaxBackground from './components/ParallaxBackground';
 import Footer from './components/Footer';
 import HelpButton from './components/HelpButton';
+import RootProviders from './RootProviders';
+import Shell from './Shell';
 
 export const metadata: Metadata = {
   title: 'Analabit Admission',
@@ -16,13 +18,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
+    <html lang={process.env.NEXT_PUBLIC_LANG ?? 'ru'}>
       <body>
-        <ParallaxBackground />
-        <Header />
-        {children}
-        <Footer />
-        <HelpButton />
+        <RootProviders>
+          <main id="root">
+            <Shell />
+            <ParallaxBackground />
+            <Header />
+            {children}
+            <Footer />
+            <HelpButton />
+          </main>
+        </RootProviders>
       </body>
     </html>
   );

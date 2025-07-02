@@ -7,6 +7,8 @@ const config: Config = {
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './app/directions/**/*.{ts,tsx}',
+    './stories/**/*.{ts,tsx,mdx}',
+    '.storybook/**/*.{ts,tsx,mdx}',
   ],
   theme: {
     extend: {

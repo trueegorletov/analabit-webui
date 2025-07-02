@@ -75,7 +75,11 @@ export default function DrainedResults({ simulationCount = 100 }: DrainedResults
 
               {/* Metric rows */}
               {section.rows.map((row) => (
-                <React.Fragment key={row.metric + section.section}>
+                <div
+                  key={row.metric + section.section}
+                  className="col-span-5 grid hover:bg-white/5 transition-colors"
+                  style={{ gridTemplateColumns: 'minmax(0,3fr) repeat(4, minmax(0,1fr))' }}
+                >
                   <div className="flex items-center px-2 py-1.5 text-gray-300 font-medium text-left whitespace-normal xs:whitespace-nowrap text-[11px] xs:text-xs sm:text-sm md:text-base">
                     {row.metric}
                   </div>
@@ -87,7 +91,7 @@ export default function DrainedResults({ simulationCount = 100 }: DrainedResults
                       {row[p as keyof typeof row]}
                     </div>
                   ))}
-                </React.Fragment>
+                </div>
               ))}
             </React.Fragment>
           ))}

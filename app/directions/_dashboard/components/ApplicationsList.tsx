@@ -14,6 +14,14 @@ const MIN_TABLE_HEIGHT = 150; // pixels
 const INITIAL_TABLE_HEIGHT = 490; // pixels (increased 2.75x)
 const CLICK_DRAG_THRESHOLD = 5; // pixels
 
+// NEW: Tooltip text mapping for "Оригинал" column icons
+const ORIGINAL_STATUS_TEXT: Record<OrigCeltStatus, string> = {
+  [OrigCeltStatus.YES]: 'Оригинал подан',
+  [OrigCeltStatus.NO]: 'Проходит на другое, более приоритетное направление',
+  [OrigCeltStatus.UNKNOWN]: 'Нет данных о наличии или отсутствии подачи аттестата',
+  [OrigCeltStatus.OTHER]: 'Покинул конкурс',
+};
+
 // Utility types copied from popup component
 interface ProgramRow {
   priority: number;
@@ -116,6 +124,17 @@ export default function ApplicationsList() {
     left: number;
   } | null>(null);
 
+  // NEW: Tooltip state for "Оригинал" status icons
+  const FADE_DURATION = 180; // ms
+  const HOVER_LEAVE_DELAY = 120; // ms – небольшая задержка, чтобы избежать мерцаний при быстром перемещении курсора
+  const [origTooltip, setOrigTooltip] = useState<{
+    text: string;
+    top: number;
+    left: number;
+    visible: boolean;
+  } | null>(null);
+  const origTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [popupOpen, setPopupOpen] = useState(false);
@@ -202,6 +221,10 @@ export default function ApplicationsList() {
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
       }
+      // Cleanup tooltip timer on unmount
+      if (origTooltipTimeoutRef.current) {
+        clearTimeout(origTooltipTimeoutRef.current);
+      }
     };
   }, [handleMouseMove, handleMouseUp]);
 
@@ -212,7 +235,7 @@ export default function ApplicationsList() {
       setContentHeight(h);
       setCurrentHeight((prev) => Math.min(prev, h));
     }
-  }, [applications]);
+  }, [applications.length]);
 
   const renderOriginal = (status: OrigCeltStatus) => {
     switch (status) {
@@ -229,7 +252,7 @@ export default function ApplicationsList() {
     }
   };
 
-  const renderOtherUniversities = (value?: number) => {
+  const renderOtherUniversities = (value?: number | 'check') => {
     if (value === undefined || value === 0) {
       return <span className="text-gray-200">—</span>;
     }
@@ -347,6 +370,52 @@ export default function ApplicationsList() {
     };
   }, [popupOpen]);
 
+  const showOrigTooltip = useCallback(
+    (
+      e: React.MouseEvent<HTMLDivElement>,
+      status: OrigCeltStatus,
+      autoHide: boolean = false,
+    ) => {
+      if (origTooltipTimeoutRef.current) {
+        clearTimeout(origTooltipTimeoutRef.current);
+        origTooltipTimeoutRef.current = null;
+      }
+      const rect = e.currentTarget.getBoundingClientRect();
+      setOrigTooltip({
+        text: ORIGINAL_STATUS_TEXT[status],
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2,
+        visible: true,
+      });
+
+      if (autoHide) {
+        origTooltipTimeoutRef.current = setTimeout(() => {
+          hideOrigTooltip();
+        }, 2000);
+      }
+    },
+    [],
+  );
+
+  const scheduleFadeOut = () => {
+    setOrigTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
+    origTooltipTimeoutRef.current = setTimeout(() => {
+      setOrigTooltip(null);
+      origTooltipTimeoutRef.current = null;
+    }, FADE_DURATION);
+  };
+
+  const hideOrigTooltip = useCallback(() => {
+    // Не скрываем моментально – даём небольшую задержку, чтобы курсор мог перейти на SVG внутри ячейки без мерцания
+    if (origTooltipTimeoutRef.current) {
+      clearTimeout(origTooltipTimeoutRef.current);
+      origTooltipTimeoutRef.current = null;
+    }
+    origTooltipTimeoutRef.current = setTimeout(() => {
+      scheduleFadeOut();
+    }, HOVER_LEAVE_DELAY);
+  }, []);
+
   return (
     <div>
       <h2 className="section-title">
@@ -358,12 +427,12 @@ export default function ApplicationsList() {
         style={{ height: `${currentHeight}px` }}
       >
         <div ref={contentRef} className="overflow-y-auto overflow-x-hidden h-full">
-          <div className="micro-table grid grid-cols-[max-content_max-content_repeat(4,_1fr)] text-[10px] xs:text-xs sm:text-sm w-full transform transition-transform">
+          <div className="micro-table grid grid-cols-[max-content_max-content_repeat(4,_1fr)] text-[10px] xs:text-xs sm:text-sm w-full transition-transform">
             {/* Header */}
             <div className="contents text-left text-gray-400 uppercase tracking-wider text-[11px] sm:text-xs font-medium">
               {/* Rank Header */}
               <div
-                className="px-3 py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help"
+                className="header-cell px-3 py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Ранг')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -372,7 +441,7 @@ export default function ApplicationsList() {
 
               {/* ID Header */}
               <div
-                className="px-3 py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help"
+                className="header-cell px-3 py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'ID')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -381,7 +450,7 @@ export default function ApplicationsList() {
 
               {/* Priority Header with responsive text */}
               <div
-                className="px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help"
+                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Приоритет')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -392,7 +461,7 @@ export default function ApplicationsList() {
 
               {/* Score Header */}
               <div
-                className="px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 cursor-help"
+                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Балл')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -401,7 +470,7 @@ export default function ApplicationsList() {
 
               {/* Other Universities Header with responsive text */}
               <div
-                className="px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help"
+                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Другие университеты')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -412,7 +481,7 @@ export default function ApplicationsList() {
 
               {/* Original Header with responsive text */}
               <div
-                className="px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help"
+                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Оригинал')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -470,8 +539,16 @@ export default function ApplicationsList() {
                     {renderOtherUniversities(app.otherUnlv)}
                   </div>
                   
-                  {/* Original */}
-                  <div className="px-3 py-2 text-center">
+                  {/* Original with tooltip */}
+                  <div
+                    className="px-3 py-2 text-center"
+                    onMouseEnter={(e) => showOrigTooltip(e, app.origCelt)}
+                    onMouseLeave={hideOrigTooltip}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showOrigTooltip(e, app.origCelt, true);
+                    }}
+                  >
                     {renderOriginal(app.origCelt)}
                   </div>
                 </div>
@@ -519,6 +596,26 @@ export default function ApplicationsList() {
           document.body,
         )}
 
+      {/* Original status tooltip portal */}
+      {origTooltip &&
+        ReactDOM.createPortal(
+          <div
+            className={`fixed pointer-events-none -translate-x-1/2 -translate-y-full transition-opacity duration-150 ${
+              origTooltip.visible ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              left: origTooltip.left,
+              top: origTooltip.top,
+              zIndex: 9999,
+            }}
+          >
+            <span className="inline-block max-w-28 whitespace-normal break-normal text-center leading-snug px-3 py-1.5 rounded-md bg-[#1b1b1f] text-white text-xs font-medium shadow-xl border border-white/15">
+              {origTooltip.text}
+            </span>
+          </div>,
+          document.body,
+        )}
+
       {/* Popup overlay */}
       {popupOpen &&
         ReactDOM.createPortal(
@@ -556,6 +653,12 @@ export default function ApplicationsList() {
             transform: scale(0.78);
             width: calc(100% / 0.78);
           }
+        }
+
+        /* Header cells: draw a 1-pixel inset mask on both left & right edges so any rounding seams are hidden.
+           Box-shadow doesn't influence layout, unlike borders. */
+        .micro-table .header-cell {
+          box-shadow: inset 1px 0 0 #1b1b1f, inset -1px 0 0 #1b1b1f;
         }
       `}</style>
       {/* Tooltip animation */}
