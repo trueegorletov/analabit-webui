@@ -273,9 +273,9 @@ export default function Home() {
     };
 
     gsap.to(window, {
-      duration: 0.8,
+      duration: 0.3,
       scrollTo: 0,
-      ease: 'power2.out',
+      ease: 'sine.inOut',
       onComplete: executeCheck,
       onInterrupt: () => {
         // Also re-enable if the scroll is interrupted by the user
