@@ -148,11 +148,12 @@ export default function ApplicationsList() {
   const toggleTableHeight = useCallback(() => {
     if (!contentHeight) return;
     setCurrentHeight(prevHeight => {
-      const isCollapsed = Math.abs(prevHeight - contentHeight) > 1;
+      const currentContentHeight = contentRef.current?.scrollHeight || contentHeight;
+      const isCollapsed = Math.abs(prevHeight - currentContentHeight) > 1;
       if (isCollapsed) {
-        return contentHeight;
+        return currentContentHeight;
       } else {
-        return Math.min(INITIAL_TABLE_HEIGHT, contentHeight);
+        return Math.min(INITIAL_TABLE_HEIGHT, currentContentHeight);
       }
     });
   }, [contentHeight]);
@@ -240,15 +241,15 @@ export default function ApplicationsList() {
   const renderOriginal = (status: OrigCeltStatus) => {
     switch (status) {
       case OrigCeltStatus.YES:
-        return <CircleCheck className="w-4 h-4 text-green-500 mx-auto" />;
+        return <CircleCheck className="w-[1.1em] h-[1.1em] text-green-500 mx-auto" />;
       case OrigCeltStatus.NO:
-        return <Circle className="w-4 h-4 text-yellow-500 mx-auto" />;
+        return <Circle className="w-[1.1em] h-[1.1em] text-yellow-500 mx-auto" />;
       case OrigCeltStatus.UNKNOWN:
-        return <HelpCircle className="w-4 h-4 text-gray-300 mx-auto" />;
+        return <HelpCircle className="w-[1.1em] h-[1.1em] text-gray-300 mx-auto" />;
       case OrigCeltStatus.OTHER:
-        return <XCircle className="w-4 h-4 text-red-500 mx-auto" />;
+        return <XCircle className="w-[1.1em] h-[1.1em] text-red-500 mx-auto" />;
       default:
-        return <Circle className="w-4 h-4 text-gray-400 mx-auto" />;
+        return <Circle className="w-[1.1em] h-[1.1em] text-gray-400 mx-auto" />;
     }
   };
 
@@ -256,7 +257,7 @@ export default function ApplicationsList() {
     if (value === undefined || value === 0) {
       return <span className="text-gray-200">—</span>;
     }
-    return <span className="text-gray-200 font-mono text-xs sm:text-sm">{value}</span>;
+    return <span className="text-gray-200 font-mono">{value}</span>;
   };
 
   const showHeaderTooltip = (
@@ -427,12 +428,12 @@ export default function ApplicationsList() {
         style={{ height: `${currentHeight}px` }}
       >
         <div ref={contentRef} className="overflow-y-auto overflow-x-hidden h-full">
-          <div className="micro-table grid grid-cols-[max-content_max-content_repeat(4,_1fr)] text-[10px] xs:text-xs sm:text-sm w-full transition-transform">
+          <div className="micro-table grid grid-cols-[max-content_max-content_repeat(4,_1fr)] text-[8px] xs:text-[10px] sm:text-xs md:text-sm w-full">
             {/* Header */}
-            <div className="contents text-left text-gray-400 uppercase tracking-wider text-[11px] sm:text-xs font-medium">
+            <div className="contents text-left text-gray-400 uppercase tracking-wider text-[9px] xs:text-[11px] sm:text-xs md:text-sm font-medium">
               {/* Rank Header */}
               <div
-                className="header-cell px-3 py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                className="header-cell px-2 py-1 xs:px-3 xs:py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Ранг')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -441,7 +442,7 @@ export default function ApplicationsList() {
 
               {/* ID Header */}
               <div
-                className="header-cell px-3 py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                className="header-cell px-2 py-1 xs:px-3 xs:py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'ID')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -450,7 +451,7 @@ export default function ApplicationsList() {
 
               {/* Priority Header with responsive text */}
               <div
-                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Приоритет')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -461,7 +462,7 @@ export default function ApplicationsList() {
 
               {/* Score Header */}
               <div
-                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Балл')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -470,7 +471,7 @@ export default function ApplicationsList() {
 
               {/* Other Universities Header with responsive text */}
               <div
-                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Другие университеты')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -481,7 +482,7 @@ export default function ApplicationsList() {
 
               {/* Original Header with responsive text */}
               <div
-                className="header-cell px-3 py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
                 onMouseEnter={(e) => showHeaderTooltip(e, 'Оригинал')}
                 onMouseLeave={hideHeaderTooltip}
               >
@@ -508,7 +509,7 @@ export default function ApplicationsList() {
                   onClick={(e) => handleRowClick(app, e)}
                 >
                   {/* Rank */}
-                  <div className={`px-3 py-2 font-mono text-xs sm:text-sm whitespace-nowrap ${app.passes ? 'text-green-300 font-semibold' : 'text-gray-200'}`}>
+                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap ${app.passes ? 'text-green-300 font-semibold' : 'text-gray-200'}`}>
                     {isLoading ? (
                       <svg className="animate-spin h-4 w-4 text-white mx-auto" style={{ animationDuration: '0.6s' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -520,28 +521,28 @@ export default function ApplicationsList() {
                   </div>
                   
                   {/* Student ID */}
-                  <div className={`px-3 py-2 font-mono text-xs sm:text-sm overflow-hidden text-ellipsis ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
+                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono overflow-hidden text-ellipsis ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
                     <span className="truncate">{app.studentId}</span>
                   </div>
                   
                   {/* Priority */}
-                  <div className={`px-3 py-2 font-mono text-xs sm:text-sm whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
+                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
                     {app.priority}
                   </div>
                   
                   {/* Score */}
-                  <div className={`px-3 py-2 font-mono text-xs sm:text-sm whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
+                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
                     {app.score}
                   </div>
                   
                   {/* Other Universities */}
-                  <div className={`px-3 py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
+                  <div className={`px-2 py-1 xs:px-3 xs:py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
                     {renderOtherUniversities(app.otherUnlv)}
                   </div>
                   
                   {/* Original with tooltip */}
                   <div
-                    className="px-3 py-2 text-center"
+                    className="px-2 py-1 xs:px-3 xs:py-2 text-center"
                     onMouseEnter={(e) => showOrigTooltip(e, app.origCelt)}
                     onMouseLeave={hideOrigTooltip}
                     onClick={(e) => {
@@ -639,22 +640,8 @@ export default function ApplicationsList() {
           document.body,
         )}
 
-      {/* Responsive scaling for ultra-narrow screens */}
+      {/* Header styling */}
       <style jsx>{`
-        @media (max-width: 380px) {
-          .micro-table {
-            transform: scale(0.82);
-            transform-origin: top left;
-            width: calc(100% / 0.82);
-          }
-        }
-        @media (max-width: 340px) {
-          .micro-table {
-            transform: scale(0.78);
-            width: calc(100% / 0.78);
-          }
-        }
-
         /* Header cells: draw a 1-pixel inset mask on both left & right edges so any rounding seams are hidden.
            Box-shadow doesn't influence layout, unlike borders. */
         .micro-table .header-cell {

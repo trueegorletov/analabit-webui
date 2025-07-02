@@ -49,7 +49,7 @@ export const demoApplications: Application[] = [
     otherUnlv: 0,
     admission: AdmissionDecision.NOT_COMPETING_TEXT,
   },
-  // Added applications for scrollability
+  // Added applications for scrollability with all status variants
   {
     rank: 140,
     studentId: '11223344556',
@@ -73,7 +73,7 @@ export const demoApplications: Application[] = [
     studentId: '33445566778',
     priority: 26,
     score: 279,
-    origCelt: OrigCeltStatus.YES,
+    origCelt: OrigCeltStatus.OTHER,
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
   },
   {
@@ -81,7 +81,7 @@ export const demoApplications: Application[] = [
     studentId: '44556677889',
     priority: 23,
     score: 275,
-    origCelt: OrigCeltStatus.YES,
+    origCelt: OrigCeltStatus.UNKNOWN,
     otherUnlv: 0,
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
   },
@@ -107,7 +107,7 @@ export const demoApplications: Application[] = [
     studentId: '77889900112',
     priority: 25,
     score: 268,
-    origCelt: OrigCeltStatus.YES,
+    origCelt: OrigCeltStatus.OTHER,
     otherUnlv: 0,
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
   },
@@ -125,7 +125,7 @@ export const demoApplications: Application[] = [
     studentId: '99001122334',
     priority: 22,
     score: 260,
-    origCelt: OrigCeltStatus.YES,
+    origCelt: OrigCeltStatus.UNKNOWN,
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
   },
   {
@@ -150,7 +150,7 @@ export const demoApplications: Application[] = [
     studentId: '45600078901',
     priority: 24,
     score: 245,
-    origCelt: OrigCeltStatus.YES,
+    origCelt: OrigCeltStatus.OTHER,
     otherUnlv: 1,
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
   },

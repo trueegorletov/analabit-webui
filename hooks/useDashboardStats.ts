@@ -71,12 +71,25 @@ export function useApplications(): {
   const applications = useMemo(() => {
     const extended: Application[] = [...baseApps];
     for (let i = 200; i < 230; i++) {
+      // More realistic distribution of OrigCeltStatus with all 4 variants
+      let origCelt: OrigCeltStatus;
+      const statusRand = i % 11; // Using mod 11 for better distribution
+      if (statusRand === 0) {
+        origCelt = OrigCeltStatus.OTHER; // ~9% - Left competition
+      } else if (statusRand <= 2) {
+        origCelt = OrigCeltStatus.UNKNOWN; // ~18% - No data
+      } else if (statusRand <= 5) {
+        origCelt = OrigCeltStatus.NO; // ~27% - Competing elsewhere
+      } else {
+        origCelt = OrigCeltStatus.YES; // ~45% - Original submitted
+      }
+
       extended.push({
         rank: i,
         studentId: String(10000000000 + i),
         priority: 20 + (i % 10),
         score: 260 - (i % 30),
-        origCelt: i % 3 === 0 ? OrigCeltStatus.UNKNOWN : i % 3 === 1 ? OrigCeltStatus.NO : OrigCeltStatus.YES,
+        origCelt,
         otherUnlv: i % 5,
         admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
       });
