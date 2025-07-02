@@ -10,11 +10,11 @@ import ApplicationsList from './components/ApplicationsList';
 import { drainedResultsData } from './constants';
 
 export default function DashboardApp() {
-  // Dashboard now uses two separate glass panel containers like the original design
-
   return (
-    <main>
-      {/* First container - Main dashboard stats and info */}
+    <main className="min-h-screen">
+      {/* Enhanced dashboard with improved spacing and visual hierarchy */}
+      
+      {/* Main dashboard stats and info */}
       <div className="dashboard-container">
         <Header />
         <StatsOverview />
@@ -22,15 +22,17 @@ export default function DashboardApp() {
         <DrainedResults data={drainedResultsData} />
       </div>
 
-      {/* Second container - Applications list and legend */}
+      {/* Applications list */}
       <div className="dashboard-container mt-8">
         <ApplicationsList />
-        {/* Legend component with top margin */}
-        <div className="mt-6">
+        
+        {/* Legend with improved spacing and typography */}
+        <div className="mt-8 pt-6 border-t border-white/10">
           <Legend />
         </div>
       </div>
 
+      {/* Bottom spacing for better visual balance */}
       <div className="pb-8"></div>
     </main>
   );

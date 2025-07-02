@@ -29,6 +29,8 @@ export function useDashboardStats(): DashboardStats {
 export enum OrigCeltStatus {
   YES, // Green check circle
   NO, // Yellow dot
+  UNKNOWN, // Question mark inside circle
+  OTHER, // Cross inside circle (original in other university)
 }
 
 export enum AdmissionDecision {
@@ -43,9 +45,10 @@ export interface Application {
   priority: number;
   score: number;
   origCelt: OrigCeltStatus;
-  otherUnlv?: number | 'check';
+  otherUnlv?: number;
   admission: AdmissionDecision;
   isCurrentUser?: boolean;
+  passes?: boolean; // indicates passing to direction
 }
 
 export interface DrainedResultItem {
@@ -69,8 +72,9 @@ export function useApplications(): {
       priority: 23,
       score: 293,
       origCelt: OrigCeltStatus.YES,
-      otherUnlv: 'check',
+      otherUnlv: 0,
       admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
+      passes: true,
     },
     {
       rank: 103,
@@ -87,8 +91,9 @@ export function useApplications(): {
       priority: 24,
       score: 282,
       origCelt: OrigCeltStatus.YES,
-      otherUnlv: 'check',
+      otherUnlv: 0,
       admission: AdmissionDecision.ADMITTED_TEXT,
+      passes: true,
     },
     {
       rank: 137,
@@ -105,8 +110,8 @@ export function useApplications(): {
       studentId: '09793918939',
       priority: 24,
       score: 182,
-      origCelt: OrigCeltStatus.NO,
-      otherUnlv: 'check',
+      origCelt: OrigCeltStatus.UNKNOWN,
+      otherUnlv: 0,
       admission: AdmissionDecision.NOT_COMPETING_TEXT,
     },
     // Additional applications for testing
@@ -116,7 +121,7 @@ export function useApplications(): {
       priority: 25,
       score: 281,
       origCelt: OrigCeltStatus.YES,
-      otherUnlv: 'check',
+      otherUnlv: 0,
       admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
     },
     {
@@ -134,6 +139,7 @@ export function useApplications(): {
       priority: 26,
       score: 279,
       origCelt: OrigCeltStatus.YES,
+      otherUnlv: 4,
       admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
     },
     {
@@ -141,8 +147,8 @@ export function useApplications(): {
       studentId: '44556677889',
       priority: 23,
       score: 275,
-      origCelt: OrigCeltStatus.YES,
-      otherUnlv: 'check',
+      origCelt: OrigCeltStatus.OTHER,
+      otherUnlv: 0,
       admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
     },
     {
@@ -151,9 +157,23 @@ export function useApplications(): {
       priority: 24,
       score: 274,
       origCelt: OrigCeltStatus.NO,
+      otherUnlv: 5,
       admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
     },
   ];
+
+  // Additional applications for testing
+  for (let i = 200; i < 230; i++) {
+    applications.push({
+      rank: i,
+      studentId: String(10000000000 + i),
+      priority: 20 + (i % 10),
+      score: 260 - (i % 30),
+      origCelt: i % 3 === 0 ? OrigCeltStatus.UNKNOWN : i % 3 === 1 ? OrigCeltStatus.NO : OrigCeltStatus.YES,
+      otherUnlv: i % 5,
+      admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
+    });
+  }
 
   const drainedResults: DrainedResultItem[] = [
     {

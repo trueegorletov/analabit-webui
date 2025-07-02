@@ -79,13 +79,6 @@ export default function Header() {
       <div className="mx-auto max-w-fit">
         <h1 className="text-4xl md:text-4xl sm:text-3xl xs:text-2xl font-bold text-white mb-1 transition-all duration-300 hover:text-gray-100 relative inline-block">
           Программная инженерия
-          <span
-            className="absolute bottom-0 left-0 w-full h-0.5 opacity-60"
-            style={{
-              background: `linear-gradient(90deg, transparent, ${spbguColor?.accent || 'rgba(125, 226, 252, 0.8)'}, transparent)`,
-              transform: 'translateY(4px)',
-            }}
-          />
         </h1>
       </div>
     </div>
