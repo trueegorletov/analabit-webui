@@ -11,7 +11,7 @@ import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
 import { mockUniversities, mockDirections } from '@/lib/api/mockData';
 
 const MIN_TABLE_HEIGHT = 150; // pixels
-const INITIAL_TABLE_HEIGHT = 880; // pixels (increased 2.75x)
+const INITIAL_TABLE_HEIGHT = 490; // pixels (increased 2.75x)
 const CLICK_DRAG_THRESHOLD = 5; // pixels
 
 // Utility types copied from popup component
