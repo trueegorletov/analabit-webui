@@ -312,6 +312,41 @@ export default function ApplicationsList() {
     [loadingStudentId],
   );
 
+  // NEW: lock body scroll & preserve position when popup is open (parity with main page)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    if (popupOpen) {
+      // Save current scroll position and lock the body
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // Cleanup in case component unmounts while popup is open
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+    };
+  }, [popupOpen]);
+
   return (
     <div>
       <h2 className="section-title">
@@ -485,25 +520,27 @@ export default function ApplicationsList() {
         )}
 
       {/* Popup overlay */}
-      {popupOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto overscroll-contain"
-          onClick={closePopup}
-        >
-          <div onClick={(e) => e.stopPropagation()}>
-            {popupData && (
-              <AdmissionStatusPopup
-                studentId={selectedStudentId}
-                mainStatus="Статус подачи документов"
-                originalKnown={popupData.originalKnown}
-                passingSection={popupData.passingSection}
-                secondarySections={popupData.secondarySections}
-                onClose={closePopup}
-              />
-            )}
-          </div>
-        </div>
-      )}
+      {popupOpen &&
+        ReactDOM.createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto overscroll-contain"
+            onClick={closePopup}
+          >
+            <div onClick={(e) => e.stopPropagation()}>
+              {popupData && (
+                <AdmissionStatusPopup
+                  studentId={selectedStudentId}
+                  mainStatus="Статус подачи документов"
+                  originalKnown={popupData.originalKnown}
+                  passingSection={popupData.passingSection}
+                  secondarySections={popupData.secondarySections}
+                  onClose={closePopup}
+                />
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* Responsive scaling for ultra-narrow screens */}
       <style jsx>{`
