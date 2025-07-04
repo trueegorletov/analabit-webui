@@ -111,6 +111,7 @@ export function createHttpClient(): HttpClient {
     timeout: 10000, // 10 seconds
     headers: {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'any-value',
     },
   });
 }
