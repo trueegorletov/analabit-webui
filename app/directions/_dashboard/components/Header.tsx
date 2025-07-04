@@ -3,14 +3,19 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { useUniversityColors } from '../../../../hooks/useUniversityColors';
 
-export default function Header() {
+interface HeaderProps {
+  headingName?: string;
+  varsityCode?: string;
+  varsityName?: string;
+}
+
+export default function Header({ headingName, varsityCode, varsityName }: HeaderProps) {
   const tagRef = useRef<HTMLAnchorElement>(null);
   const { getUniversityColor } = useUniversityColors();
   
-  // Get the color for СПбГУ from the new system
-  const spbguColor = getUniversityColor('spbgu');
-  const gradient = spbguColor?.gradient || 'linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))';
-  const glow = spbguColor?.glow || 'rgba(110, 190, 253, 0.3)';
+  const color = varsityCode ? getUniversityColor(varsityCode) : undefined;
+  const gradient = color?.gradient || 'linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))';
+  const glow = color?.glow || 'rgba(110, 190, 253, 0.3)';
 
   useEffect(() => {
     const tag = tagRef.current;
@@ -56,30 +61,30 @@ export default function Header() {
 
   return (
     <div className="mb-8 text-center">
-      <Link 
-        href="/#spbgu"
-        ref={tagRef}
-        className="tag-button-large inline-block mb-3 cursor-pointer transition-transform duration-200 ease-out"
-        style={{
-          background: gradient,
-          backgroundSize: '200% 200%',
-          padding: '8px 20px',
-          borderRadius: '24px',
-          fontSize: '16px',
-          fontWeight: '600',
-          color: 'white',
-          textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-          boxShadow: `0 0 14px 3px ${glow}, 0 0 6px 1.5px rgba(255, 255, 255, 0.12)`,
-          border: 'none',
-          textDecoration: 'none',
-        }}
-      >
-        СПбГУ
-      </Link>
+      {varsityCode && (
+        <Link
+          href={`/#${varsityCode}`}
+          ref={tagRef}
+          className="tag-button-large inline-block mb-3 cursor-pointer transition-transform duration-200 ease-out"
+          style={{
+            background: gradient,
+            backgroundSize: '200% 200%',
+            padding: '8px 20px',
+            borderRadius: '24px',
+            fontSize: '16px',
+            fontWeight: '600',
+            color: 'white',
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+            boxShadow: `0 0 14px 3px ${glow}, 0 0 6px 1.5px rgba(255, 255, 255, 0.12)`,
+            border: 'none',
+            textDecoration: 'none',
+          }}
+        >
+          {varsityName || varsityCode.toUpperCase()}
+        </Link>
+      )}
       <div className="mx-auto max-w-fit">
-        <h1 className="title">
-          Программная инженерия
-        </h1>
+        <h1 className="title">{headingName || 'Направление'}</h1>
       </div>
     </div>
   );

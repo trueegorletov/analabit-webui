@@ -1,9 +1,28 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { 
-  University, 
-  DirectionsCache, 
-} from '../lib/api/types';
-import { UniversityApiService } from '../lib/api/services';
+import { useVarsityRepository, useHeadingRepository, useResultsRepository } from '../application/DataProvider';
+import type { Varsity } from '../domain/models';
+
+// Local types (previously imported from lib/api/types - temporarily here until main page API integration)
+type University = Varsity;
+
+interface Direction {
+  id: string;
+  name: string;
+  score: number;
+  rank: number | string;
+  range: string;
+  universityCode: string;
+}
+
+interface UniversityDirectionsState {
+  isLoading: boolean;
+  error: string | null;
+  directions: Direction[];
+}
+
+interface DirectionsCache {
+  [universityCode: string]: UniversityDirectionsState;
+}
 
 interface UseUniversitiesDataReturn {
   // Universities data (critical)
@@ -23,6 +42,10 @@ interface UseUniversitiesDataReturn {
 }
 
 export function useUniversitiesData(): UseUniversitiesDataReturn {
+  const varsityRepo = useVarsityRepository();
+  const headingRepo = useHeadingRepository();
+  const resultsRepo = useResultsRepository();
+
   // Universities state (critical - must load before showing main UI)
   const [universities, setUniversities] = useState<University[]>([]);
   const [universitiesLoading, setUniversitiesLoading] = useState(true);
@@ -57,7 +80,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
           console.log(`University fetch attempt ${attempts} (continuing retries silently)...`);
         }
         
-        const universitiesData = await UniversityApiService.getUniversities();
+        const universitiesData = await varsityRepo.getVarsities();
         
         console.log(`✅ Successfully loaded ${universitiesData.length} universities`);
         setUniversities(universitiesData);
@@ -92,7 +115,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
     };
     
     return attemptFetch();
-  }, []);
+  }, [varsityRepo]);
 
   // Fetch directions for a specific university (for user-initiated requests)
   const fetchUniversityDirections = useCallback(async (universityCode: string) => {
@@ -127,7 +150,42 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
           },
         }));
 
-        const directionsData = await UniversityApiService.getUniversityDirections(universityCode);
+        // Fetch headings and results in parallel
+        const [headings, results] = await Promise.all([
+          headingRepo.getHeadings({ varsityCode: universityCode }),
+          resultsRepo.getResults({ varsityCode: universityCode, primary: 'latest', drained: '100' }),
+        ]);
+
+        const primaryByHeading: Record<number, import('../domain/models').PrimaryResult | undefined> = {};
+        results.primary.forEach(pr => {
+          primaryByHeading[pr.headingId] = pr;
+        });
+
+        const drained100ByHeading: Record<number, import('../domain/models').DrainedResult | undefined> = {};
+        results.drained.filter(d => d.drainedPercent === 100).forEach(d => {
+          drained100ByHeading[d.headingId] = d;
+        });
+
+        const directions = headings.map(heading => {
+          const primary = primaryByHeading[heading.id];
+          const drained100 = drained100ByHeading[heading.id];
+          const passingScore = primary?.passingScore ?? 0;
+          const minScore = drained100?.minPassingScore;
+          const range = minScore !== undefined ? `${passingScore}..${minScore}` : '';
+          return {
+            id: String(heading.id),
+            name: heading.name,
+            score: passingScore,
+            rank: primary?.lastAdmittedRatingPlace ?? '-',
+            range,
+            universityCode: heading.varsityCode,
+          } as Direction;
+        });
+
+        const directionsData = {
+          universityCode,
+          directions,
+        };
         
         // Set success state
         setDirectionsCache(prev => ({
@@ -175,7 +233,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
     };
 
     return attemptFetch();
-  }, [directionsCache]);
+  }, [directionsCache, headingRepo, resultsRepo]);
 
   // Background preload - silently handle failures without console errors
   const preloadUniversityDirectionsQuietly = useCallback(async (universityCode: string) => {
@@ -207,7 +265,35 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
         return prev;
       });
 
-      const directionsData = await UniversityApiService.getUniversityDirections(universityCode);
+      // Fetch headings and results in parallel for silent preload
+      const [headings, results] = await Promise.all([
+        headingRepo.getHeadings({ varsityCode: universityCode }),
+        resultsRepo.getResults({ varsityCode: universityCode, primary: 'latest', drained: '100' }),
+      ]);
+
+      const primaryByHeading: Record<number, import('../domain/models').PrimaryResult | undefined> = {};
+      results.primary.forEach(pr => { primaryByHeading[pr.headingId] = pr; });
+
+      const drainedMap: Record<number, import('../domain/models').DrainedResult | undefined> = {};
+      results.drained.filter(d => d.drainedPercent === 100).forEach(d => { drainedMap[d.headingId] = d; });
+
+      const directions: Direction[] = headings.map(heading => {
+        const primary = primaryByHeading[heading.id];
+        const drained100 = drainedMap[heading.id];
+        const pScore = primary?.passingScore ?? 0;
+        const minScore = drained100?.minPassingScore;
+        const range = minScore !== undefined ? `${pScore}..${minScore}` : '';
+        return {
+          id: String(heading.id),
+          name: heading.name,
+          score: pScore,
+          rank: primary?.lastAdmittedRatingPlace ?? '-',
+          range,
+          universityCode: heading.varsityCode,
+        };
+      });
+
+      const directionsData = { universityCode, directions };
       
       // Set success state
       setDirectionsCache(prev => ({
@@ -232,7 +318,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
     } finally {
       fetchingDirections.current.delete(universityCode);
     }
-  }, [directionsCache]);
+  }, [headingRepo, resultsRepo]);
 
   // Preload all directions immediately after universities load
   const preloadAllDirections = useCallback(async () => {

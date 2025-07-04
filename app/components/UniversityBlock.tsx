@@ -3,7 +3,27 @@ import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
 import { Copy } from 'lucide-react';
 import { flashThenIdle, type Palette } from '../utils/glowHelpers';
-import type { University, Direction, UniversityDirectionsState } from '../../lib/api/types';
+// Local types (previously imported from lib/api/types - temporarily here until main page API integration)
+interface University {
+  id: number;
+  code: string;
+  name: string;
+}
+
+interface Direction {
+  id: string;
+  name: string;
+  score: number;
+  rank: number | string;
+  range: string;
+  universityCode: string;
+}
+
+interface UniversityDirectionsState {
+  isLoading: boolean;
+  error: string | null;
+  directions: Direction[];
+}
 import { 
   DirectionsLoadingPlaceholder, 
 } from './LoadingComponents';

@@ -1,18 +1,80 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
-import {
-  useApplications,
-  OrigCeltStatus,
-} from '@/hooks/useDashboardStats';
+import { useEnrichedApplications } from '@/presentation/hooks/useDashboardStats';
+import { OrigCeltStatus, AdmissionDecision, Application as LegacyApplication } from '@/domain/application';
+import { Application as DomainApplication } from '@/domain/models';
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
-import { mockUniversities, mockDirections } from '@/lib/api/mockData';
+// Mock data for popup generation (UI-only, not related to actual application data)
+const mockUniversities = [
+  { id: 1, code: 'mfti', name: 'МФТИ' },
+  { id: 2, code: 'mgu', name: 'МГУ' },
+  { id: 3, code: 'spbgu', name: 'СПбГУ' },
+  { id: 4, code: 'hse_msk', name: 'ВШЭ (Москва)' },
+  { id: 5, code: 'itmo', name: 'ИТМО' },
+  { id: 6, code: 'tgu', name: 'ТГУ' },
+  { id: 7, code: 'yufu', name: 'ЮФУ' },
+  { id: 8, code: 'ngu', name: 'НГУ' },
+  { id: 9, code: 'hse_spb', name: 'ВШЭ (СПб)' },
+  { id: 10, code: 'bauman', name: 'МГТУ им. Баумана' },
+  { id: 11, code: 'spbpu', name: 'СПбПУ' },
+  { id: 12, code: 'ural_fed', name: 'УрФУ' },
+];
+
+const mockDirections: Record<string, Array<{ id: string; name: string; score: number; rank: number | string; range: string; universityCode: string; }>> = {
+  'mfti': [
+    { id: 'dir-mfti-001', name: 'Математика', score: 283, rank: 12, range: '283..271', universityCode: 'mfti' },
+    { id: 'dir-mfti-002', name: 'Прикладная математика и информатика', score: 272, rank: 73, range: '272..259', universityCode: 'mfti' },
+    { id: 'dir-mfti-003', name: 'Физика', score: 275, rank: 23, range: '275..260', universityCode: 'mfti' },
+  ],
+  'mgu': [
+    { id: 'dir-mgu-001', name: 'История', score: 265, rank: '#54', range: '265..250', universityCode: 'mgu' },
+    { id: 'dir-mgu-002', name: 'Филология', score: 280, rank: '#60', range: '280..270', universityCode: 'mgu' },
+    { id: 'dir-mgu-003', name: 'Журналистика', score: 275, rank: '#35', range: '275..265', universityCode: 'mgu' },
+  ],
+  'spbgu': [
+    { id: 'dir-spbgu-001', name: 'Философия', score: 260, rank: '#78', range: '260..245', universityCode: 'spbgu' },
+    { id: 'dir-spbgu-002', name: 'Биология', score: 275, rank: '#32', range: '275..265', universityCode: 'spbgu' },
+    { id: 'dir-spbgu-003', name: 'Химия', score: 270, rank: '#48', range: '270..255', universityCode: 'spbgu' },
+  ],
+  // Truncated for brevity - only keeping essential ones for popup demo
+};
 
 const MIN_TABLE_HEIGHT = 150; // pixels
 const INITIAL_TABLE_HEIGHT = 490; // pixels (increased 2.75x)
 const CLICK_DRAG_THRESHOLD = 5; // pixels
+
+// Adapter function to convert domain Application to legacy UI Application
+function adaptApplicationToLegacy(domainApp: DomainApplication): LegacyApplication {
+  // Generate deterministic UI fields based on application data
+  const seed = domainApp.id + domainApp.studentId.charCodeAt(0);
+  
+  // Map origCelt status based on score/priority patterns for consistency
+  let origCelt: OrigCeltStatus;
+  const statusSeed = seed % 11;
+  if (statusSeed === 0) {
+    origCelt = OrigCeltStatus.OTHER;
+  } else if (statusSeed <= 2) {
+    origCelt = OrigCeltStatus.UNKNOWN;
+  } else if (statusSeed <= 5) {
+    origCelt = OrigCeltStatus.NO;
+  } else {
+    origCelt = OrigCeltStatus.YES;
+  }
+
+  return {
+    rank: domainApp.ratingPlace,
+    studentId: domainApp.studentId,
+    priority: domainApp.priority,
+    score: domainApp.score,
+    origCelt,
+    otherUnlv: domainApp.otherUnlv || (seed % 5),
+    admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
+    passes: domainApp.passes || false,
+  };
+}
 
 // NEW: Tooltip text mapping for "Оригинал" column icons
 const ORIGINAL_STATUS_TEXT: Record<OrigCeltStatus, string> = {
@@ -104,8 +166,14 @@ const generateAdmissionData = () => {
   return { passingSection, secondarySections, originalKnown };
 };
 
-export default function ApplicationsList() {
-  const { applications } = useApplications();
+interface ApplicationsListProps {
+  headingId?: number;
+  varsityCode?: string;
+}
+
+export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
+  const { applications: domainApplications } = useEnrichedApplications({ headingId, varsityCode });
+  const applications = domainApplications.map(adaptApplicationToLegacy);
   const [currentHeight, setCurrentHeight] = useState(INITIAL_TABLE_HEIGHT);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const resizableDivRef = useRef<HTMLDivElement>(null);
@@ -277,7 +345,7 @@ export default function ApplicationsList() {
   const closePopup = () => setPopupOpen(false);
 
   const handleRowClick = useCallback(
-    (app: ReturnType<typeof useApplications>['applications'][number], e: React.MouseEvent<HTMLDivElement>) => {
+    (app: LegacyApplication, e: React.MouseEvent<HTMLDivElement>) => {
       const rowElement = e.currentTarget as HTMLDivElement;
       const getIdCellRect = () => {
         const idCell = rowElement.children?.[1] as HTMLElement | undefined;

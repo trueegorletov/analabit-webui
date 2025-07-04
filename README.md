@@ -1,59 +1,234 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WebUI - University Admission Dashboard
 
-## Getting Started
+A modern Next.js application for university admission tracking and analytics, built with TypeScript, Tailwind CSS, and a clean hexagonal architecture.
 
-First, run the development server:
+## 🏗️ Architecture Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This project implements a **hexagonal architecture** (ports and adapters pattern) for clean separation of concerns:
+
+```
+src/
+├── domain/          # Pure business logic and models
+├── application/     # Repository interfaces and dependency injection
+├── data/           # Data access implementations
+│   ├── rest/       # REST API implementations  
+│   └── mock/       # Mock data for development
+└── presentation/   # React hooks and UI components
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Key Benefits
+- **Provider Agnostic**: Easy to swap between REST API, GraphQL, or local mocks
+- **Type Safe**: End-to-end TypeScript coverage with runtime validation
+- **Testable**: Pure domain logic with dependency injection
+- **Future Proof**: Ready for OpenAPI code generation and incremental migrations
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
+- Node.js 18+ 
+- npm, yarn, pnpm, or bun
 
-## Sass Setup
+### Installation & Development
 
-This project uses [Sass](https://sass-lang.com/) for styling with the SCSS syntax. The **sass** compiler is installed as a development dependency and configured automatically by Next.js.
+1. **Clone and install dependencies:**
+   ```bash
+   git clone <repository-url>
+   cd webui
+   npm install
+   ```
 
-Global variables and mixins live in `styles/variables.scss`. This file is automatically `@use`d (with the `as *` option) at build-time for every `.scss` file via `next.config.ts`, so you can reference any variable directly without a manual import. Example:
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
 
-```scss
-// any .scss file
-body {
-  color: $foreground;
+3. **Open your browser:**
+   - Main page: [http://localhost:3000](http://localhost:3000)
+   - Demo dashboard: [http://localhost:3000/directions/demo](http://localhost:3000/directions/demo)
+
+### Build & Deploy
+
+```bash
+# Type checking
+npm run type-check
+
+# Production build
+npm run build
+
+# Start production server
+npm start
+```
+
+## 🔧 Environment Configuration
+
+The application supports flexible data source configuration via environment variables:
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_API_BASE_URL` | Backend API base URL for REST mode | `undefined` (uses mocks) |
+| `NEXT_PUBLIC_USE_MOCK_API` | Force mock mode even with API URL set | `false` |
+
+### Configuration Examples
+
+**Development with Mocks (Default):**
+```env
+# .env.local
+# No API_BASE_URL set - uses mock data
+```
+
+**Production with Real API:**
+```env
+# .env.production
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+```
+
+**Force Mock Mode:**
+```env
+# .env.local
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+NEXT_PUBLIC_USE_MOCK_API=true
+```
+
+### Data Source Selection Logic
+
+1. If `NEXT_PUBLIC_USE_MOCK_API=true` → **Mock repositories**
+2. If `NEXT_PUBLIC_API_BASE_URL` is set → **REST repositories** (with fallback to mocks on error)
+3. Otherwise → **Mock repositories**
+
+## 📊 Features & Routes
+
+### Main Application
+- **`/`** - University search and direction browsing
+- **`/directions/demo`** - Admission dashboard (demo with mock data)
+- **`/help`** - Help and documentation page
+- **`/popup`** - Admission status popup demo
+
+### Dashboard Features
+- 📈 **Statistics Overview** - Total applications by competition type
+- 📊 **Admission Info** - Passing scores and rank thresholds  
+- 📉 **Drained Results** - Statistical analysis with Monte Carlo simulations
+- 📋 **Applications List** - Interactive table with student data
+- 🎯 **Interactive Elements** - Click rows for detailed admission status
+
+## 🏛️ API Integration
+
+### Repository Pattern
+
+The application uses a repository pattern with clean interfaces:
+
+```typescript
+// Domain contract
+interface IApplicationRepository {
+  getApplications(options: GetApplicationsOptions): Promise<Application[]>;
+  getStudentApplications(studentId: string): Promise<Application[]>;
 }
+
+// Implementation selection at runtime
+const repositories = useRepositories(); // REST or Mock based on environment
 ```
 
-When creating new styled components, rename your files from `*.module.css` to `*.module.scss` and update the import path in the corresponding component.
+### Supported API Endpoints
 
-Run the development server and Next.js will compile the SCSS automatically:
+Based on the [Public API Reference](PUBLIC_API_REFERENCE.md):
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/varsities` | List universities/campuses |
+| `GET /api/headings` | List program headings (majors) |
+| `GET /api/applications` | List student applications |
+| `GET /api/results` | Get admission results and statistics |
+
+### Data Flow
+
+```
+UI Components → Presentation Hooks → Repository Interfaces → Data Adapters → HTTP Client/Mocks
+```
+
+## 🛠️ Development Workflow
+
+### Project Structure
+
+```
+app/                    # Next.js app router pages
+├── components/         # Shared UI components
+├── directions/         # Direction-specific pages
+│   ├── _dashboard/     # Dashboard components
+│   └── [direction_id]/ # Dynamic direction pages
+└── globals.css         # Global styles
+
+application/            # Dependency injection layer
+├── DataProvider.tsx    # Repository context provider
+├── repositories.ts     # Repository interfaces
+└── RepositoryProvider.tsx # Implementation selection
+
+data/                   # Data access layer
+├── mock/              # Mock implementations
+│   └── repositories.ts
+└── rest/              # REST API implementations
+    ├── adapters.ts    # DTO → Domain model conversion
+    ├── dtos.ts        # API response types
+    ├── httpClient.ts  # HTTP wrapper
+    └── repositories.ts
+
+domain/                 # Pure business logic
+├── models.ts          # Core business entities
+└── services/          # Domain services and calculations
+
+presentation/           # UI interaction layer
+└── hooks/             # Custom React hooks
+    ├── useApplications.ts
+    ├── useDashboardStats.ts
+    └── useResults.ts
+```
+
+### Key Development Commands
 
 ```bash
-npm run dev
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+
+# Testing (when available)
+npm test
+
+# Storybook (when available)  
+npm run storybook
 ```
 
-No additional configuration is required.
+### Adding New Features
 
-## Learn More
+1. **Define domain models** in `domain/models.ts`
+2. **Create repository interfaces** in `application/repositories.ts`
+3. **Implement data adapters** in `data/rest/` and `data/mock/`
+4. **Build presentation hooks** in `presentation/hooks/`
+5. **Create UI components** consuming the hooks
 
-To learn more about Next.js, take a look at the following resources:
+## 🎨 Styling
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework**: Tailwind CSS with custom configuration
+- **Responsive**: Mobile-first design with breakpoints
+- **Theming**: University-specific color palettes
+- **Animations**: GSAP for smooth interactions
+- **Components**: Custom UI components with consistent design system
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📚 Additional Documentation
 
-## Deploy on Vercel
+- [API Reference](PUBLIC_API_REFERENCE.md) - Backend API specification
+- [Architecture Progress](ARCHITECTURE_PROGRESS.md) - Implementation status
+- [Performance Optimizations](PERFORMANCE_OPTIMIZATIONS.md) - Performance improvements
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🤝 Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Follow the hexagonal architecture patterns
+2. Add types for all new data structures
+3. Write presentation hooks for UI interactions
+4. Keep domain logic pure and testable
+5. Update documentation for new features
+
+## 📄 License
+
+See [LICENSE](LICENSE) file for details.

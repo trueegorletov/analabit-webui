@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { useDashboardStats } from '@/presentation/hooks/useDashboardStats';
 
 interface StatCardProps {
   value: number;
@@ -30,8 +30,13 @@ function StatCard({ value, label }: StatCardProps) {
   );
 }
 
-export default function StatsOverview() {
-  const stats = useDashboardStats();
+interface StatsOverviewProps {
+  headingId?: number;
+  varsityCode?: string;
+}
+
+export default function StatsOverview({ headingId, varsityCode }: StatsOverviewProps) {
+  const { stats } = useDashboardStats({ headingId, varsityCode });
 
   return (
     <div className="w-full mb-8">

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RepositoryProvider } from '../application/RepositoryProvider';
 
 // Create a client instance
 const queryClient = new QueryClient({
@@ -14,5 +15,11 @@ const queryClient = new QueryClient({
 });
 
 export default function RootProviders({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RepositoryProvider>
+        {children}
+      </RepositoryProvider>
+    </QueryClientProvider>
+  );
 } 

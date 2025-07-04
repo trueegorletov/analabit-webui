@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface AdmissionInfoProps {
-  passingScore: number;
-  admittedRank: number;
+  passingScore?: number;
+  admittedRank?: number;
 }
 
 export default function AdmissionInfo({
@@ -21,11 +21,11 @@ export default function AdmissionInfo({
           <div className="relative">
             <p className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-white transition-all duration-300 group-hover:text-green-400" 
                style={{ textShadow: '0 4px 12px rgba(0, 0, 0, 0.6)' }}>
-              {passingScore}
+              {passingScore !== undefined ? passingScore : '—'}
             </p>
             {/* Subtle glow effect */}
             <div className="absolute inset-0 text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-green-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm">
-              {passingScore}
+              {passingScore !== undefined ? passingScore : '—'}
             </div>
           </div>
         </div>
@@ -44,11 +44,11 @@ export default function AdmissionInfo({
           <div className="relative">
             <p className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-white transition-all duration-300 group-hover:text-violet-400" 
                style={{ textShadow: '0 4px 12px rgba(0, 0, 0, 0.6)' }}>
-              #{admittedRank}
+              {admittedRank !== undefined ? `#${admittedRank}` : '—'}
             </p>
             {/* Subtle glow effect */}
             <div className="absolute inset-0 text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-violet-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm">
-              #{admittedRank}
+              {admittedRank !== undefined ? `#${admittedRank}` : '—'}
             </div>
           </div>
         </div>

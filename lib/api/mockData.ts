@@ -1,4 +1,27 @@
-import type { University, Direction, UniversitiesApiResponse, DirectionsApiResponse } from './types';
+// Local types for mock data (previously imported from ./types)
+interface University {
+  id: number;
+  code: string;
+  name: string;
+}
+
+interface Direction {
+  id: string;
+  name: string;
+  score: number;
+  rank: number | string;
+  range: string;
+  universityCode: string;
+}
+
+interface UniversitiesApiResponse {
+  universities: University[];
+}
+
+interface DirectionsApiResponse {
+  universityCode: string;
+  directions: Direction[];
+}
 
 export const mockUniversities: University[] = [
   { id: 1, code: 'mfti', name: 'МФТИ' },

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useResults } from '@/presentation/hooks/useResults';
 
 interface DrainedResultsProps {
   /**
@@ -6,32 +7,54 @@ interface DrainedResultsProps {
    * Defaults to 100 when not provided.
    */
   simulationCount?: number;
+  headingId?: number;
+  varsityCode?: string;
 }
 
-// Internal mock dataset structured by section → metric rows
-const tableData = [
-  {
-    section: 'Проходной балл',
-    rows: [
-      { metric: 'Минимальный', '33%': '255', '50%': '255', '66%': '255', '100%': '255' },
-      { metric: 'Максимальный', '33%': '284', '50%': '284', '66%': '284', '100%': '284' },
-      { metric: 'Средний', '33%': '270', '50%': '268', '66%': '265', '100%': '262' },
-      { metric: 'Модальный', '33%': '282', '50%': '279', '66%': '275', '100%': '272' },
-    ],
-  },
-  {
-    section: 'Ранг',
-    rows: [
-      { metric: 'Минимальный', '33%': '68', '50%': '62', '66%': '58', '100%': '55' },
-      { metric: 'Максимальный', '33%': '135', '50%': '140', '66%': '145', '100%': '150' },
-      { metric: 'Средний', '33%': '110', '50%': '115', '66%': '120', '100%': '125' },
-      { metric: 'Модальный', '33%': '102', '50%': '107', '66%': '112', '100%': '117' },
-    ],
-  },
-] as const;
+export default function DrainedResults({ 
+  simulationCount = 100, 
+  headingId, 
+  varsityCode, 
+}: DrainedResultsProps) {
+  // Fetch drained results data using the new repository system
+  const { processedDrainedData: tableData, loading, error } = useResults({
+    headingIds: headingId ? String(headingId) : undefined,
+    varsityCode,
+    drained: 'all',
+  });
 
-export default function DrainedResults({ simulationCount = 100 }: DrainedResultsProps) {
-  const percentages = ['33%', '50%', '66%', '100%'];
+  // If no data is available, show mock percentages for fallback
+  const percentages = tableData.length > 0 && tableData[0]?.rows.length > 0 
+    ? Object.keys(tableData[0].rows[0]).filter(key => key !== 'metric')
+    : ['33%', '50%', '66%', '100%'];
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="mb-8">
+        <h2 className="section-title">
+          Ослабленные результаты
+        </h2>
+        <div className="rounded-xl bg-black/30 border border-white/15 p-8 mt-4">
+          <p className="text-gray-400 text-center">Загрузка данных...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="mb-8">
+        <h2 className="section-title">
+          Ослабленные результаты
+        </h2>
+        <div className="rounded-xl bg-red-900/20 border border-red-500/30 p-4 mt-4">
+          <p className="text-red-400 text-center">Ошибка загрузки данных: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8">
