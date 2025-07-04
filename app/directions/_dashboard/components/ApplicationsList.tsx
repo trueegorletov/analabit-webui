@@ -4,11 +4,17 @@ import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
-import { mockUniversities, mockDirections } from '@/lib/api/mockData';
 import { 
   useEnrichedApplications, 
 } from '@/presentation/hooks/useDashboardStats';
 import type { Application as DomainApplication } from '@/domain/models';
+import { 
+  fetchStudentAdmissionData,
+  type AdmissionData,
+  type StudentNotFoundError,
+  type StudentDataError,
+} from '@/lib/api/student';
+import { useApplicationRepository, useHeadingRepository } from '@/application/DataProvider';
 
 const MIN_TABLE_HEIGHT = 150;
 const INITIAL_TABLE_HEIGHT = 490;
@@ -58,87 +64,6 @@ function adaptApplicationToUi(domainApp: DomainApplication): UiApplication {
   };
 }
 
-interface ProgramRow {
-  priority: number;
-  name: string;
-  score: number;
-  rank: number;
-  delta?: string | null;
-}
-interface UniversitySection {
-  university: string;
-  code: string;
-  programs: ProgramRow[];
-  highlightPriority: number;
-}
-
-// Random helpers (same as index page)
-const randomInt = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
-const pickRandom = <T,>(arr: T[]): T => arr[randomInt(0, arr.length - 1)];
-
-// Generate mock admission data – duplicated from index page for self-containment
-const generateAdmissionData = () => {
-  const universitiesPool = [...mockUniversities];
-  const uniCount = randomInt(2, 5);
-  const selectedUnis: typeof mockUniversities = [];
-  while (selectedUnis.length < uniCount && universitiesPool.length) {
-    const idx = randomInt(0, universitiesPool.length - 1);
-    selectedUnis.push(universitiesPool.splice(idx, 1)[0]);
-  }
-
-  const sections: UniversitySection[] = selectedUnis.map((uni) => {
-    const dirPool = mockDirections[uni.code] || [];
-    const dirCount = Math.min(randomInt(2, 10), dirPool.length > 0 ? dirPool.length : 10);
-    const programs: ProgramRow[] = [];
-    const usedNames = new Set<string>();
-    while (programs.length < dirCount) {
-      let dirName: string;
-      if (dirPool.length) {
-        const dir = pickRandom(dirPool);
-        dirName = dir.name;
-      } else {
-        dirName = `Направление ${programs.length + 1}`;
-      }
-      if (usedNames.has(dirName)) continue;
-      usedNames.add(dirName);
-      const priority = programs.length + 1;
-      programs.push({
-        priority,
-        name: dirName,
-        score: randomInt(240, 300),
-        rank: randomInt(1, 120),
-      });
-    }
-
-    const highlightPriority = randomInt(1, programs.length);
-
-    programs.forEach((p) => {
-      if (p.priority < highlightPriority) {
-        p.delta = '-' + randomInt(1, 99).toString();
-      } else if (p.priority === highlightPriority) {
-        const v = randomInt(0, 20);
-        p.delta = v === 0 ? '0' : '+' + v.toString();
-      } else {
-        const sign = Math.random() < 0.5 ? '+' : '-';
-        p.delta = sign + randomInt(1, 50).toString();
-      }
-    });
-
-    return {
-      university: uni.name,
-      code: uni.code,
-      programs,
-      highlightPriority,
-    } as UniversitySection;
-  });
-
-  const passingSection = sections[0];
-  const secondarySections = sections.slice(1);
-  const originalKnown = Math.random() < 0.8;
-  return { passingSection, secondarySections, originalKnown };
-};
-
 interface ApplicationsListProps {
   headingId?: number;
   varsityCode?: string;
@@ -147,6 +72,11 @@ interface ApplicationsListProps {
 export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const { applications: domainApplications } = useEnrichedApplications({ headingId, varsityCode });
   const applications: UiApplication[] = domainApplications.map(adaptApplicationToUi);
+  
+  // Repository hooks for API calls
+  const applicationRepo = useApplicationRepository();
+  const headingRepo = useHeadingRepository();
+  
   const [currentHeight, setCurrentHeight] = useState(INITIAL_TABLE_HEIGHT);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const resizableDivRef = useRef<HTMLDivElement>(null);
@@ -179,7 +109,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [popupOpen, setPopupOpen] = useState(false);
-  const [popupData, setPopupData] = useState<ReturnType<typeof generateAdmissionData> | null>(null);
+  const [popupData, setPopupData] = useState<AdmissionData | null>(null);
   const [mainStatusForPopup, setMainStatusForPopup] = useState<NoteStatusKey | null>(null);
   const [errorTooltip, setErrorTooltip] = useState<{ text: string; top: number; left: number } | null>(null);
   const requestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -402,12 +332,16 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       setSelectedStudentId(app.studentId);
       setErrorTooltip(null);
 
-      const isNotFound = Math.random() < 0.12;
-      const isGenericError = !isNotFound && Math.random() < 0.08;
-      const delay = 1200 + Math.random() * 1200;
-      requestTimeoutRef.current = setTimeout(() => {
-        requestTimeoutRef.current = null;
-        if (isNotFound || isGenericError) {
+      // Use the real API to fetch student admission data
+      fetchStudentAdmissionData(app.studentId, applicationRepo, headingRepo)
+        .then((data) => {
+          setPopupData(data);
+          setMainStatusForPopup(app.status); // Set the status from the clicked row
+          setPopupOpen(true);
+          setLoadingStudentId(null);
+        })
+        .catch((error: StudentNotFoundError | StudentDataError) => {
+          const isNotFound = error.type === 'NOT_FOUND';
           const rect = getIdCellRect();
           setErrorTooltip({
             text: isNotFound ? 'ID не найден' : 'Произошла ошибка',
@@ -416,15 +350,9 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
           });
           setLoadingStudentId(null);
           setTimeout(() => setErrorTooltip(null), ERROR_DURATION);
-          return;
-        }
-        setPopupData(generateAdmissionData());
-        setMainStatusForPopup(app.status); // Set the status from the clicked row
-        setPopupOpen(true);
-        setLoadingStudentId(null);
-      }, delay);
+        });
     },
-    [loadingStudentId],
+    [loadingStudentId, applicationRepo, headingRepo],
   );
 
   // NEW: lock body scroll & preserve position when popup is open (parity with main page)

@@ -15,6 +15,7 @@ export interface Heading {
   dedicatedQuotaCapacity: number;
   specialQuotaCapacity: number;
   varsityCode: string;
+  varsityName?: string; // Optional varsity name for better display
 }
 
 export interface Application {

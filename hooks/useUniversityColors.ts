@@ -52,6 +52,12 @@ export function useUniversityColors() {
 
   // Get color for a specific university
   const getUniversityColor = useCallback((universityName: string): ColorPalette | null => {
+    // Safety check for undefined/null/empty university names
+    if (!universityName || typeof universityName !== 'string') {
+      console.warn('getUniversityColor called with invalid university name:', universityName);
+      return null;
+    }
+    
     const mapping = colorMappings[universityName];
     if (mapping) {
       return mapping.palette;
@@ -133,6 +139,11 @@ export function useUniversityColors() {
  * Simple string hash function for consistent fallback colors
  */
 function hashString(str: string): number {
+  // Safety check for undefined/null/empty strings
+  if (!str || typeof str !== 'string') {
+    return 0; // Return consistent hash for invalid inputs
+  }
+  
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);

@@ -59,7 +59,8 @@ export function adaptHeading(dto: HeadingDto): Heading {
     targetQuotaCapacity: dto.target_quota_capacity,
     dedicatedQuotaCapacity: dto.dedicated_quota_capacity,
     specialQuotaCapacity: dto.special_quota_capacity,
-    varsityCode: dto.varsity_code,
+    varsityCode: dto.varsity?.code || '', // Use varsity.code instead of deprecated varsity_code
+    varsityName: dto.varsity?.name, // Include varsity name for better display
   };
 }
 

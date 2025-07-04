@@ -107,7 +107,7 @@ export class ApplicationRepositoryRest implements IApplicationRepository {
   }
 
   async getStudentApplications(studentId: string) {
-    const dtos = await this.httpClient.get<ApplicationsResponse>(`/students/${studentId}`);
+    const dtos = await this.httpClient.get<ApplicationsResponse>(`/applications?studentID=${studentId}`);
     return adaptApplications(dtos);
   }
 }

@@ -12,7 +12,13 @@ import { useUniversitiesData } from '../hooks/useUniversitiesData';
 import { UniversityBlock } from './components/UniversityBlock';
 import { CriticalLoadingScreen, CriticalErrorScreen } from './components/LoadingComponents';
 import { AdmissionStatusPopup } from './components/AdmissionStatusPopup';
-import { mockUniversities, mockDirections } from '../lib/api/mockData';
+import { 
+  fetchStudentAdmissionData,
+  type AdmissionData,
+  type StudentNotFoundError,
+  type StudentDataError,
+} from '../lib/api/student';
+import { useApplicationRepository, useHeadingRepository } from '../application/DataProvider';
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -30,97 +36,6 @@ function Animation({ loading, error }: { loading: boolean; error: boolean }) {
   return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob loading={loading} error={error} />;
 }
 
-// ------------------ Mock admission generator ------------------
-interface ProgramRow {
-  priority: number;
-  name: string;
-  score: number;
-  rank: number;
-  delta?: string | null;
-}
-
-interface UniSection {
-  university: string;
-  code: string;
-  programs: ProgramRow[];
-  highlightPriority: number;
-}
-
-interface AdmissionMock {
-  passingSection: UniSection;
-  secondarySections: UniSection[];
-  originalKnown: boolean;
-}
-
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function pickRandom<T>(arr: T[]): T {
-  return arr[randomInt(0, arr.length - 1)];
-}
-
-function generateAdmissionData(): { passingSection: UniSection; secondarySections: UniSection[]; originalKnown: boolean } {
-  const universitiesPool = [...mockUniversities];
-  const uniCount = randomInt(2, 5);
-  const selectedUnis: typeof mockUniversities = [];
-  while (selectedUnis.length < uniCount && universitiesPool.length) {
-    const idx = randomInt(0, universitiesPool.length - 1);
-    selectedUnis.push(universitiesPool.splice(idx, 1)[0]);
-  }
-
-  const sections: UniSection[] = selectedUnis.map((uni) => {
-    const dirPool = mockDirections[uni.code] || [];
-    const dirCount = Math.min(randomInt(2, 10), dirPool.length > 0 ? dirPool.length : 10);
-    const programs: ProgramRow[] = [];
-    const usedNames = new Set<string>();
-    while (programs.length < dirCount) {
-      let dirName: string;
-      if (dirPool.length) {
-        const dir = pickRandom(dirPool);
-        dirName = dir.name;
-      } else {
-        dirName = `Направление ${programs.length + 1}`;
-      }
-      if (usedNames.has(dirName)) continue;
-      usedNames.add(dirName);
-      const priority = programs.length + 1;
-      programs.push({
-        priority,
-        name: dirName,
-        score: randomInt(240, 300),
-        rank: randomInt(1, 120),
-      });
-    }
-
-    const highlightPriority = randomInt(1, programs.length);
-
-    programs.forEach((p) => {
-      if (p.priority < highlightPriority) {
-        p.delta = '-' + randomInt(1, 99).toString();
-      } else if (p.priority === highlightPriority) {
-        const v = randomInt(0, 20);
-        p.delta = v === 0 ? '0' : '+' + v.toString();
-      } else {
-        const sign = Math.random() < 0.5 ? '+' : '-';
-        p.delta = sign + randomInt(1, 50).toString();
-      }
-    });
-
-    return {
-      university: uni.name,
-      code: uni.code,
-      programs,
-      highlightPriority,
-    };
-  });
-
-  const passingSection = sections[0];
-  const secondarySections = sections.slice(1);
-  const originalKnown = Math.random() < 0.8; // 80% we know
-  return { passingSection, secondarySections, originalKnown };
-}
-
 export default function Home() {
   // Use the universities data hook
   const {
@@ -136,6 +51,10 @@ export default function Home() {
 
   // Use the university colors system
   const { getUniversityColor } = useUniversityColors();
+  
+  // Repository hooks for API calls
+  const applicationRepo = useApplicationRepository();
+  const headingRepo = useHeadingRepository();
   
   // Create palettes mapping for universities using codes
   const universityPalettes = useMemo(() => {
@@ -163,7 +82,7 @@ export default function Home() {
   // Popup state handling
   const [studentIdInput, setStudentIdInput] = useState('');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [popupData, setPopupData] = useState<AdmissionMock | null>(null);
+  const [popupData, setPopupData] = useState<AdmissionData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [inputError, setInputError] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -246,30 +165,26 @@ export default function Home() {
       // Simulate network delay & loading effect
       setLoadingStatus(true);
 
-      const delay = 3000 + Math.random() * 1000; // 3-4s artificial delay
-      setTimeout(() => {
-        if (trimmedId === '1488') {
-          // Simulate "student not found" response
-          setTooltipText('Абитуриент не найден');
+      // Use the real API to fetch student admission data
+      fetchStudentAdmissionData(trimmedId, applicationRepo, headingRepo)
+        .then((data) => {
+          setPopupData(data);
+          setIsPopupOpen(true);
+          setLoadingStatus(false);
+          setInputError(false);
+        })
+        .catch((error: StudentNotFoundError | StudentDataError) => {
+          const isNotFound = error.type === 'NOT_FOUND';
+          setTooltipText(isNotFound ? 'Абитуриент не найден' : 'Произошла ошибка при загрузке данных');
           setInputError(true);
           setShowTooltip(true);
-          // Trigger blob error animation
           setBlobError(true);
           setTimeout(() => {
             setBlobError(false);
           }, ERROR_DURATION);
-          // Hide tooltip after duration
           setTimeout(() => setShowTooltip(false), TOOLTIP_VISIBLE_DURATION);
           setLoadingStatus(false);
-          return;
-        }
-
-        const data = generateAdmissionData();
-        setPopupData(data);
-        setIsPopupOpen(true);
-        setLoadingStatus(false);
-        setInputError(false);
-      }, delay);
+        });
     };
 
     gsap.to(window, {
