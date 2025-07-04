@@ -8,6 +8,7 @@ import { getOrigCeltStatus } from '@/data/rest/adapters';
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
+
 // Mock data for popup generation (UI-only, not related to actual application data)
 const mockUniversities = [
   { id: 1, code: 'mfti', name: 'МФТИ' },
@@ -47,13 +48,20 @@ const MIN_TABLE_HEIGHT = 150; // pixels
 const INITIAL_TABLE_HEIGHT = 490; // pixels (increased 2.75x)
 const CLICK_DRAG_THRESHOLD = 5; // pixels
 
+// An intermediate interface for the UI, adapted from the domain model.
+// This helps decouple the component from direct domain model changes.
+interface UiApplication extends LegacyApplication {
+  passingToMorePriority: boolean;
+}
+
 // Adapter function to convert domain Application to legacy UI Application
-function adaptApplicationToLegacy(domainApp: DomainApplication): LegacyApplication {
-  // Generate deterministic UI fields based on application data
-  const seed = domainApp.id + domainApp.studentId.charCodeAt(0);
-  
+function adaptApplicationToLegacy(domainApp: DomainApplication): UiApplication {
   // Use real API data to determine the original certificate status
-  const origCelt = getOrigCeltStatus(domainApp.originalSubmitted, domainApp.originalQuit, domainApp.passingToMorePriority);
+  const origCelt = getOrigCeltStatus(
+    domainApp.originalSubmitted,
+    domainApp.originalQuit,
+    !!domainApp.passingToMorePriority,
+  );
 
   return {
     rank: domainApp.ratingPlace,
@@ -61,18 +69,20 @@ function adaptApplicationToLegacy(domainApp: DomainApplication): LegacyApplicati
     priority: domainApp.priority,
     score: domainApp.score,
     origCelt,
-    otherUnlv: domainApp.anotherVarsitiesCount || (seed % 5),
+    otherUnlv: domainApp.anotherVarsitiesCount, // Use real data
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
     passes: domainApp.passingNow, // Use the real passingNow field from API
+    passingToMorePriority: !!domainApp.passingToMorePriority,
   };
 }
 
-// NEW: Tooltip text mapping for "Оригинал" column icons
-const ORIGINAL_STATUS_TEXT: Record<OrigCeltStatus, string> = {
+// NEW: Tooltip text mapping for "Примечания" column icons
+const NOTES_STATUS_TEXT: Record<OrigCeltStatus | 'PASSING_HIGHER', string> = {
   [OrigCeltStatus.YES]: 'Оригинал подан',
-  [OrigCeltStatus.NO]: 'Проходит на другое, более приоритетное направление',
+  [OrigCeltStatus.NO]: 'Проходит на другое, более приоритетное направление', // This is now for the yellow icon
   [OrigCeltStatus.UNKNOWN]: 'Нет данных о наличии или отсутствии подачи аттестата',
   [OrigCeltStatus.OTHER]: 'Покинул конкурс',
+  PASSING_HIGHER: 'Проходит на более приоритетное направление в этом конкурсе',
 };
 
 // Utility types copied from popup component
@@ -164,7 +174,7 @@ interface ApplicationsListProps {
 
 export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const { applications: domainApplications } = useEnrichedApplications({ headingId, varsityCode });
-  const applications = domainApplications.map(adaptApplicationToLegacy);
+  const applications: UiApplication[] = domainApplications.map(adaptApplicationToLegacy);
   const [currentHeight, setCurrentHeight] = useState(INITIAL_TABLE_HEIGHT);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const resizableDivRef = useRef<HTMLDivElement>(null);
@@ -198,6 +208,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<ReturnType<typeof generateAdmissionData> | null>(null);
+  const [mainStatusForPopup, setMainStatusForPopup] = useState<OrigCeltStatus | null>(null);
   const [errorTooltip, setErrorTooltip] = useState<{ text: string; top: number; left: number } | null>(null);
   const requestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -297,22 +308,70 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     }
   }, [applications.length]);
 
-  const renderOriginal = (status: OrigCeltStatus) => {
-    switch (status) {
-      case OrigCeltStatus.YES:
-        return <CircleCheck className="w-[1.1em] h-[1.1em] text-green-500 mx-auto" />;
-      case OrigCeltStatus.NO:
-        return <Circle className="w-[1.1em] h-[1.1em] text-yellow-500 mx-auto" />;
-      case OrigCeltStatus.UNKNOWN:
-        return <HelpCircle className="w-[1.1em] h-[1.1em] text-gray-300 mx-auto" />;
-      case OrigCeltStatus.OTHER:
-        return <XCircle className="w-[1.1em] h-[1.1em] text-red-500 mx-auto" />;
-      default:
-        return <Circle className="w-[1.1em] h-[1.1em] text-gray-400 mx-auto" />;
+  const renderNotes = (app: UiApplication) => {
+    const icons = [];
+
+    // Rule C: original quit
+    if (app.origCelt === OrigCeltStatus.OTHER) {
+      icons.push(
+        <div
+          key="quit"
+          className="flex items-center justify-center"
+          onMouseEnter={(e) => showOrigTooltip(e, OrigCeltStatus.OTHER)}
+          onMouseLeave={hideOrigTooltip}
+        >
+          <XCircle className="w-[1.1em] h-[1.1em] text-red-500" />
+        </div>,
+      );
     }
+    // Rule B: original submitted or unknown
+    else if (app.origCelt === OrigCeltStatus.YES || app.origCelt === OrigCeltStatus.UNKNOWN) {
+      const status = app.origCelt;
+      const icon =
+        status === OrigCeltStatus.YES ? (
+          <CircleCheck className="w-[1.1em] h-[1.1em] text-green-500" />
+        ) : (
+          <HelpCircle className="w-[1.1em] h-[1.1em] text-gray-300" />
+        );
+
+      icons.push(
+        <div
+          key="status"
+          className="flex items-center justify-center"
+          onMouseEnter={(e) => showOrigTooltip(e, status)}
+          onMouseLeave={hideOrigTooltip}
+        >
+          {icon}
+        </div>,
+      );
+
+      // Rule B also checks for passing to more priority
+      if (app.passingToMorePriority) {
+        icons.push(
+          <div
+            key="passing"
+            className="flex items-center justify-center"
+            onMouseEnter={(e) => showOrigTooltip(e, 'PASSING_HIGHER')}
+            onMouseLeave={hideOrigTooltip}
+          >
+            <Circle className="w-[1.1em] h-[1.1em] text-yellow-500" />
+          </div>,
+        );
+      }
+    }
+
+    if (icons.length === 0) {
+      return <span className="text-gray-400">—</span>;
+    }
+
+    return (
+      <div className='flex items-center justify-center h-full space-x-1.5'>
+        {icons}
+      </div>
+    );
   };
 
-  const renderOtherUniversities = (value?: number | 'check') => {
+  const renderOtherUniversities = (value?: number) => {
     if (value === undefined || value === 0) {
       return <span className="text-gray-200">—</span>;
     }
@@ -388,6 +447,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
           return;
         }
         setPopupData(generateAdmissionData());
+        setMainStatusForPopup(app.origCelt); // Set the status from the clicked row
         setPopupOpen(true);
         setLoadingStudentId(null);
       }, delay);
@@ -452,7 +512,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const showOrigTooltip = useCallback(
     (
       e: React.MouseEvent<HTMLDivElement>,
-      status: OrigCeltStatus,
+      status: OrigCeltStatus | 'PASSING_HIGHER',
       autoHide: boolean = false,
     ) => {
       if (origTooltipTimeoutRef.current) {
@@ -461,7 +521,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       }
       const rect = e.currentTarget.getBoundingClientRect();
       setOrigTooltip({
-        text: ORIGINAL_STATUS_TEXT[status],
+        text: NOTES_STATUS_TEXT[status],
         top: rect.top - 8,
         left: rect.left + rect.width / 2,
         visible: true,
@@ -539,15 +599,15 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
                 <span className="inline sm:hidden">Др</span>
               </div>
 
-              {/* Original Header with responsive text */}
+              {/* Notes Header with responsive text */}
               <div
                 className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'Оригинал')}
+                onMouseEnter={(e) => showHeaderTooltip(e, 'Примечания')}
                 onMouseLeave={hideHeaderTooltip}
               >
-                <span className="hidden md:inline">Оригинал</span>
-                <span className="hidden sm:inline md:hidden">Ориг.</span>
-                <span className="inline sm:hidden">О</span>
+                <span className="hidden md:inline">Примечания</span>
+                <span className="hidden sm:inline md:hidden">Примеч.</span>
+                <span className="inline sm:hidden">П</span>
               </div>
             </div>
 
@@ -596,20 +656,12 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
                   
                   {/* Other Universities */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
-                    {renderOtherUniversities(app.otherUnlv)}
+                    {renderOtherUniversities(app.otherUnlv as number)}
                   </div>
                   
-                  {/* Original with tooltip */}
-                  <div
-                    className="px-2 py-1 xs:px-3 xs:py-2 text-center"
-                    onMouseEnter={(e) => showOrigTooltip(e, app.origCelt)}
-                    onMouseLeave={hideOrigTooltip}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      showOrigTooltip(e, app.origCelt, true);
-                    }}
-                  >
-                    {renderOriginal(app.origCelt)}
+                  {/* Notes */}
+                  <div className='px-2 py-1 xs:px-3 xs:py-2 text-center'>
+                    {renderNotes(app)}
                   </div>
                 </div>
               );
@@ -684,16 +736,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
             onClick={closePopup}
           >
             <div onClick={(e) => e.stopPropagation()}>
-              {popupData && (
-                <AdmissionStatusPopup
-                  studentId={selectedStudentId}
-                  mainStatus="Статус подачи документов"
-                  originalKnown={popupData.originalKnown}
-                  passingSection={popupData.passingSection}
-                  secondarySections={popupData.secondarySections}
-                  onClose={closePopup}
-                />
-              )}
+              {popupData && mainStatusForPopup && <AdmissionStatusPopup {...popupData} studentId={selectedStudentId} mainStatus={mainStatusForPopup as unknown as string} />}
             </div>
           </div>,
           document.body,
@@ -701,33 +744,34 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
 
       {/* Header styling */}
       <style jsx>{`
-        /* Header cells: draw a 1-pixel inset mask on both left & right edges so any rounding seams are hidden.
-           Box-shadow doesn't influence layout, unlike borders. */
-        .micro-table .header-cell {
-          box-shadow: inset 1px 0 0 #1b1b1f, inset -1px 0 0 #1b1b1f;
+        .header-cell {
+          border-color: #3a3a42; /* Slightly lighter border for better visibility */
+        }
+        .applications-scrollbar::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        .applications-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 4px;
+        }
+        .applications-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 4px;
+          border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        .applications-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.25);
         }
       `}</style>
       {/* Tooltip animation */}
       <style jsx>{`
-        @keyframes fadeInOutTooltip {
-          0% {
-            opacity: 0;
-            transform: translateY(-4px);
-          }
-          10% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          90% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(-4px);
-          }
+        @keyframes tooltip-fade-in {
+          from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .tooltip-anim {
-          animation: fadeInOutTooltip ${ERROR_DURATION}ms ease-in-out forwards;
+          animation: tooltip-fade-in 0.2s ease-out forwards;
         }
       `}</style>
     </div>

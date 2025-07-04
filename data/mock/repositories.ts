@@ -65,9 +65,12 @@ const mockApplications: Application[] = [
     competitionType: 0,
     ratingPlace: 47,
     score: 286,
-    iteration: 1,
+    runId: 1,
     updatedAt: '2024-06-04T08:12:34Z',
     headingId: 42,
+    originalSubmitted: true,
+    originalQuit: false,
+    passingNow: false,
   },
   {
     id: 124,
@@ -76,9 +79,12 @@ const mockApplications: Application[] = [
     competitionType: 0,
     ratingPlace: 58,
     score: 275,
-    iteration: 1,
+    runId: 1,
     updatedAt: '2024-06-04T08:13:15Z',
     headingId: 43,
+    originalSubmitted: true,
+    originalQuit: false,
+    passingNow: false,
   },
   {
     id: 125,
@@ -87,9 +93,12 @@ const mockApplications: Application[] = [
     competitionType: 0,
     ratingPlace: 32,
     score: 298,
-    iteration: 1,
+    runId: 1,
     updatedAt: '2024-06-04T08:14:22Z',
     headingId: 42,
+    originalSubmitted: true,
+    originalQuit: false,
+    passingNow: false,
   },
 ];
 
@@ -103,9 +112,9 @@ const mockResults: Results = {
     {
       headingCode: '09.03.03',
       headingId: 42,
-      studentId: 'ABC-123456',
-      admittedPlace: 1,
-      iteration: 7,
+      passingScore: 286,
+      lastAdmittedRatingPlace: 1,
+      runId: 7,
     },
   ],
   drained: [
@@ -122,7 +131,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 30,
       maxLastAdmittedRatingPlace: 70,
       medLastAdmittedRatingPlace: 45,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '09.03.03',
@@ -136,7 +145,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 30,
       maxLastAdmittedRatingPlace: 70,
       medLastAdmittedRatingPlace: 48,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '09.03.03',
@@ -150,7 +159,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 35,
       maxLastAdmittedRatingPlace: 75,
       medLastAdmittedRatingPlace: 53,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '09.03.03',
@@ -164,7 +173,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 40,
       maxLastAdmittedRatingPlace: 80,
       medLastAdmittedRatingPlace: 58,
-      iteration: 7,
+      runId: 7,
     },
 
     // 01.03.02
@@ -180,7 +189,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 25,
       maxLastAdmittedRatingPlace: 65,
       medLastAdmittedRatingPlace: 42,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '01.03.02',
@@ -194,7 +203,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 30,
       maxLastAdmittedRatingPlace: 70,
       medLastAdmittedRatingPlace: 47,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '01.03.02',
@@ -208,7 +217,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 35,
       maxLastAdmittedRatingPlace: 75,
       medLastAdmittedRatingPlace: 52,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '01.03.02',
@@ -222,7 +231,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 40,
       maxLastAdmittedRatingPlace: 80,
       medLastAdmittedRatingPlace: 57,
-      iteration: 7,
+      runId: 7,
     },
 
     // 02.03.01
@@ -238,7 +247,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 35,
       maxLastAdmittedRatingPlace: 75,
       medLastAdmittedRatingPlace: 52,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '02.03.01',
@@ -252,7 +261,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 40,
       maxLastAdmittedRatingPlace: 80,
       medLastAdmittedRatingPlace: 57,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '02.03.01',
@@ -266,7 +275,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 45,
       maxLastAdmittedRatingPlace: 85,
       medLastAdmittedRatingPlace: 62,
-      iteration: 7,
+      runId: 7,
     },
     {
       headingCode: '02.03.01',
@@ -280,7 +289,7 @@ const mockResults: Results = {
       minLastAdmittedRatingPlace: 50,
       maxLastAdmittedRatingPlace: 90,
       medLastAdmittedRatingPlace: 67,
-      iteration: 7,
+      runId: 7,
     },
   ],
 };
@@ -395,4 +404,4 @@ export class ResultsRepositoryMock implements IResultsRepository {
     // For mock, return the same data regardless of options
     return { ...mockResults };
   }
-} 
+}
