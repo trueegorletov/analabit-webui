@@ -1,91 +1,63 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
-import { useEnrichedApplications } from '@/presentation/hooks/useDashboardStats';
-import { OrigCeltStatus, AdmissionDecision, Application as LegacyApplication } from '@/domain/application';
-import { Application as DomainApplication } from '@/domain/models';
-import { getOrigCeltStatus } from '@/data/rest/adapters';
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
+import { mockUniversities, mockDirections } from '@/lib/api/mockData';
+import { 
+  useEnrichedApplications, 
+} from '@/presentation/hooks/useDashboardStats';
+import type { Application as DomainApplication } from '@/domain/models';
 
-// Mock data for popup generation (UI-only, not related to actual application data)
-const mockUniversities = [
-  { id: 1, code: 'mfti', name: 'МФТИ' },
-  { id: 2, code: 'mgu', name: 'МГУ' },
-  { id: 3, code: 'spbgu', name: 'СПбГУ' },
-  { id: 4, code: 'hse_msk', name: 'ВШЭ (Москва)' },
-  { id: 5, code: 'itmo', name: 'ИТМО' },
-  { id: 6, code: 'tgu', name: 'ТГУ' },
-  { id: 7, code: 'yufu', name: 'ЮФУ' },
-  { id: 8, code: 'ngu', name: 'НГУ' },
-  { id: 9, code: 'hse_spb', name: 'ВШЭ (СПб)' },
-  { id: 10, code: 'bauman', name: 'МГТУ им. Баумана' },
-  { id: 11, code: 'spbpu', name: 'СПбПУ' },
-  { id: 12, code: 'ural_fed', name: 'УрФУ' },
-];
+const MIN_TABLE_HEIGHT = 150;
+const INITIAL_TABLE_HEIGHT = 490;
+const CLICK_DRAG_THRESHOLD = 5;
 
-const mockDirections: Record<string, Array<{ id: string; name: string; score: number; rank: number | string; range: string; universityCode: string; }>> = {
-  'mfti': [
-    { id: 'dir-mfti-001', name: 'Математика', score: 283, rank: 12, range: '283..271', universityCode: 'mfti' },
-    { id: 'dir-mfti-002', name: 'Прикладная математика и информатика', score: 272, rank: 73, range: '272..259', universityCode: 'mfti' },
-    { id: 'dir-mfti-003', name: 'Физика', score: 275, rank: 23, range: '275..260', universityCode: 'mfti' },
-  ],
-  'mgu': [
-    { id: 'dir-mgu-001', name: 'История', score: 265, rank: '#54', range: '265..250', universityCode: 'mgu' },
-    { id: 'dir-mgu-002', name: 'Филология', score: 280, rank: '#60', range: '280..270', universityCode: 'mgu' },
-    { id: 'dir-mgu-003', name: 'Журналистика', score: 275, rank: '#35', range: '275..265', universityCode: 'mgu' },
-  ],
-  'spbgu': [
-    { id: 'dir-spbgu-001', name: 'Философия', score: 260, rank: '#78', range: '260..245', universityCode: 'spbgu' },
-    { id: 'dir-spbgu-002', name: 'Биология', score: 275, rank: '#32', range: '275..265', universityCode: 'spbgu' },
-    { id: 'dir-spbgu-003', name: 'Химия', score: 270, rank: '#48', range: '270..255', universityCode: 'spbgu' },
-  ],
-  // Truncated for brevity - only keeping essential ones for popup demo
+// Define keys for note statuses (original and passing)
+type NoteStatusKey = 'SUBMITTED' | 'UNKNOWN' | 'QUIT';
+
+// Tooltip text mapping for "Примечания" column icons
+const NOTES_STATUS_TEXT: Record<NoteStatusKey | 'PASSING_HIGHER', string> = {
+  SUBMITTED: 'Оригинал подан',
+  UNKNOWN: 'Нет данных о наличии или отсутствии подачи аттестата',
+  QUIT: 'Покинул конкурс',
+  PASSING_HIGHER: 'Проходит на более приоритетное направление в этом конкурсе',
 };
 
-const MIN_TABLE_HEIGHT = 150; // pixels
-const INITIAL_TABLE_HEIGHT = 490; // pixels (increased 2.75x)
-const CLICK_DRAG_THRESHOLD = 5; // pixels
-
-// An intermediate interface for the UI, adapted from the domain model.
-// This helps decouple the component from direct domain model changes.
-interface UiApplication extends LegacyApplication {
+// Clean UI interface decoupled from domain model
+interface UiApplication {
+  rank: number;
+  studentId: string;
+  priority: number;
+  score: number;
+  otherUniversitiesCount: number;
+  passes: boolean;
   passingToMorePriority: boolean;
+  status: NoteStatusKey;
 }
 
-// Adapter function to convert domain Application to legacy UI Application
-function adaptApplicationToLegacy(domainApp: DomainApplication): UiApplication {
-  // Use real API data to determine the original certificate status
-  const origCelt = getOrigCeltStatus(
-    domainApp.originalSubmitted,
-    domainApp.originalQuit,
-    !!domainApp.passingToMorePriority,
-  );
+// Adapter function to convert domain Application to UI Application
+function adaptApplicationToUi(domainApp: DomainApplication): UiApplication {
+  // Compute status directly from domain fields
+  const status: NoteStatusKey = domainApp.originalQuit
+    ? 'QUIT'
+    : domainApp.originalSubmitted
+      ? 'SUBMITTED'
+      : 'UNKNOWN';
 
   return {
     rank: domainApp.ratingPlace,
     studentId: domainApp.studentId,
     priority: domainApp.priority,
     score: domainApp.score,
-    origCelt,
-    otherUnlv: domainApp.anotherVarsitiesCount, // Use real data
-    admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
-    passes: domainApp.passingNow, // Use the real passingNow field from API
+    otherUniversitiesCount: domainApp.anotherVarsitiesCount ?? 0,
+    passes: domainApp.passingNow,
     passingToMorePriority: !!domainApp.passingToMorePriority,
+    status,
   };
 }
 
-// NEW: Tooltip text mapping for "Примечания" column icons
-const NOTES_STATUS_TEXT: Record<OrigCeltStatus | 'PASSING_HIGHER', string> = {
-  [OrigCeltStatus.YES]: 'Оригинал подан',
-  [OrigCeltStatus.NO]: 'Проходит на другое, более приоритетное направление', // This is now for the yellow icon
-  [OrigCeltStatus.UNKNOWN]: 'Нет данных о наличии или отсутствии подачи аттестата',
-  [OrigCeltStatus.OTHER]: 'Покинул конкурс',
-  PASSING_HIGHER: 'Проходит на более приоритетное направление в этом конкурсе',
-};
-
-// Utility types copied from popup component
 interface ProgramRow {
   priority: number;
   name: string;
@@ -174,7 +146,7 @@ interface ApplicationsListProps {
 
 export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const { applications: domainApplications } = useEnrichedApplications({ headingId, varsityCode });
-  const applications: UiApplication[] = domainApplications.map(adaptApplicationToLegacy);
+  const applications: UiApplication[] = domainApplications.map(adaptApplicationToUi);
   const [currentHeight, setCurrentHeight] = useState(INITIAL_TABLE_HEIGHT);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const resizableDivRef = useRef<HTMLDivElement>(null);
@@ -193,22 +165,22 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     left: number;
   } | null>(null);
 
-  // NEW: Tooltip state for "Оригинал" status icons
+  // Tooltip state for "Примечания" status icons
   const FADE_DURATION = 180; // ms
   const HOVER_LEAVE_DELAY = 120; // ms – небольшая задержка, чтобы избежать мерцаний при быстром перемещении курсора
-  const [origTooltip, setOrigTooltip] = useState<{
+  const [noteTooltip, setNoteTooltip] = useState<{
     text: string;
     top: number;
     left: number;
     visible: boolean;
   } | null>(null);
-  const origTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const noteTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<ReturnType<typeof generateAdmissionData> | null>(null);
-  const [mainStatusForPopup, setMainStatusForPopup] = useState<OrigCeltStatus | null>(null);
+  const [mainStatusForPopup, setMainStatusForPopup] = useState<NoteStatusKey | null>(null);
   const [errorTooltip, setErrorTooltip] = useState<{ text: string; top: number; left: number } | null>(null);
   const requestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -293,8 +265,8 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
         document.body.style.cursor = '';
       }
       // Cleanup tooltip timer on unmount
-      if (origTooltipTimeoutRef.current) {
-        clearTimeout(origTooltipTimeoutRef.current);
+      if (noteTooltipTimeoutRef.current) {
+        clearTimeout(noteTooltipTimeoutRef.current);
       }
     };
   }, [handleMouseMove, handleMouseUp]);
@@ -312,23 +284,23 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     const icons = [];
 
     // Rule C: original quit
-    if (app.origCelt === OrigCeltStatus.OTHER) {
+    if (app.status === 'QUIT') {
       icons.push(
         <div
           key="quit"
           className="flex items-center justify-center"
-          onMouseEnter={(e) => showOrigTooltip(e, OrigCeltStatus.OTHER)}
-          onMouseLeave={hideOrigTooltip}
+          onMouseEnter={(e) => showNoteTooltip(e, 'QUIT')}
+          onMouseLeave={hideNoteTooltip}
         >
           <XCircle className="w-[1.1em] h-[1.1em] text-red-500" />
         </div>,
       );
     }
     // Rule B: original submitted or unknown
-    else if (app.origCelt === OrigCeltStatus.YES || app.origCelt === OrigCeltStatus.UNKNOWN) {
-      const status = app.origCelt;
+    else if (app.status === 'SUBMITTED' || app.status === 'UNKNOWN') {
+      const status = app.status;
       const icon =
-        status === OrigCeltStatus.YES ? (
+        status === 'SUBMITTED' ? (
           <CircleCheck className="w-[1.1em] h-[1.1em] text-green-500" />
         ) : (
           <HelpCircle className="w-[1.1em] h-[1.1em] text-gray-300" />
@@ -338,8 +310,8 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
         <div
           key="status"
           className="flex items-center justify-center"
-          onMouseEnter={(e) => showOrigTooltip(e, status)}
-          onMouseLeave={hideOrigTooltip}
+          onMouseEnter={(e) => showNoteTooltip(e, status)}
+          onMouseLeave={hideNoteTooltip}
         >
           {icon}
         </div>,
@@ -351,8 +323,8 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
           <div
             key="passing"
             className="flex items-center justify-center"
-            onMouseEnter={(e) => showOrigTooltip(e, 'PASSING_HIGHER')}
-            onMouseLeave={hideOrigTooltip}
+            onMouseEnter={(e) => showNoteTooltip(e, 'PASSING_HIGHER')}
+            onMouseLeave={hideNoteTooltip}
           >
             <Circle className="w-[1.1em] h-[1.1em] text-yellow-500" />
           </div>,
@@ -395,7 +367,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const closePopup = () => setPopupOpen(false);
 
   const handleRowClick = useCallback(
-    (app: LegacyApplication, e: React.MouseEvent<HTMLDivElement>) => {
+    (app: UiApplication, e: React.MouseEvent<HTMLDivElement>) => {
       const rowElement = e.currentTarget as HTMLDivElement;
       const getIdCellRect = () => {
         const idCell = rowElement.children?.[1] as HTMLElement | undefined;
@@ -447,7 +419,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
           return;
         }
         setPopupData(generateAdmissionData());
-        setMainStatusForPopup(app.origCelt); // Set the status from the clicked row
+        setMainStatusForPopup(app.status); // Set the status from the clicked row
         setPopupOpen(true);
         setLoadingStudentId(null);
       }, delay);
@@ -492,35 +464,35 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
 
   // --- Tooltip handling helpers (moved above to satisfy hook dependency order) ---
   const scheduleFadeOut = () => {
-    setOrigTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
-    origTooltipTimeoutRef.current = setTimeout(() => {
-      setOrigTooltip(null);
-      origTooltipTimeoutRef.current = null;
+    setNoteTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
+    noteTooltipTimeoutRef.current = setTimeout(() => {
+      setNoteTooltip(null);
+      noteTooltipTimeoutRef.current = null;
     }, FADE_DURATION);
   };
 
-  const hideOrigTooltip = useCallback(() => {
-    if (origTooltipTimeoutRef.current) {
-      clearTimeout(origTooltipTimeoutRef.current);
-      origTooltipTimeoutRef.current = null;
+  const hideNoteTooltip = useCallback(() => {
+    if (noteTooltipTimeoutRef.current) {
+      clearTimeout(noteTooltipTimeoutRef.current);
+      noteTooltipTimeoutRef.current = null;
     }
-    origTooltipTimeoutRef.current = setTimeout(() => {
+    noteTooltipTimeoutRef.current = setTimeout(() => {
       scheduleFadeOut();
     }, HOVER_LEAVE_DELAY);
   }, []);
 
-  const showOrigTooltip = useCallback(
+  const showNoteTooltip = useCallback(
     (
       e: React.MouseEvent<HTMLDivElement>,
-      status: OrigCeltStatus | 'PASSING_HIGHER',
+      status: NoteStatusKey | 'PASSING_HIGHER',
       autoHide: boolean = false,
     ) => {
-      if (origTooltipTimeoutRef.current) {
-        clearTimeout(origTooltipTimeoutRef.current);
-        origTooltipTimeoutRef.current = null;
+      if (noteTooltipTimeoutRef.current) {
+        clearTimeout(noteTooltipTimeoutRef.current);
+        noteTooltipTimeoutRef.current = null;
       }
       const rect = e.currentTarget.getBoundingClientRect();
-      setOrigTooltip({
+      setNoteTooltip({
         text: NOTES_STATUS_TEXT[status],
         top: rect.top - 8,
         left: rect.left + rect.width / 2,
@@ -528,12 +500,12 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       });
 
       if (autoHide) {
-        origTooltipTimeoutRef.current = setTimeout(() => {
-          hideOrigTooltip();
+        noteTooltipTimeoutRef.current = setTimeout(() => {
+          hideNoteTooltip();
         }, 2000);
       }
     },
-    [hideOrigTooltip],
+    [hideNoteTooltip],
   );
 
   return (
@@ -656,7 +628,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
                   
                   {/* Other Universities */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
-                    {renderOtherUniversities(app.otherUnlv as number)}
+                    {renderOtherUniversities(app.otherUniversitiesCount)}
                   </div>
                   
                   {/* Notes */}
@@ -708,21 +680,21 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
           document.body,
         )}
 
-      {/* Original status tooltip portal */}
-      {origTooltip &&
+      {/* Note status tooltip portal */}
+      {noteTooltip &&
         ReactDOM.createPortal(
           <div
             className={`fixed pointer-events-none -translate-x-1/2 -translate-y-full transition-opacity duration-150 ${
-              origTooltip.visible ? 'opacity-100' : 'opacity-0'
+              noteTooltip.visible ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
-              left: origTooltip.left,
-              top: origTooltip.top,
+              left: noteTooltip.left,
+              top: noteTooltip.top,
               zIndex: 9999,
             }}
           >
             <span className="inline-block max-w-28 whitespace-normal break-normal text-center leading-snug px-3 py-1.5 rounded-md bg-[#1b1b1f] text-white text-xs font-medium shadow-xl border border-white/15">
-              {origTooltip.text}
+              {noteTooltip.text}
             </span>
           </div>,
           document.body,
