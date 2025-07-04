@@ -30,20 +30,26 @@ export interface ApplicationDto {
   competition_type: number;
   rating_place: number;
   score: number;
-  iteration: number;
+  run_id: number;
   updated_at: string;
   heading_id: number;
+  // New fields from PUBLIC_API_REFERENCE
+  original_submitted: boolean;
+  original_quit: boolean;
+  passing_now: boolean;
+  passing_to_more_priority: boolean;
+  another_varsities_count: number;
 }
 
 export interface PrimaryResultDto {
   heading_id: number;
   /** Optional legacy code field retained for transitional compatibility */
   heading_code?: string;
-  /** Latest passing score for the current primary (iteration) calculation */
+  /** Latest passing score for the current primary (run_id) calculation */
   passing_score: number;
   /** Rating place of the last admitted entrant for the primary calculation */
   last_admitted_rating_place: number;
-  iteration: number;
+  run_id: number;
 }
 
 export interface DrainedResultDto {
@@ -59,7 +65,7 @@ export interface DrainedResultDto {
   min_last_admitted_rating_place: number;
   max_last_admitted_rating_place: number;
   med_last_admitted_rating_place: number;
-  iteration: number;
+  run_id: number;
 }
 
 export interface ResultsDto {

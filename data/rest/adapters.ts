@@ -1,6 +1,7 @@
 // Adapters - Convert API DTOs to Domain Models
 // Centralizes field mapping and transformation logic
 
+import { OrigCeltStatus } from '../../domain/application';
 import type {
   Varsity,
   Heading,
@@ -18,6 +19,28 @@ import type {
   DrainedResultDto,
   ResultsDto,
 } from './dtos';
+
+/**
+ * Convert API boolean fields to UI OrigCeltStatus enum
+ * Based on API documentation:
+ * - original_submitted: true if student submitted original documents to this varsity
+ * - original_quit: true if original_submitted is false AND student submitted originals to different varsity
+ * - passing_now: true if student currently passes for this heading
+ */
+export function getOrigCeltStatus(originalSubmitted: boolean, originalQuit: boolean, passingToMorePriority: boolean): OrigCeltStatus {
+  if (originalSubmitted) {
+    if (passingToMorePriority) {
+      return OrigCeltStatus.OTHER; // Original submitted and passing to more priority
+    } else {
+      return OrigCeltStatus.YES; // Original submitted to this varsity
+    }
+  } else if (originalQuit) {
+    return OrigCeltStatus.NO; // Left competition (submitted to different varsity)
+  } else {
+    // Not submitted originals anywhere, competing normally
+    return OrigCeltStatus.UNKNOWN; // Competing elsewhere or not submitted yet
+  }
+}
 
 export function adaptVarsity(dto: VarsityDto): Varsity {
   return {
@@ -48,11 +71,14 @@ export function adaptApplication(dto: ApplicationDto): Application {
     competitionType: dto.competition_type,
     ratingPlace: dto.rating_place,
     score: dto.score,
-    iteration: dto.iteration,
+    runId: dto.run_id,
     updatedAt: dto.updated_at,
     headingId: dto.heading_id,
-    // Derived properties will be computed separately
-    // TODO: Add origCelt field when available from API
+    originalSubmitted: dto.original_submitted,
+    originalQuit: dto.original_quit,
+    passingNow: dto.passing_now,
+    passingToMorePriority: dto.passing_to_more_priority,
+    anotherVarsitiesCount: dto.another_varsities_count,
   };
 }
 
@@ -62,7 +88,7 @@ export function adaptPrimaryResult(dto: PrimaryResultDto): PrimaryResult {
     headingCode: dto.heading_code,
     passingScore: dto.passing_score,
     lastAdmittedRatingPlace: dto.last_admitted_rating_place,
-    iteration: dto.iteration,
+    runId: dto.run_id,
   };
 }
 
@@ -79,7 +105,7 @@ export function adaptDrainedResult(dto: DrainedResultDto): DrainedResult {
     minLastAdmittedRatingPlace: dto.min_last_admitted_rating_place,
     maxLastAdmittedRatingPlace: dto.max_last_admitted_rating_place,
     medLastAdmittedRatingPlace: dto.med_last_admitted_rating_place,
-    iteration: dto.iteration,
+    runId: dto.run_id,
   };
 }
 
@@ -121,4 +147,4 @@ export function adaptHeadings(dtos: HeadingDto[]): Heading[] {
 
 export function adaptApplications(dtos: ApplicationDto[]): Application[] {
   return dtos.map(adaptApplication);
-} 
+}

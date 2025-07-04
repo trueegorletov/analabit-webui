@@ -90,6 +90,7 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
         enrichedApplications,
         results,
         options.headingId,
+        headings,
       );
 
       setStats(calculatedStats);
@@ -121,34 +122,59 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
 }
 
 /**
- * Calculate dashboard statistics from applications and results
+ * Calculate dashboard statistics from headings capacity data and results
  */
 function calculateDashboardStats(
   applications: Application[],
   results: Results,
   headingId?: number,
+  headings: import('../../domain/models').Heading[] = [],
 ): DashboardStats {
-  if (applications.length === 0) {
-    return {
-      total: 0,
-      special: 0,
-      targeted: 0,
-      separate: 0,
-    };
+  // Find the relevant heading to get capacity data from
+  let relevantHeading: import('../../domain/models').Heading | undefined;
+  
+  if (headingId && headings.length > 0) {
+    relevantHeading = headings.find(h => h.id === headingId);
+  } else if (headings.length === 1) {
+    // If only one heading, use it
+    relevantHeading = headings[0];
   }
 
-  // Calculate basic counts
-  const total = applications.length;
-  
-  // Group by competition type (0 = regular, 1 = special, 2 = targeted, 3 = separate)
-  const byCompetitionType = applications.reduce((acc, app) => {
-    acc[app.competitionType] = (acc[app.competitionType] || 0) + 1;
-    return acc;
-  }, {} as Record<number, number>);
+  // Use heading capacity data if available, otherwise fallback to application counts
+  let total: number;
+  let special: number;
+  let targeted: number;
+  let separate: number;
 
-  const special = byCompetitionType[1] || 0;
-  const targeted = byCompetitionType[2] || 0;
-  const separate = byCompetitionType[3] || 0;
+  if (relevantHeading) {
+    // Use the actual capacity data from the heading API endpoint
+    total = relevantHeading.regularCapacity;
+    special = relevantHeading.specialQuotaCapacity;
+    targeted = relevantHeading.targetQuotaCapacity;
+    separate = relevantHeading.dedicatedQuotaCapacity;
+  } else {
+    // Fallback to counting applications if heading data is not available
+    if (applications.length === 0) {
+      return {
+        total: 0,
+        special: 0,
+        targeted: 0,
+        separate: 0,
+      };
+    }
+
+    total = applications.length;
+    
+    // Group by competition type (0 = regular, 1 = special, 2 = targeted, 3 = separate)
+    const byCompetitionType = applications.reduce((acc, app) => {
+      acc[app.competitionType] = (acc[app.competitionType] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+
+    special = byCompetitionType[1] || 0;
+    targeted = byCompetitionType[2] || 0;
+    separate = byCompetitionType[3] || 0;
+  }
 
   // Calculate passing score and admitted rank from results
   let passingScore: number | undefined;

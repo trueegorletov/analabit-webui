@@ -120,14 +120,14 @@ export class ResultsRepositoryRest implements IResultsRepository {
     varsityCode?: string;
     primary?: string | number;
     drained?: string;
-    iteration?: string | number;
+    run?: string | number;
   }) {
     const params = new URLSearchParams();
     if (options?.headingIds) params.append('headingIds', options.headingIds);
     if (options?.varsityCode) params.append('varsityCode', options.varsityCode);
     if (options?.primary !== undefined) params.append('primary', options.primary.toString());
     if (options?.drained) params.append('drained', options.drained);
-    if (options?.iteration !== undefined) params.append('iteration', options.iteration.toString());
+    if (options?.run !== undefined) params.append('run', options.run.toString());
     
     const query = params.toString();
     const endpoint = `/results${query ? `?${query}` : ''}`;

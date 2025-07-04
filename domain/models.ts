@@ -24,12 +24,15 @@ export interface Application {
   competitionType: number;
   ratingPlace: number;
   score: number;
-  iteration: number;
+  runId: number;
   updatedAt: string;
   headingId: number;
-  // Derived properties (computed client-side)
-  passes?: boolean;
-  otherUnlv?: number;
+  // New API fields from PUBLIC_API_REFERENCE
+  originalSubmitted: boolean;
+  originalQuit: boolean;
+  passingNow: boolean;
+  passingToMorePriority?: boolean;
+  anotherVarsitiesCount?: number;
 }
 
 export interface PrimaryResult {
@@ -45,7 +48,7 @@ export interface PrimaryResult {
   passingScore: number;
   /** Rating place of the last admitted entrant for the primary calculation. */
   lastAdmittedRatingPlace: number;
-  iteration: number;
+  runId: number;
 }
 
 export interface DrainedResult {
@@ -66,7 +69,7 @@ export interface DrainedResult {
   minLastAdmittedRatingPlace: number;
   maxLastAdmittedRatingPlace: number;
   medLastAdmittedRatingPlace: number;
-  iteration: number;
+  runId: number;
 }
 
 export interface ResultStep {

@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from
 import { useEnrichedApplications } from '@/presentation/hooks/useDashboardStats';
 import { OrigCeltStatus, AdmissionDecision, Application as LegacyApplication } from '@/domain/application';
 import { Application as DomainApplication } from '@/domain/models';
+import { getOrigCeltStatus } from '@/data/rest/adapters';
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
@@ -51,18 +52,8 @@ function adaptApplicationToLegacy(domainApp: DomainApplication): LegacyApplicati
   // Generate deterministic UI fields based on application data
   const seed = domainApp.id + domainApp.studentId.charCodeAt(0);
   
-  // Map origCelt status based on score/priority patterns for consistency
-  let origCelt: OrigCeltStatus;
-  const statusSeed = seed % 11;
-  if (statusSeed === 0) {
-    origCelt = OrigCeltStatus.OTHER;
-  } else if (statusSeed <= 2) {
-    origCelt = OrigCeltStatus.UNKNOWN;
-  } else if (statusSeed <= 5) {
-    origCelt = OrigCeltStatus.NO;
-  } else {
-    origCelt = OrigCeltStatus.YES;
-  }
+  // Use real API data to determine the original certificate status
+  const origCelt = getOrigCeltStatus(domainApp.originalSubmitted, domainApp.originalQuit, domainApp.passingToMorePriority);
 
   return {
     rank: domainApp.ratingPlace,
@@ -70,9 +61,9 @@ function adaptApplicationToLegacy(domainApp: DomainApplication): LegacyApplicati
     priority: domainApp.priority,
     score: domainApp.score,
     origCelt,
-    otherUnlv: domainApp.otherUnlv || (seed % 5),
+    otherUnlv: domainApp.anotherVarsitiesCount || (seed % 5),
     admission: AdmissionDecision.ADMITTED_GREEN_CHECK,
-    passes: domainApp.passes || false,
+    passes: domainApp.passingNow, // Use the real passingNow field from API
   };
 }
 

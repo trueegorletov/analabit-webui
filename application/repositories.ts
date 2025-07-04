@@ -39,7 +39,7 @@ export interface IResultsRepository {
     varsityCode?: string;
     primary?: string | number;
     drained?: string;
-    iteration?: string | number;
+    run?: string | number;
   }): Promise<Results>;
 }
 

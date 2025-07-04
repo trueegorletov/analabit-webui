@@ -12,7 +12,7 @@ interface UseResultsOptions {
   varsityCode?: string;
   primary?: string;
   drained?: string;
-  iteration?: string;
+  run?: string;
 }
 
 interface ProcessedDrainedData {
@@ -51,7 +51,7 @@ export function useResults(options: UseResultsOptions = {}): UseResultsReturn {
         varsityCode: options.varsityCode,
         primary: options.primary || 'latest',
         drained: options.drained || 'all',
-        iteration: options.iteration || 'latest',
+        run: options.run || 'latest',
       });
 
       setResults(fetchedResults);
@@ -70,7 +70,7 @@ export function useResults(options: UseResultsOptions = {}): UseResultsReturn {
     options.varsityCode,
     options.primary,
     options.drained,
-    options.iteration,
+    options.run,
   ]);
 
   // Process drained results into table format
