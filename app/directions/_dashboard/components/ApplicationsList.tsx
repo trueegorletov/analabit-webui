@@ -37,6 +37,7 @@ interface UiApplication {
   studentId: string;
   priority: number;
   score: number;
+  competitionType: string;
   otherUniversitiesCount: number;
   passes: boolean;
   passingToMorePriority: boolean;
@@ -57,6 +58,7 @@ function adaptApplicationToUi(domainApp: DomainApplication): UiApplication {
     studentId: domainApp.studentId,
     priority: domainApp.priority,
     score: domainApp.score,
+    competitionType: domainApp.competitionType,
     otherUniversitiesCount: domainApp.anotherVarsitiesCount ?? 0,
     passes: domainApp.passingNow,
     passingToMorePriority: !!domainApp.passingToMorePriority,
@@ -110,7 +112,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<AdmissionData | null>(null);
-  const [mainStatusForPopup, setMainStatusForPopup] = useState<NoteStatusKey | null>(null);
+  const [mainStatusForPopup, setMainStatusForPopup] = useState<string | null>(null);
   const [errorTooltip, setErrorTooltip] = useState<{ text: string; top: number; left: number } | null>(null);
   const requestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -280,6 +282,22 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     return <span className="text-gray-200 font-mono">{value}</span>;
   };
 
+  const renderScore = (app: UiApplication) => {
+    switch (app.competitionType) {
+      case 'BVI':
+        return 'БВИ';
+      case 'TargetQuota':
+        return 'ЦЕЛ';
+      case 'DedicatedQuota':
+        return 'СВО';
+      case 'SpecialQuota':
+        return 'СПК';
+      case 'Regular':
+      default:
+        return app.score;
+    }
+  };
+
   const showHeaderTooltip = (
     e: React.MouseEvent<HTMLDivElement>,
     text: string,
@@ -336,7 +354,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       fetchStudentAdmissionData(app.studentId, applicationRepo, headingRepo)
         .then((data) => {
           setPopupData(data);
-          setMainStatusForPopup(app.status); // Set the status from the clicked row
+          setMainStatusForPopup('Статус подачи документов'); // Always use the same heading
           setPopupOpen(true);
           setLoadingStudentId(null);
         })
@@ -523,7 +541,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
               }`;
               return (
                 <div
-                  key={`${app.rank}-${app.studentId}`}
+                  key={`${index}-${app.rank}-${app.studentId}`}
                   className={rowClasses}
                   onClick={(e) => handleRowClick(app, e)}
                 >
@@ -551,7 +569,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
                   
                   {/* Score */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
-                    {app.score}
+                    {renderScore(app)}
                   </div>
                   
                   {/* Other Universities */}

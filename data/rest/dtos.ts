@@ -27,7 +27,7 @@ export interface ApplicationDto {
   id: number;
   student_id: string;
   priority: number;
-  competition_type: number;
+  competition_type: string;
   rating_place: number;
   score: number;
   run_id: number;

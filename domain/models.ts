@@ -22,7 +22,7 @@ export interface Application {
   id: number;
   studentId: string;
   priority: number;
-  competitionType: number;
+  competitionType: string;
   ratingPlace: number;
   score: number;
   runId: number;

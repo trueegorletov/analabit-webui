@@ -165,15 +165,15 @@ function calculateDashboardStats(
 
     total = applications.length;
     
-    // Group by competition type (0 = regular, 1 = special, 2 = targeted, 3 = separate)
+    // Group by competition type (Regular, BVI, TargetQuota, DedicatedQuota, SpecialQuota)
     const byCompetitionType = applications.reduce((acc, app) => {
       acc[app.competitionType] = (acc[app.competitionType] || 0) + 1;
       return acc;
-    }, {} as Record<number, number>);
+    }, {} as Record<string, number>);
 
-    special = byCompetitionType[1] || 0;
-    targeted = byCompetitionType[2] || 0;
-    separate = byCompetitionType[3] || 0;
+    special = byCompetitionType['BVI'] || 0;
+    targeted = byCompetitionType['TargetQuota'] || 0;
+    separate = byCompetitionType['DedicatedQuota'] || 0;
   }
 
   // Calculate passing score and admitted rank from results
