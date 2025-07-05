@@ -1,0 +1,40 @@
+name: Deploy Web UI to Dev VM
+
+on:
+  push:
+    branches:
+      - main   # or change to `ui` or whatever your branch is
+  workflow_dispatch:
+
+jobs:
+  deploy-ui:
+    name: Pull & Restart Web UI on VM
+    runs-on: ubuntu-latest
+    steps:
+    - name: SSH & deploy frontend
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+          set -e
+          
+          # Clone repo if not present
+          if [ ! -d /opt/analabit-webui/.git ]; then
+            echo "→ Cloning frontend repository"
+            git clone --branch main https://github.com/trueegorletov/analabit-webui.git /opt/analabit-webui
+            sudo chown -R $USER:$USER /opt/analabit-webui
+          fi
+
+          cd /opt/analabit-webui
+          git fetch origin main
+          git reset --hard origin/main
+
+          # Install dependencies and build
+          npm install
+          npm run build
+
+          # Restart UI in tmux session
+          tmux kill-session -t analabit-ui || true
+          tmux new-session -d -s analabit-ui "npm start"
