@@ -45,6 +45,8 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [hasTriedFetch, setHasTriedFetch] = useState(false);
   const blockRef = useRef<HTMLDivElement>(null);
+  const directionsContainerRef = useRef<HTMLDivElement>(null);
+  const directionsContentRef = useRef<HTMLDivElement>(null);
   const [showCopyTooltip, setShowCopyTooltip] = useState(false);
   const copyButtonRef = useRef<HTMLButtonElement>(null);
   const [tooltipData, setTooltipData] = useState<{ top: number; left: number } | null>(null);
@@ -133,6 +135,62 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
     }
     handleToggle();
   };
+
+  // Handle dynamic height animation for expand/collapse
+  useEffect(() => {
+    const container = directionsContainerRef.current;
+    const content = directionsContentRef.current;
+
+    if (!container || !content) return;
+
+    if (expanded) {
+      // Measure the actual content height
+      const contentHeight = content.scrollHeight;
+
+      // Animate to the measured height
+      gsap.fromTo(container,
+        {
+          maxHeight: 0,
+          opacity: 0,
+        },
+        {
+          maxHeight: contentHeight,
+          opacity: 1,
+          duration: 0.45,
+          ease: 'power2.out',
+        },
+      );
+    } else {
+      // Animate to collapsed state
+      gsap.to(container, {
+        maxHeight: 0,
+        opacity: 0,
+        duration: 0.35,
+        ease: 'power2.in',
+      });
+    }
+  }, [expanded, directionsState?.directions]); // Re-run when directions data changes
+
+  // Add resize observer to handle dynamic content changes
+  useEffect(() => {
+    const container = directionsContainerRef.current;
+    const content = directionsContentRef.current;
+
+    if (!container || !content || !expanded) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (expanded) {
+        const contentHeight = content.scrollHeight;
+        gsap.set(container, { maxHeight: contentHeight });
+      }
+    });
+
+    resizeObserver.observe(content);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [expanded, directionsState?.directions]);
 
   // Handle glow logic on expand/collapse
   useEffect(() => {
@@ -289,8 +347,10 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
           </div>
         </div>
         {/* Animated container for directions table */}
-        <div className="directions-container">
-          {renderDirectionsContent()}
+        <div ref={directionsContainerRef} className="directions-container">
+          <div ref={directionsContentRef}>
+            {renderDirectionsContent()}
+          </div>
         </div>
       </div>
 

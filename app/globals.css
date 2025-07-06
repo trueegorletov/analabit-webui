@@ -562,13 +562,7 @@
   overflow: hidden;
   max-height: 0;
   opacity: 0;
-  transition: max-height 0.45s ease, opacity 0.35s ease;
-}
-
-.university-block[data-expanded='true'] .directions-container {
-  max-height: 1200px;
-  /* sufficiently large */
-  opacity: 1;
+  /* Remove CSS transitions since we're using GSAP for animation */
 }
 
 /* =============================================================================
