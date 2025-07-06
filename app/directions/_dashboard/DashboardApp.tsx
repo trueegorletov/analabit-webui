@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from './components/Header';
 import StatsOverview from './components/StatsOverview';
 import AdmissionInfo from './components/AdmissionInfo';
@@ -10,6 +10,7 @@ import ApplicationsList from './components/ApplicationsList';
 import { useDashboardStats } from '@/presentation/hooks/useDashboardStats';
 import { useResults } from '@/presentation/hooks/useResults';
 import { CriticalLoadingScreen } from '@/app/components/LoadingComponents';
+import ScrollReset from './ScrollReset';
 
 interface DashboardAppProps {
   directionId?: string;
@@ -35,6 +36,17 @@ export default function DashboardApp({
     drained: 'all',
   });
 
+  // Ensure the page always starts at the top, regardless of browser scroll restoration
+  useEffect(() => {
+    // Scroll to top immediately on mount
+    window.scrollTo(0, 0);
+
+    // Also disable browser scroll restoration to prevent interference
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
   // Check if critical data is still loading
   const isCriticalDataLoading = statsLoading || drainedLoading;
 
@@ -50,6 +62,7 @@ export default function DashboardApp({
 
   return (
     <main className="min-h-screen">
+      <ScrollReset />
       {/* Enhanced dashboard with improved spacing and visual hierarchy */}
 
       {/* Main dashboard stats and info */}

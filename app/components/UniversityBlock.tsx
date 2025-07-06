@@ -245,6 +245,7 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
               key={direction.id}
               href={`/directions/${direction.id}`}
               className="grid-row"
+              scroll={true}
             >
               <div className="grid-cell dir-name">
                 <span className="dir-name-text" title={direction.name}>{direction.name}</span>
