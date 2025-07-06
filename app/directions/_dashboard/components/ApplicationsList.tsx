@@ -113,8 +113,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<AdmissionData | null>(null);
-  const [mainStatusForPopup, setMainStatusForPopup] = useState<string | null>(null);
-  const [errorTooltip, setErrorTooltip] = useState<{ text: string; top: number; left: number } | null>(null);
+  const [mainStatusForPopup, setMainStatusForPopup] = useState<string | null>(null); const [errorTooltip, setErrorTooltip] = useState<{ text: string; top: number; left: number } | null>(null);
   const requestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const ERROR_DURATION = 3750; // ms (25% shorter than 5s)
@@ -374,37 +373,20 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     [loadingStudentId, applicationRepo, headingRepo, resultsRepo],
   );
 
-  // NEW: lock body scroll & preserve position when popup is open (parity with main page)
+  // Prevent background scrolling when popup is open - simple approach without viewport movement
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
     if (popupOpen) {
-      // Save current scroll position and lock the body
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
+      // Simply prevent scrolling without changing position
       document.body.style.overflow = 'hidden';
     } else {
-      // Restore body scroll
-      const scrollY = document.body.style.top;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
+      // Restore scrolling
       document.body.style.overflow = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
     }
 
     return () => {
-      // Cleanup in case component unmounts while popup is open
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
+      // Cleanup
       document.body.style.overflow = '';
     };
   }, [popupOpen]);
@@ -534,10 +516,10 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
             {applications.map((app, index) => {
               const isLoading = loadingStudentId === app.studentId;
               const rowClasses = `${isLoading ? 'bg-yellow-600/50 animate-pulse' : ''} col-span-6 grid grid-cols-subgrid transition-colors cursor-pointer ${app.passes
-                  ? 'bg-gradient-to-r from-violet-700/40 to-fuchsia-700/40 hover:from-violet-700/50 hover:to-fuchsia-700/50'
-                  : index % 2 === 0
-                    ? 'bg-black/50 hover:bg-black/60'
-                    : 'bg-black/40 hover:bg-black/60'
+                ? 'bg-gradient-to-r from-violet-700/40 to-fuchsia-700/40 hover:from-violet-700/50 hover:to-fuchsia-700/50'
+                : index % 2 === 0
+                  ? 'bg-black/50 hover:bg-black/60'
+                  : 'bg-black/40 hover:bg-black/60'
                 }`;
               return (
                 <div
@@ -653,7 +635,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
             onClick={closePopup}
           >
             <div onClick={(e) => e.stopPropagation()}>
-              {popupData && mainStatusForPopup && <AdmissionStatusPopup {...popupData} studentId={selectedStudentId} mainStatus={mainStatusForPopup as unknown as string} />}
+              {popupData && mainStatusForPopup && <AdmissionStatusPopup {...popupData} studentId={selectedStudentId} mainStatus={mainStatusForPopup as unknown as string} onClose={closePopup} />}
             </div>
           </div>,
           document.body,
