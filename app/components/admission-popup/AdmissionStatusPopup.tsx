@@ -10,7 +10,7 @@ export interface AdmissionStatusPopupProps {
   mainStatus: string;
   originalKnown?: boolean;
   passingSection: Section;
-  probabilityTabs?: string[];
+  probabilityTabs: string[];
   selectedProbabilityTab?: string;
   secondarySections?: Section[];
   onClose?: () => void;
@@ -61,7 +61,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   mainStatus,
   originalKnown = true,
   passingSection,
-  probabilityTabs = ['–', '33%', '50%', '66%', '100%'],
+  probabilityTabs,
   selectedProbabilityTab = '–',
   secondarySections = [],
   onClose,
@@ -139,7 +139,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           mainStatus={mainStatus}
           originalKnown={originalKnown}
           passingSection={passingSection}
-          onClose={onClose ?? (() => {})}
+          onClose={onClose ?? (() => { })}
         />
 
         <hr className="my-2 border-white/10" />

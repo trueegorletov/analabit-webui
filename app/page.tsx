@@ -12,13 +12,13 @@ import { useUniversitiesData } from '../hooks/useUniversitiesData';
 import { UniversityBlock } from './components/UniversityBlock';
 import { CriticalLoadingScreen, CriticalErrorScreen } from './components/LoadingComponents';
 import { AdmissionStatusPopup } from './components/AdmissionStatusPopup';
-import { 
+import {
   fetchStudentAdmissionData,
   type AdmissionData,
   type StudentNotFoundError,
   type StudentDataError,
 } from '../lib/api/student';
-import { useApplicationRepository, useHeadingRepository } from '../application/DataProvider';
+import { useApplicationRepository, useHeadingRepository, useResultsRepository } from '../application/DataProvider';
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -51,11 +51,12 @@ export default function Home() {
 
   // Use the university colors system
   const { getUniversityColor } = useUniversityColors();
-  
+
   // Repository hooks for API calls
   const applicationRepo = useApplicationRepository();
   const headingRepo = useHeadingRepository();
-  
+  const resultsRepo = useResultsRepository();
+
   // Create palettes mapping for universities using codes
   const universityPalettes = useMemo(() => {
     const mapping: { [key: string]: Palette } = {};
@@ -166,7 +167,7 @@ export default function Home() {
       setLoadingStatus(true);
 
       // Use the real API to fetch student admission data
-      fetchStudentAdmissionData(trimmedId, applicationRepo, headingRepo)
+      fetchStudentAdmissionData(trimmedId, applicationRepo, headingRepo, resultsRepo)
         .then((data) => {
           setPopupData(data);
           setIsPopupOpen(true);
@@ -347,7 +348,7 @@ export default function Home() {
         console.log('[DEBUG] Tag clicked globally! Code:', target.dataset.universityCode);
       }
     };
-    
+
     document.addEventListener('click', handleGlobalClick);
     return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
@@ -390,7 +391,7 @@ export default function Home() {
   // Show critical loading screen while universities are loading
   if (universitiesLoading) {
     return (
-      <CriticalLoadingScreen 
+      <CriticalLoadingScreen
         message="Загружаем университеты..."
         subMessage={retryCount > 1 ? `Попытка ${retryCount}` : 'Подождите, это займет несколько секунд'}
       />
@@ -400,7 +401,7 @@ export default function Home() {
   // Show critical error screen if universities failed to load
   if (universitiesError) {
     return (
-      <CriticalErrorScreen 
+      <CriticalErrorScreen
         error={universitiesError}
         onRetry={refreshUniversities}
         retryCount={retryCount}
@@ -411,7 +412,7 @@ export default function Home() {
   // Don't show main content if no universities loaded
   if (universities.length === 0) {
     return (
-      <CriticalErrorScreen 
+      <CriticalErrorScreen
         error="Университеты не найдены"
         onRetry={refreshUniversities}
         retryCount={retryCount}
@@ -438,8 +439,8 @@ export default function Home() {
         {/* Dynamic tag buttons based on loaded universities */}
         <div className="tags">
           {universities.map((university) => (
-            <div 
-              key={university.code} 
+            <div
+              key={university.code}
               className="tag"
               data-university-code={university.code}
               onClick={() => handleTagClick(university.code)}
@@ -467,13 +468,12 @@ export default function Home() {
               value={studentIdInput}
               onChange={handleIdInputChange}
               onKeyDown={handleInputKeydown}
-              className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${
-                inputError
+              className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${inputError
                   ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
                   : 'focus:ring-2 focus:ring-violet-500/80'
-              }`}
+                }`}
             />
-            <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{opacity: showTooltip ? 1 : 0}}>
+            <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{ opacity: showTooltip ? 1 : 0 }}>
               <span className="whitespace-nowrap px-4 py-2 rounded-lg bg-red-600/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
                 {tooltipText || 'Неверный формат ID'}
               </span>
@@ -517,6 +517,7 @@ export default function Home() {
                 originalKnown={popupData.originalKnown}
                 passingSection={popupData.passingSection}
                 secondarySections={popupData.secondarySections}
+                probabilityTabs={popupData.probabilityTabs}
                 onClose={closePopup}
               />
             )}

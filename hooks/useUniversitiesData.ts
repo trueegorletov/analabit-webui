@@ -30,11 +30,11 @@ interface UseUniversitiesDataReturn {
   universitiesLoading: boolean;
   universitiesError: string | null;
   retryCount: number;
-  
+
   // Directions data (preloaded)
   directionsCache: DirectionsCache;
   directionsPreloading: boolean;
-  
+
   // Actions
   fetchUniversityDirections: (universityCode: string) => Promise<void>;
   refreshUniversities: () => Promise<void>;
@@ -51,11 +51,11 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
   const [universitiesLoading, setUniversitiesLoading] = useState(true);
   const [universitiesError, setUniversitiesError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  
+
   // Directions cache state (preloaded after universities load)
   const [directionsCache, setDirectionsCache] = useState<DirectionsCache>({});
   const [directionsPreloading, setDirectionsPreloading] = useState(false);
-  
+
   // Track which directions are currently being fetched to prevent duplicate requests
   const fetchingDirections = useRef<Set<string>>(new Set());
   const universitiesLoaded = useRef(false);
@@ -64,56 +64,56 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
   const fetchUniversitiesWithRetry = useCallback(async () => {
     let attempts = 0;
     const maxRetryDelay = 10000; // 10 seconds max delay
-    
+
     const attemptFetch = async (): Promise<void> => {
       attempts++;
       setRetryCount(attempts);
-      
+
       try {
         setUniversitiesLoading(true);
         setUniversitiesError(null);
-        
+
         // Only log the first attempt and then every 5th attempt to reduce console noise
         if (attempts === 1) {
           console.log('Starting university data fetch...');
         } else if (attempts % 5 === 0) {
           console.log(`University fetch attempt ${attempts} (continuing retries silently)...`);
         }
-        
+
         const universitiesData = await varsityRepo.getVarsities();
-        
+
         console.log(`✅ Successfully loaded ${universitiesData.length} universities`);
         setUniversities(universitiesData);
         setUniversitiesLoading(false);
         universitiesLoaded.current = true;
-        
+
         return; // Success - exit retry loop
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to fetch universities';
         setUniversitiesError(errorMessage);
-        
+
         // Only log errors for the first few attempts to reduce console noise
         if (attempts <= 3) {
           console.warn(`University fetch attempt ${attempts} failed:`, errorMessage);
         } else if (attempts % 5 === 0) {
           console.warn(`University fetch attempt ${attempts} failed (retrying silently)`);
         }
-        
+
         // Calculate exponential backoff delay (1s, 2s, 4s, 8s, 10s, 10s, ...)
         const delay = Math.min(1000 * Math.pow(2, attempts - 1), maxRetryDelay);
-        
+
         // Only log retry delays for first few attempts
         if (attempts <= 3) {
           console.log(`Retrying in ${delay}ms...`);
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
-        
+
         // Continue retrying indefinitely
         return attemptFetch();
       }
     };
-    
+
     return attemptFetch();
   }, [varsityRepo]);
 
@@ -136,10 +136,10 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
 
     const attemptFetch = async (): Promise<void> => {
       currentAttempt++;
-      
+
       try {
         fetchingDirections.current.add(universityCode);
-        
+
         // Set loading state with retry info
         setDirectionsCache(prev => ({
           ...prev,
@@ -162,8 +162,12 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
         });
 
         const drained100ByHeading: Record<number, import('../domain/models').DrainedResult | undefined> = {};
-        results.drained.filter(d => d.drainedPercent === 100).forEach(d => {
-          drained100ByHeading[d.headingId] = d;
+        // Select entry with largest drainedPercent per heading
+        results.drained.forEach(d => {
+          const existing = drained100ByHeading[d.headingId];
+          if (!existing || d.drainedPercent > existing.drainedPercent) {
+            drained100ByHeading[d.headingId] = d;
+          }
         });
 
         const directions = headings.map(heading => {
@@ -186,7 +190,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
           universityCode,
           directions,
         };
-        
+
         // Set success state
         setDirectionsCache(prev => ({
           ...prev,
@@ -198,22 +202,22 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
         }));
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to fetch directions';
-        
+
         // Retry if under the limit
         if (currentAttempt < maxRetries) {
           console.log(`Retrying directions fetch for ${universityCode} (attempt ${currentAttempt + 1}/${maxRetries})`);
-          
+
           // Remove from fetching set to allow retry
           fetchingDirections.current.delete(universityCode);
-          
+
           // Wait with exponential backoff, then retry
           setTimeout(() => {
             attemptFetch();
           }, 1000 * currentAttempt); // 1s, 2s, 3s delays
-          
+
           return;
         }
-        
+
         // Max retries reached, set error state
         setDirectionsCache(prev => ({
           ...prev,
@@ -223,7 +227,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
             directions: [],
           },
         }));
-        
+
         console.error(`Failed to fetch directions for university ${universityCode} after ${maxRetries} attempts:`, error);
       } finally {
         if (currentAttempt >= maxRetries || directionsCache[universityCode]?.directions.length > 0) {
@@ -249,7 +253,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
 
     try {
       fetchingDirections.current.add(universityCode);
-      
+
       // Set loading state only if not already set
       setDirectionsCache(prev => {
         if (!prev[universityCode]) {
@@ -275,7 +279,13 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
       results.primary.forEach(pr => { primaryByHeading[pr.headingId] = pr; });
 
       const drainedMap: Record<number, import('../domain/models').DrainedResult | undefined> = {};
-      results.drained.filter(d => d.drainedPercent === 100).forEach(d => { drainedMap[d.headingId] = d; });
+      // Select entry with largest drainedPercent per heading
+      results.drained.forEach(d => {
+        const existing = drainedMap[d.headingId];
+        if (!existing || d.drainedPercent > existing.drainedPercent) {
+          drainedMap[d.headingId] = d;
+        }
+      });
 
       const directions: Direction[] = headings.map(heading => {
         const primary = primaryByHeading[heading.id];
@@ -294,7 +304,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
       });
 
       const directionsData = { universityCode, directions };
-      
+
       // Set success state
       setDirectionsCache(prev => ({
         ...prev,
@@ -318,7 +328,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
     } finally {
       fetchingDirections.current.delete(universityCode);
     }
-  }, [headingRepo, resultsRepo]);
+  }, [directionsCache, headingRepo, resultsRepo]);
 
   // Preload all directions immediately after universities load
   const preloadAllDirections = useCallback(async () => {
@@ -331,7 +341,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
 
     try {
       // Load directions for all universities in parallel with silent error handling
-      const preloadPromises = universities.map(university => 
+      const preloadPromises = universities.map(university =>
         preloadUniversityDirectionsQuietly(university.code),
       );
 
@@ -392,7 +402,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
       const timeoutId = setTimeout(() => {
         preloadAllDirections();
       }, 100);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [universities, preloadAllDirections]);
@@ -408,4 +418,4 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
     refreshUniversities,
     scrollToUniversity,
   };
-} 
+}

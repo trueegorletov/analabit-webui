@@ -4,17 +4,17 @@ import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
-import { 
-  useEnrichedApplications, 
+import {
+  useEnrichedApplications,
 } from '@/presentation/hooks/useDashboardStats';
 import type { Application as DomainApplication } from '@/domain/models';
-import { 
+import {
   fetchStudentAdmissionData,
   type AdmissionData,
   type StudentNotFoundError,
   type StudentDataError,
 } from '@/lib/api/student';
-import { useApplicationRepository, useHeadingRepository } from '@/application/DataProvider';
+import { useApplicationRepository, useHeadingRepository, useResultsRepository } from '@/application/DataProvider';
 
 const MIN_TABLE_HEIGHT = 150;
 const INITIAL_TABLE_HEIGHT = 490;
@@ -74,11 +74,12 @@ interface ApplicationsListProps {
 export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const { applications: domainApplications } = useEnrichedApplications({ headingId, varsityCode });
   const applications: UiApplication[] = domainApplications.map(adaptApplicationToUi);
-  
+
   // Repository hooks for API calls
   const applicationRepo = useApplicationRepository();
   const headingRepo = useHeadingRepository();
-  
+  const resultsRepo = useResultsRepository();
+
   const [currentHeight, setCurrentHeight] = useState(INITIAL_TABLE_HEIGHT);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const resizableDivRef = useRef<HTMLDivElement>(null);
@@ -142,7 +143,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'ns-resize';
     }
-    
+
     if (dragStateRef.current.didMove) {
       setCurrentHeight(prevHeight => {
         const newHeight = prevHeight + deltaY;
@@ -150,7 +151,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
         return Math.max(MIN_TABLE_HEIGHT, Math.min(newHeight, maxAllowed));
       });
     }
-    
+
     dragStateRef.current.prevMouseY = event.clientY;
 
   }, []);
@@ -161,7 +162,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     if (!dragStateRef.current.didMove) {
       toggleTableHeight();
     }
-    
+
     document.body.style.userSelect = '';
     document.body.style.cursor = '';
     dragStateRef.current.isDragging = false;
@@ -351,7 +352,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       setErrorTooltip(null);
 
       // Use the real API to fetch student admission data
-      fetchStudentAdmissionData(app.studentId, applicationRepo, headingRepo)
+      fetchStudentAdmissionData(app.studentId, applicationRepo, headingRepo, resultsRepo)
         .then((data) => {
           setPopupData(data);
           setMainStatusForPopup('Статус подачи документов'); // Always use the same heading
@@ -370,7 +371,7 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
           setTimeout(() => setErrorTooltip(null), ERROR_DURATION);
         });
     },
-    [loadingStudentId, applicationRepo, headingRepo],
+    [loadingStudentId, applicationRepo, headingRepo, resultsRepo],
   );
 
   // NEW: lock body scroll & preserve position when popup is open (parity with main page)
@@ -532,13 +533,12 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
             {/* Body */}
             {applications.map((app, index) => {
               const isLoading = loadingStudentId === app.studentId;
-              const rowClasses = `${isLoading ? 'bg-yellow-600/50 animate-pulse' : ''} col-span-6 grid grid-cols-subgrid transition-colors cursor-pointer ${
-                app.passes
+              const rowClasses = `${isLoading ? 'bg-yellow-600/50 animate-pulse' : ''} col-span-6 grid grid-cols-subgrid transition-colors cursor-pointer ${app.passes
                   ? 'bg-gradient-to-r from-violet-700/40 to-fuchsia-700/40 hover:from-violet-700/50 hover:to-fuchsia-700/50'
                   : index % 2 === 0
                     ? 'bg-black/50 hover:bg-black/60'
                     : 'bg-black/40 hover:bg-black/60'
-              }`;
+                }`;
               return (
                 <div
                   key={`${index}-${app.rank}-${app.studentId}`}
@@ -556,27 +556,27 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
                       app.rank
                     )}
                   </div>
-                  
+
                   {/* Student ID */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono overflow-hidden text-ellipsis ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
                     <span className="truncate">{app.studentId}</span>
                   </div>
-                  
+
                   {/* Priority */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
                     {app.priority}
                   </div>
-                  
+
                   {/* Score */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
                     {renderScore(app)}
                   </div>
-                  
+
                   {/* Other Universities */}
                   <div className={`px-2 py-1 xs:px-3 xs:py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
                     {renderOtherUniversities(app.otherUniversitiesCount)}
                   </div>
-                  
+
                   {/* Notes */}
                   <div className='px-2 py-1 xs:px-3 xs:py-2 text-center'>
                     {renderNotes(app)}
@@ -630,9 +630,8 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
       {noteTooltip &&
         ReactDOM.createPortal(
           <div
-            className={`fixed pointer-events-none -translate-x-1/2 -translate-y-full transition-opacity duration-150 ${
-              noteTooltip.visible ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`fixed pointer-events-none -translate-x-1/2 -translate-y-full transition-opacity duration-150 ${noteTooltip.visible ? 'opacity-100' : 'opacity-0'
+              }`}
             style={{
               left: noteTooltip.left,
               top: noteTooltip.top,
