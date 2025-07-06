@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
 import { Copy } from 'lucide-react';
 import { flashThenIdle, type Palette } from '../utils/glowHelpers';
+import Link from 'next/link';
 // Local types (previously imported from lib/api/types - temporarily here until main page API integration)
 interface University {
   id: number;
@@ -24,8 +25,8 @@ interface UniversityDirectionsState {
   error: string | null;
   directions: Direction[];
 }
-import { 
-  DirectionsLoadingPlaceholder, 
+import {
+  DirectionsLoadingPlaceholder,
 } from './LoadingComponents';
 
 interface UniversityBlockProps {
@@ -122,6 +123,17 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
     }
   };
 
+  // Only toggle expand/collapse when clicking outside the directions table
+  const handleBlockClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (expanded) {
+      const container = blockRef.current?.querySelector('.directions-container');
+      if (container && container.contains(e.target as Node)) {
+        return;
+      }
+    }
+    handleToggle();
+  };
+
   // Handle glow logic on expand/collapse
   useEffect(() => {
     const el = blockRef.current;
@@ -171,11 +183,13 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
 
           {/* Body */}
           {directionsState.directions.map((direction: Direction) => (
-            <div key={direction.id} className="grid-row">
-              <div className="grid-cell dir-name">
-                <a href={`/directions/${direction.id}`} title={direction.name}>
-                  {direction.name}
-                </a>
+            <Link
+              key={direction.id}
+              href={`/directions/${direction.id}`}
+              className="grid-row"
+            >
+              <div className="grid-cell dir-name" title={direction.name}>
+                {direction.name}
               </div>
               <div className="grid-cell points">
                 {(() => {
@@ -202,7 +216,7 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
               <div className="grid-cell rank font-mono text-center">
                 #{typeof direction.rank === 'string' ? direction.rank.replace(/^#/, '') : direction.rank}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       );
@@ -219,7 +233,7 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
         className="university-block"
         data-university-code={university.code}
         data-expanded={expanded}
-        onClick={handleToggle}
+        onClick={handleBlockClick}
       >
         <div className="block-header">
           <h3>{university.name}</h3>
@@ -236,8 +250,8 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
               {tooltipData && ReactDOM.createPortal(
                 <div
                   className={`fixed pointer-events-none transition-opacity duration-300 ease-in-out -translate-x-1/2 -translate-y-full ${showCopyTooltip ? 'opacity-100' : 'opacity-0'}`}
-                  style={{ 
-                    left: tooltipData.left, 
+                  style={{
+                    left: tooltipData.left,
                     top: tooltipData.top,
                     zIndex: 9999,
                   }}
