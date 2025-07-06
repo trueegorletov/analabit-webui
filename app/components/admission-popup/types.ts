@@ -10,5 +10,5 @@ export interface UniversitySection {
   university: string;
   code: string;
   programs: ProgramRow[];
-  highlightPriority?: number;
+  highlightPriority?: number | null;
 } 

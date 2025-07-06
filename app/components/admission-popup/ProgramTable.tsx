@@ -3,7 +3,7 @@ import type { ProgramRow } from './types';
 
 interface ProgramTableProps {
   programs: ProgramRow[];
-  highlightPriority: number;
+  highlightPriority: number | null;
   loading: boolean;
 }
 
@@ -21,42 +21,37 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({ programs, highlightP
 
         {/* Body */}
         {programs.map((row) => {
-          const isHighlight = row.priority === highlightPriority;
+          const isHighlight = highlightPriority !== null && row.priority === highlightPriority;
 
           return (
             <div
               key={row.priority}
-              className={`col-span-4 grid grid-cols-subgrid transition-colors ${
-                isHighlight
+              className={`col-span-4 grid grid-cols-subgrid transition-colors ${isHighlight
                   ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 hover:from-violet-600/30 hover:to-fuchsia-600/30'
                   : 'hover:bg-gray-700/30'
-              }`}
+                }`}
             >
               <div
-                className={`px-3 py-2 font-mono text-[10px] sm:text-xs text-gray-400 whitespace-nowrap ${
-                  isHighlight ? 'text-white font-bold' : ''
-                }`}
+                className={`px-3 py-2 font-mono text-[10px] sm:text-xs text-gray-400 whitespace-nowrap ${isHighlight ? 'text-white font-bold' : ''
+                  }`}
               >
                 {row.priority}
               </div>
               <div
-                className={`px-3 py-2 font-medium overflow-hidden text-ellipsis ${
-                  isHighlight ? 'text-white' : ''
-                }`}
+                className={`px-3 py-2 font-medium overflow-hidden text-ellipsis ${isHighlight ? 'text-white' : ''
+                  }`}
               >
                 <span className="truncate">{row.name}</span>
               </div>
               <div
-                className={`px-3 py-2 font-mono text-[10px] sm:text-xs whitespace-nowrap text-center ${
-                  isHighlight ? 'text-white' : ''
-                }`}
+                className={`px-3 py-2 font-mono text-[10px] sm:text-xs whitespace-nowrap text-center ${isHighlight ? 'text-white' : ''
+                  }`}
               >
                 {row.score}
               </div>
               <div
-                className={`px-3 py-2 font-mono text-[10px] sm:text-xs whitespace-nowrap text-center ${
-                  isHighlight ? 'text-white' : ''
-                } ${loading ? 'opacity-60' : ''}`}
+                className={`px-3 py-2 font-mono text-[10px] sm:text-xs whitespace-nowrap text-center ${isHighlight ? 'text-white' : ''
+                  } ${loading ? 'opacity-60' : ''}`}
               >
                 {loading ? (
                   <span className="inline-block h-4 w-12 bg-white/20 rounded animate-pulse" />

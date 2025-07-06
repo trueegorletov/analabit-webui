@@ -4,6 +4,7 @@ import React, { useReducer, useEffect } from 'react';
 import { PopupHeader } from './PopupHeader';
 import { UniversitySection } from './UniversitySection';
 import type { UniversitySection as Section, ProgramRow } from './types';
+import { useApplicationRepository, useResultsRepository } from '@/application/DataProvider';
 
 export interface AdmissionStatusPopupProps {
   studentId: string;
@@ -20,14 +21,14 @@ type SectionState = {
   selectedTab: string;
   loading: boolean;
   programs: ProgramRow[];
-  highlightPriority: number;
+  highlightPriority: number | null;
 };
 
 type State = Record<string, SectionState>;
 
 type Action =
   | { type: 'TAB_CHANGE_START'; code: string; newTab: string }
-  | { type: 'TAB_CHANGE_SUCCESS'; code: string; newTab: string; programs: ProgramRow[]; highlightPriority: number };
+  | { type: 'TAB_CHANGE_SUCCESS'; code: string; newTab: string; programs: ProgramRow[]; highlightPriority: number | null };
 
 const sectionReducer = (state: State, action: Action): State => {
   switch (action.type) {
@@ -66,6 +67,10 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   secondarySections = [],
   onClose,
 }) => {
+  // Repository hooks for API access
+  const applicationRepo = useApplicationRepository();
+  const resultsRepo = useResultsRepository();
+
   // Initialize reducer state
   const initialState: State = React.useMemo(() => {
     const init: State = {};
@@ -74,7 +79,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         selectedTab: selectedProbabilityTab,
         loading: false,
         programs: s.programs,
-        highlightPriority: s.highlightPriority ?? 1,
+        highlightPriority: s.highlightPriority ?? null,
       };
     });
     return init;
@@ -91,30 +96,147 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  // Handler for tab selection
-  const handleTabSelect = (code: string, newTab: string) => {
+  // Handler for tab selection with real API integration
+  const handleTabSelect = async (code: string, newTab: string) => {
     const current = sectionsState[code];
     if (!current || current.loading || current.selectedTab === newTab) return;
 
     dispatch({ type: 'TAB_CHANGE_START', code, newTab });
 
-    // Simulate async fetch
-    const delay = 1000 + Math.random() * 1000;
-    setTimeout(() => {
-      const newPrograms: ProgramRow[] = current.programs.map((p) => {
-        const rankChange = Math.floor(Math.random() * 40) - 20;
-        const newRank = Math.max(1, p.rank + rankChange);
-        return {
-          ...p,
-          rank: newRank,
-          delta: rankChange === 0 ? undefined : rankChange > 0 ? `+${rankChange}` : `${rankChange}`,
-        };
-      });
-      let newHighlight = current.highlightPriority;
-      if (Math.random() < 0.2) {
-        const priorities = newPrograms.map((p) => p.priority);
-        newHighlight = priorities[Math.floor(Math.random() * priorities.length)];
+    try {
+      // Get all heading IDs for this university section
+      const allSections = [passingSection, ...secondarySections];
+      const currentSection = allSections.find(s => s.code === code);
+      if (!currentSection) {
+        console.error(`Section with code ${code} not found`);
+        return;
       }
+
+      let newPrograms: ProgramRow[];
+      let newHighlight: number | null;
+
+      if (newTab === '–' || newTab === '--') {
+        // Primary results logic: use applications API to check passing_now
+        const studentApplications = await applicationRepo.getStudentApplications(studentId);
+
+        // Filter applications for this university section
+        const sectionApplications = studentApplications.filter(app => {
+          return currentSection.programs.some(p =>
+            // Find matching applications by comparing properties we have available
+            app.priority === p.priority &&
+            app.score === p.score &&
+            app.ratingPlace === p.rank,
+          );
+        });
+
+        // Sort by priority to find the first passing direction
+        sectionApplications.sort((a, b) => a.priority - b.priority);
+        const passingApp = sectionApplications.find(app => app.passingNow);
+        newHighlight = passingApp ? passingApp.priority : null;
+
+        // Create updated programs with deltas calculated from primary results
+        const headingIds = sectionApplications.map(app => app.headingId);
+        const results = await resultsRepo.getResults({
+          headingIds: headingIds.join(','),
+          primary: 'latest',
+        });
+
+        newPrograms = currentSection.programs.map(program => {
+          const matchingApp = sectionApplications.find(app =>
+            app.priority === program.priority &&
+            app.score === program.score &&
+            app.ratingPlace === program.rank,
+          );
+
+          if (!matchingApp) {
+            return { ...program, delta: null };
+          }
+
+          const primaryResult = results.primary.find(r => r.headingId === matchingApp.headingId);
+          if (!primaryResult) {
+            return { ...program, delta: null };
+          }
+
+          // Calculate delta: if student rank <= last admitted rank, positive/zero; else negative
+          const delta = primaryResult.lastAdmittedRatingPlace - matchingApp.ratingPlace;
+          const deltaStr = delta === 0 ? undefined : delta > 0 ? `+${delta}` : `${delta}`;
+
+          return {
+            ...program,
+            delta: deltaStr,
+          };
+        });
+
+      } else {
+        // Drained results logic: use results API with specific drain percentage
+        const drainPercent = parseInt(newTab.replace('%', ''));
+
+        // Get student applications to get their rating places and heading IDs
+        const studentApplications = await applicationRepo.getStudentApplications(studentId);
+
+        // Filter applications for this university section
+        const sectionApplications = studentApplications.filter(app => {
+          return currentSection.programs.some(p =>
+            app.priority === p.priority &&
+            app.score === p.score &&
+            app.ratingPlace === p.rank,
+          );
+        });
+
+        // Sort by priority
+        sectionApplications.sort((a, b) => a.priority - b.priority);
+
+        const headingIds = sectionApplications.map(app => app.headingId);
+        const results = await resultsRepo.getResults({
+          headingIds: headingIds.join(','),
+          drained: drainPercent.toString(),
+        });
+
+        // Find the first direction where student passes (rank <= median last admitted rank)
+        let passingApp = null;
+        for (const app of sectionApplications) {
+          const drainedResult = results.drained.find(d =>
+            d.headingId === app.headingId && d.drainedPercent === drainPercent,
+          );
+          if (drainedResult && app.ratingPlace <= drainedResult.medLastAdmittedRatingPlace) {
+            passingApp = app;
+            break;
+          }
+        }
+
+        newHighlight = passingApp ? passingApp.priority : null;
+
+        // Create updated programs with deltas calculated from drained results
+        newPrograms = currentSection.programs.map(program => {
+          const matchingApp = sectionApplications.find(app =>
+            app.priority === program.priority &&
+            app.score === program.score &&
+            app.ratingPlace === program.rank,
+          );
+
+          if (!matchingApp) {
+            return { ...program, delta: null };
+          }
+
+          const drainedResult = results.drained.find(d =>
+            d.headingId === matchingApp.headingId && d.drainedPercent === drainPercent,
+          );
+
+          if (!drainedResult) {
+            return { ...program, delta: null };
+          }
+
+          // Calculate delta: if student rank <= median last admitted rank, positive/zero; else negative
+          const delta = drainedResult.medLastAdmittedRatingPlace - matchingApp.ratingPlace;
+          const deltaStr = delta === 0 ? undefined : delta > 0 ? `+${delta}` : `${delta}`;
+
+          return {
+            ...program,
+            delta: deltaStr,
+          };
+        });
+      }
+
       dispatch({
         type: 'TAB_CHANGE_SUCCESS',
         code,
@@ -122,7 +244,18 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         programs: newPrograms,
         highlightPriority: newHighlight,
       });
-    }, delay);
+
+    } catch (error) {
+      console.error('Error fetching data for tab change:', error);
+      // Fallback to original programs on error
+      dispatch({
+        type: 'TAB_CHANGE_SUCCESS',
+        code,
+        newTab,
+        programs: current.programs,
+        highlightPriority: current.highlightPriority,
+      });
+    }
   };
 
   const allSections = [passingSection, ...secondarySections];

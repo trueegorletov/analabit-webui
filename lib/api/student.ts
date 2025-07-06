@@ -17,7 +17,7 @@ export interface UniversitySection {
   university: string;
   code: string;
   programs: ProgramRow[];
-  highlightPriority: number;
+  highlightPriority: number | null;
 }
 
 export interface AdmissionData {
@@ -138,31 +138,53 @@ export async function fetchStudentAdmissionData(
     const sections: UniversitySection[] = [];
     let passingSection: UniversitySection | null = null;
 
-    universitySections.forEach(({ applications: sectionApps, universityName, universityCode }) => {
+    for (const sectionData of universitySections.values()) {
+      const { applications: sectionApps, universityName, universityCode } = sectionData;
+
       // Skip sections with invalid data
       if (!universityCode || !universityName || sectionApps.length === 0) {
         console.warn(`Skipping invalid university section: code=${universityCode}, name=${universityName}, apps=${sectionApps.length}`);
-        return;
+        continue;
       }
 
       // Sort applications by priority
       const sortedApps = sectionApps.sort((a, b) => a.priority - b.priority);
 
-      // Convert to ProgramRow format
-      const programs: ProgramRow[] = sortedApps.map(app => {
+      // Convert to ProgramRow format with initial delta calculation for primary results
+      const programs: ProgramRow[] = [];
+      for (const app of sortedApps) {
         const heading = headingDetailsMap.get(app.headingId)!;
-        return {
+
+        // Calculate delta for primary results (-- tab)
+        let delta: string | null = null;
+        try {
+          const results = await resultsRepo.getResults({
+            headingIds: String(app.headingId),
+            primary: 'latest',
+          });
+
+          const primaryResult = results.primary.find(r => r.headingId === app.headingId);
+          if (primaryResult) {
+            // Calculate delta: if student rank <= last admitted rank, positive/zero; else negative
+            const deltaValue = primaryResult.lastAdmittedRatingPlace - app.ratingPlace;
+            delta = deltaValue === 0 ? null : deltaValue > 0 ? `+${deltaValue}` : `${deltaValue}`;
+          }
+        } catch (error) {
+          console.warn(`Failed to calculate delta for heading ${app.headingId}:`, error);
+        }
+
+        programs.push({
           priority: app.priority,
           name: heading.name,
           score: app.score,
           rank: app.ratingPlace,
-          delta: null, // We don't have delta information from the API
-        };
-      });
+          delta, // Now properly calculated from API
+        });
+      }
 
-      // Find the highlight priority (first passing application or first application)
+      // Find the highlight priority (first passing application or null if none passing)
       const passingApp = sortedApps.find(app => app.passingNow);
-      const highlightPriority = passingApp ? passingApp.priority : 1;
+      const highlightPriority = passingApp ? passingApp.priority : null;
 
       const section: UniversitySection = {
         university: universityName,
@@ -177,7 +199,7 @@ export async function fetchStudentAdmissionData(
       if (sortedApps.some(app => app.passingNow)) {
         passingSection = section;
       }
-    });
+    }
 
     // Step 5: Separate passing and secondary sections
     const secondarySections = sections.filter(section => section !== passingSection);

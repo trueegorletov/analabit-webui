@@ -212,7 +212,7 @@ Aggregated endpoint that retrieves primary calculation results (admitted student
 |-----------------|------|---------|-------------|
 | `headingIds` | string (csv) | — | Comma‐separated list of heading IDs to filter by. |
 | `varsityCode` | string | — | Filter by all headings of the given varsity code (ignored if `headingIds` supplied). |
-| `primary` | string/int | (absent) | If present, include primary results. Accepts `latest` (default when empty) or a specific iteration number. |
+| `primary` | string/int | (absent) | If present, include primary results. Accepts `latest` or a specific iteration number. |
 | `drained` | string | (absent) | `all` to include every drained-percent result, or a comma‐separated list of drained-percent steps (e.g. `drained=25,50,100`).  When missing, no drained results are returned. |
 | `run` | string/int | `latest` | The run to use for both steps discovery and result retrieval. Can be a numeric run ID or a string like "latest" or "latest-1". |
 
