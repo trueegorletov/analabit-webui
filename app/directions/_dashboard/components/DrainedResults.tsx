@@ -11,10 +11,10 @@ interface DrainedResultsProps {
   varsityCode?: string;
 }
 
-export default function DrainedResults({ 
-  simulationCount = 100, 
-  headingId, 
-  varsityCode, 
+export default function DrainedResults({
+  simulationCount = 100,
+  headingId,
+  varsityCode,
 }: DrainedResultsProps) {
   // Fetch drained results data using the new repository system
   const { processedDrainedData: tableData, loading, error } = useResults({
@@ -24,7 +24,7 @@ export default function DrainedResults({
   });
 
   // If no data is available, show mock percentages for fallback
-  const percentages = tableData.length > 0 && tableData[0]?.rows.length > 0 
+  const percentages = tableData.length > 0 && tableData[0]?.rows.length > 0
     ? Object.keys(tableData[0].rows[0]).filter(key => key !== 'metric')
     : ['33%', '50%', '66%', '100%'];
 
@@ -33,7 +33,7 @@ export default function DrainedResults({
     return (
       <div className="mb-8">
         <h2 className="section-title">
-          Ослабленные результаты
+          Результаты симуляции
         </h2>
         <div className="rounded-xl bg-black/30 border border-white/15 p-8 mt-4">
           <p className="text-gray-400 text-center">Загрузка данных...</p>
@@ -47,7 +47,7 @@ export default function DrainedResults({
     return (
       <div className="mb-8">
         <h2 className="section-title">
-          Ослабленные результаты
+          Результаты симуляции
         </h2>
         <div className="rounded-xl bg-red-900/20 border border-red-500/30 p-4 mt-4">
           <p className="text-red-400 text-center">Ошибка загрузки данных: {error}</p>
@@ -59,7 +59,7 @@ export default function DrainedResults({
   return (
     <div className="mb-8">
       <h2 className="section-title">
-        Ослабленные результаты
+        Результаты симуляции
       </h2>
 
       <div className="rounded-xl bg-black/30 border border-white/15 overflow-hidden mt-4 sm:mt-5 md:mt-6">
