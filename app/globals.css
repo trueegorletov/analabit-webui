@@ -94,7 +94,8 @@
     padding: 0;
     overflow-x: hidden;
     min-height: 100vh;
-    position: relative; /* allow pseudo-element layering */
+    position: relative;
+    /* allow pseudo-element layering */
   }
 
   html {
@@ -428,7 +429,7 @@
 .directions-grid {
   display: grid;
   /* Key change: 1st column is flexible, others are content-sized */
-  grid-template-columns: minmax(0, 1fr) auto auto; 
+  grid-template-columns: minmax(0, 1fr) auto auto;
   /* Darker background, less blur */
   background: rgba(10, 10, 10, 0.9);
   backdrop-filter: blur(20px);
@@ -438,17 +439,19 @@
 }
 
 .grid-header {
-  display: contents; /* Makes this a non-visual wrapper for grid items */
+  display: contents;
+  /* Makes this a non-visual wrapper for grid items */
 }
 
 .grid-row {
-  display: contents; /* Makes this a non-visual wrapper for grid items */
+  display: contents;
+  /* Makes this a non-visual wrapper for grid items */
 }
 
 .grid-cell {
   padding: 8px 12px;
   /* Remove row separator */
-  border-bottom: none; 
+  border-bottom: none;
   display: flex;
   align-items: center;
 }
@@ -462,18 +465,19 @@
   /* Remove distinct header background */
   background: transparent;
 }
+
 .grid-header .grid-cell:nth-child(2),
 .grid-header .grid-cell:nth-child(3) {
   justify-content: center;
 }
 
 /* Remove bottom border from the last row's cells */
-.directions-grid > .grid-row:last-child .grid-cell {
+.directions-grid>.grid-row:last-child .grid-cell {
   border-bottom: none;
 }
 
 /* Hover effect for all cells in a row */
-.directions-grid > .grid-row:hover .grid-cell {
+.directions-grid>.grid-row:hover .grid-cell {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
@@ -481,9 +485,11 @@
 
 /* Direction Name (first column) */
 .grid-cell.dir-name {
-  min-width: 0; /* Required for truncation */
+  min-width: 0;
+  /* Required for truncation */
 }
-.grid-cell.dir-name a {
+
+.grid-cell.dir-name span {
   color: #fff;
   text-decoration: none;
   font-weight: 500;
@@ -492,7 +498,8 @@
   text-overflow: ellipsis;
   transition: color 0.2s ease;
 }
-.directions-grid > .grid-row:hover .dir-name a {
+
+.directions-grid>.grid-row:hover .dir-name span {
   color: rgba(255, 255, 255, 0.95);
 }
 
@@ -500,16 +507,22 @@
 .grid-cell.points {
   justify-content: center;
 }
+
 .points .max {
-  color: #4ade80; /* green */
+  color: #4ade80;
+  /* green */
   font-weight: 400;
 }
+
 .points .min {
-  color: #ffd170; /* amber */
+  color: #ffd170;
+  /* amber */
   font-weight: 400;
 }
-.directions-grid > .grid-row:hover .points .max {
-  color: #6ee7b7; /* lighter green */
+
+.directions-grid>.grid-row:hover .points .max {
+  color: #6ee7b7;
+  /* lighter green */
   text-shadow: 0 0 6px rgba(110, 231, 183, 0.4);
 }
 
@@ -520,7 +533,8 @@
   justify-content: center;
   transition: opacity 0.2s ease;
 }
-.directions-grid > .grid-row:hover .rank {
+
+.directions-grid>.grid-row:hover .rank {
   opacity: 0.9;
 }
 
@@ -530,6 +544,7 @@
     padding: 6px 8px;
     font-size: 12px;
   }
+
   .points .max {
     font-size: 14px;
   }
@@ -551,7 +566,8 @@
 }
 
 .university-block[data-expanded='true'] .directions-container {
-  max-height: 1200px; /* sufficiently large */
+  max-height: 1200px;
+  /* sufficiently large */
   opacity: 1;
 }
 
@@ -576,34 +592,28 @@
 }
 
 .applications-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.1) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.1) 100%);
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
 }
 
 .applications-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0.3) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0.3) 100%);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
 .applications-scrollbar::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0.5) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.6) 50%,
+      rgba(255, 255, 255, 0.5) 100%);
 }
 
 .applications-scrollbar::-webkit-scrollbar-corner {

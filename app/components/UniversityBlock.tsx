@@ -187,10 +187,9 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
               key={direction.id}
               href={`/directions/${direction.id}`}
               className="grid-row"
-              passHref
             >
               <div className="grid-cell dir-name">
-                <a title={direction.name}>{direction.name}</a>
+                <span className="dir-name-text" title={direction.name}>{direction.name}</span>
               </div>
               <div className="grid-cell points">
                 {(() => {
