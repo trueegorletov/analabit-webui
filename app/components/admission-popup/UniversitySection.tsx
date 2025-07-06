@@ -2,7 +2,7 @@ import React from 'react';
 import { FlairButton } from './FlairButton';
 import { ProbabilityTabs } from './ProbabilityTabs';
 import { ProgramTable } from './ProgramTable';
-import type { UniversitySection as Section, ProgramRow } from './types';
+import type { UniversitySection as Section, ProgramRow, PopupNavigationProps } from './types';
 
 interface RuntimeState {
   selectedTab: string;
@@ -11,7 +11,7 @@ interface RuntimeState {
   highlightPriority: number | null;
 }
 
-interface UniversitySectionProps {
+interface UniversitySectionProps extends PopupNavigationProps {
   section: Section;
   runtime: RuntimeState;
   probabilityTabs: string[];
@@ -19,7 +19,15 @@ interface UniversitySectionProps {
   onFlairClick: (code: string) => void;
 }
 
-export const UniversitySection: React.FC<UniversitySectionProps> = ({ section, runtime, probabilityTabs, onTabSelect, onFlairClick }) => {
+export const UniversitySection: React.FC<UniversitySectionProps> = ({
+  section,
+  runtime,
+  probabilityTabs,
+  onTabSelect,
+  onFlairClick,
+  currentHeadingId,
+  onClose,
+}) => {
   const dirName = runtime.highlightPriority !== null
     ? runtime.programs.find((p) => p.priority === runtime.highlightPriority)?.name
     : null;
@@ -57,7 +65,13 @@ export const UniversitySection: React.FC<UniversitySectionProps> = ({ section, r
       </div>
 
       {/* Program Table */}
-      <ProgramTable programs={runtime.programs} highlightPriority={runtime.highlightPriority} loading={runtime.loading} />
+      <ProgramTable
+        programs={runtime.programs}
+        highlightPriority={runtime.highlightPriority}
+        loading={runtime.loading}
+        currentHeadingId={currentHeadingId}
+        onClose={onClose}
+      />
 
       {/* Probability Tabs under table with info text */}
       <div className="mt-4">

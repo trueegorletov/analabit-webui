@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useReducer, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { PopupHeader } from './PopupHeader';
 import { UniversitySection } from './UniversitySection';
 import type { UniversitySection as Section, ProgramRow } from './types';
@@ -70,6 +71,13 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   // Repository hooks for API access
   const applicationRepo = useApplicationRepository();
   const resultsRepo = useResultsRepository();
+
+  // Extract current headingId from URL for same-direction navigation handling
+  const pathname = usePathname();
+  const currentHeadingId = React.useMemo(() => {
+    const match = pathname?.match(/^\/directions\/(\d+)$/);
+    return match ? parseInt(match[1], 10) : undefined;
+  }, [pathname]);
 
   // Initialize reducer state
   const initialState: State = React.useMemo(() => {
@@ -286,6 +294,8 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
               probabilityTabs={probabilityTabs}
               onTabSelect={handleTabSelect}
               onFlairClick={() => onClose?.()}
+              currentHeadingId={currentHeadingId}
+              onClose={onClose}
             />
           </React.Fragment>
         ))}

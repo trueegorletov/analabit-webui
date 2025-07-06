@@ -1,17 +1,29 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import type { ProgramRow } from './types';
+import type { ProgramRow, PopupNavigationProps } from './types';
 
-interface ProgramTableProps {
+interface ProgramTableProps extends PopupNavigationProps {
   programs: ProgramRow[];
   highlightPriority: number | null;
   loading: boolean;
 }
 
-export const ProgramTable: React.FC<ProgramTableProps> = ({ programs, highlightPriority, loading }) => {
+export const ProgramTable: React.FC<ProgramTableProps> = ({
+  programs,
+  highlightPriority,
+  loading,
+  currentHeadingId,
+  onClose,
+}) => {
   const router = useRouter();
 
   const handleRowClick = (row: ProgramRow, event: React.MouseEvent<HTMLDivElement>) => {
+    // If clicking on the same direction that's currently being viewed, just close the popup
+    if (currentHeadingId && row.headingId === currentHeadingId) {
+      onClose?.();
+      return;
+    }
+
     const url = `/directions/${row.headingId}`;
 
     // Handle different click types
@@ -28,6 +40,13 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({ programs, highlightP
   const handleRowKeyDown = (row: ProgramRow, event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
+
+      // If pressing Enter/Space on the same direction that's currently being viewed, just close the popup
+      if (currentHeadingId && row.headingId === currentHeadingId) {
+        onClose?.();
+        return;
+      }
+
       const url = `/directions/${row.headingId}`;
 
       if (event.ctrlKey || event.metaKey) {

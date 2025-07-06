@@ -12,4 +12,9 @@ export interface UniversitySection {
   code: string;
   programs: ProgramRow[];
   highlightPriority?: number | null;
+}
+
+export interface PopupNavigationProps {
+  currentHeadingId?: number;
+  onClose?: () => void;
 } 
