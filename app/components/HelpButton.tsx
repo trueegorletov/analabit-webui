@@ -1,5 +1,6 @@
 'use client';
 
+import { gsap } from 'gsap';
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function HelpButton() {
@@ -38,6 +39,20 @@ export default function HelpButton() {
     }, 250); // duration should match transition
   };
 
+  useEffect(() => {
+    if (buttonRef.current) {
+      // Even subtler background brightness pulse with pauses
+      gsap.to(buttonRef.current, {
+        backgroundColor: 'rgba(42, 42, 42, 0.72)',
+        duration: 2.5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+        repeatDelay: 5,
+      });
+    }
+  }, []);
+
   return (
     <>
       <button
@@ -50,7 +65,7 @@ export default function HelpButton() {
             setOpen(true);
           }
         }}
-        className="fixed bottom-4 left-4 md:bottom-6 md:left-6 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-900/70 backdrop-blur-md border border-white/15 text-white text-lg font-semibold hover:bg-neutral-800/80 transition-colors shadow-lg shadow-black/30 z-50"
+        className="help-button overflow-hidden fixed bottom-4 left-4 md:bottom-6 md:left-6 flex items-center justify-center w-14 h-14 md:w-18 md:h-18 rounded-full bg-neutral-900/70 backdrop-blur-md border border-white/15 text-white text-2xl font-semibold hover:bg-neutral-800/80 transition-transform transition-colors shadow-lg shadow-black/30 z-50"
       >
         ?
       </button>
@@ -58,7 +73,7 @@ export default function HelpButton() {
       {(open || closing) && (
         <div
           ref={panelRef}
-          className={`fixed bottom-[72px] left-4 md:bottom-[96px] md:left-6 w-72 max-w-[calc(100vw-2rem)] bg-neutral-900/80 backdrop-blur-md border border-white/15 text-white rounded-xl p-4 shadow-2xl shadow-black/40 transition-all duration-250 transform ${closing ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}
+          className={`fixed bottom-[88px] left-4 md:bottom-[99px] md:left-6 w-72 max-w-[calc(100vw-2rem)] bg-neutral-900/80 backdrop-blur-md border border-white/15 text-white rounded-xl p-4 shadow-2xl shadow-black/40 transition-all duration-250 transform ${closing ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}
         >
           <p className="text-sm mb-4 leading-snug">
             Нужна подробная справка о&nbsp;работе сервиса? Откройте страницу помощи.
@@ -75,4 +90,4 @@ export default function HelpButton() {
       )}
     </>
   );
-} 
+}
