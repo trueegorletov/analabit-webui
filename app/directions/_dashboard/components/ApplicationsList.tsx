@@ -15,6 +15,9 @@ import {
   type StudentDataError,
 } from '@/lib/api/student';
 import { useApplicationRepository, useHeadingRepository, useResultsRepository } from '@/application/DataProvider';
+import {
+  TableLoadingPlaceholder,
+} from '@/app/components/LoadingComponents';
 
 const MIN_TABLE_HEIGHT = 150;
 const INITIAL_TABLE_HEIGHT = 490;
@@ -72,7 +75,7 @@ interface ApplicationsListProps {
 }
 
 export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
-  const { applications: domainApplications } = useEnrichedApplications({ headingId, varsityCode });
+  const { applications: domainApplications, isLoading: applicationsLoading } = useEnrichedApplications({ headingId, varsityCode });
   const applications: UiApplication[] = domainApplications.map(adaptApplicationToUi);
 
   // Repository hooks for API calls
@@ -447,127 +450,134 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
         className="rounded-t-xl bg-white/5 border border-white/10 border-b-0 overflow-hidden applications-scrollbar mt-4 sm:mt-5 md:mt-6"
         style={{ height: `${currentHeight}px` }}
       >
-        <div ref={contentRef} className="overflow-y-auto overflow-x-hidden h-full">
-          <div className="micro-table grid grid-cols-[max-content_max-content_repeat(4,_1fr)] text-[8px] xs:text-[10px] sm:text-xs md:text-sm w-full">
-            {/* Header */}
-            <div className="contents text-left text-gray-400 uppercase tracking-wider text-[9px] xs:text-[11px] sm:text-xs md:text-sm font-medium">
-              {/* Rank Header */}
-              <div
-                className="header-cell px-2 py-1 xs:px-3 xs:py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'Ранг')}
-                onMouseLeave={hideHeaderTooltip}
-              >
-                #
-              </div>
-
-              {/* ID Header */}
-              <div
-                className="header-cell px-2 py-1 xs:px-3 xs:py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'ID')}
-                onMouseLeave={hideHeaderTooltip}
-              >
-                ID
-              </div>
-
-              {/* Priority Header with responsive text */}
-              <div
-                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'Приоритет')}
-                onMouseLeave={hideHeaderTooltip}
-              >
-                <span className="hidden md:inline">Приоритет</span>
-                <span className="hidden sm:inline md:hidden">Приор.</span>
-                <span className="inline sm:hidden">Прио</span>
-              </div>
-
-              {/* Score Header */}
-              <div
-                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'Балл')}
-                onMouseLeave={hideHeaderTooltip}
-              >
-                Балл
-              </div>
-
-              {/* Other Universities Header with responsive text */}
-              <div
-                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'Другие университеты')}
-                onMouseLeave={hideHeaderTooltip}
-              >
-                <span className="hidden lg:inline">Другие университеты</span>
-                <span className="hidden sm:inline lg:hidden">Другие ун-ты</span>
-                <span className="inline sm:hidden">Др</span>
-              </div>
-
-              {/* Notes Header with responsive text */}
-              <div
-                className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
-                onMouseEnter={(e) => showHeaderTooltip(e, 'Примечания')}
-                onMouseLeave={hideHeaderTooltip}
-              >
-                <span className="hidden md:inline">Примечания</span>
-                <span className="hidden sm:inline md:hidden">Примеч.</span>
-                <span className="inline sm:hidden">П</span>
-              </div>
-            </div>
-
-            {/* Body */}
-            {applications.map((app, index) => {
-              const isLoading = loadingStudentId === app.studentId;
-              const rowClasses = `${isLoading ? 'bg-yellow-600/50 animate-pulse' : ''} col-span-6 grid grid-cols-subgrid transition-colors cursor-pointer ${app.passes
-                ? 'bg-gradient-to-r from-violet-700/40 to-fuchsia-700/40 hover:from-violet-700/50 hover:to-fuchsia-700/50'
-                : index % 2 === 0
-                  ? 'bg-black/50 hover:bg-black/60'
-                  : 'bg-black/40 hover:bg-black/60'
-                }`;
-              return (
-                <div
-                  key={`${index}-${app.rank}-${app.studentId}`}
-                  className={rowClasses}
-                  onClick={(e) => handleRowClick(app, e)}
-                >
-                  {/* Rank */}
-                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap ${app.passes ? 'text-green-300 font-semibold' : 'text-gray-200'}`}>
-                    {isLoading ? (
-                      <svg className="animate-spin h-4 w-4 text-white mx-auto" style={{ animationDuration: '0.6s' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                      </svg>
-                    ) : (
-                      app.rank
-                    )}
-                  </div>
-
-                  {/* Student ID */}
-                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono overflow-hidden text-ellipsis ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
-                    <span className="truncate">{app.studentId}</span>
-                  </div>
-
-                  {/* Priority */}
-                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
-                    {app.priority}
-                  </div>
-
-                  {/* Score */}
-                  <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
-                    {renderScore(app)}
-                  </div>
-
-                  {/* Other Universities */}
-                  <div className={`px-2 py-1 xs:px-3 xs:py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
-                    {renderOtherUniversities(app.otherUniversitiesCount)}
-                  </div>
-
-                  {/* Notes */}
-                  <div className='px-2 py-1 xs:px-3 xs:py-2 text-center'>
-                    {renderNotes(app)}
-                  </div>
-                </div>
-              );
-            })}
+        {applicationsLoading ? (
+          // Show loading placeholder when applications are loading
+          <div className="relative h-full">
+            <TableLoadingPlaceholder />
           </div>
-        </div>
+        ) : (
+          <div ref={contentRef} className="overflow-y-auto overflow-x-hidden h-full">
+            <div className="micro-table grid grid-cols-[max-content_max-content_repeat(4,_1fr)] text-[8px] xs:text-[10px] sm:text-xs md:text-sm w-full">
+              {/* Header */}
+              <div className="contents text-left text-gray-400 uppercase tracking-wider text-[9px] xs:text-[11px] sm:text-xs md:text-sm font-medium">
+                {/* Rank Header */}
+                <div
+                  className="header-cell px-2 py-1 xs:px-3 xs:py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                  onMouseEnter={(e) => showHeaderTooltip(e, 'Ранг')}
+                  onMouseLeave={hideHeaderTooltip}
+                >
+                  #
+                </div>
+
+                {/* ID Header */}
+                <div
+                  className="header-cell px-2 py-1 xs:px-3 xs:py-2 sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                  onMouseEnter={(e) => showHeaderTooltip(e, 'ID')}
+                  onMouseLeave={hideHeaderTooltip}
+                >
+                  ID
+                </div>
+
+                {/* Priority Header with responsive text */}
+                <div
+                  className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                  onMouseEnter={(e) => showHeaderTooltip(e, 'Приоритет')}
+                  onMouseLeave={hideHeaderTooltip}
+                >
+                  <span className="hidden md:inline">Приоритет</span>
+                  <span className="hidden sm:inline md:hidden">Приор.</span>
+                  <span className="inline sm:hidden">Прио</span>
+                </div>
+
+                {/* Score Header */}
+                <div
+                  className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                  onMouseEnter={(e) => showHeaderTooltip(e, 'Балл')}
+                  onMouseLeave={hideHeaderTooltip}
+                >
+                  Балл
+                </div>
+
+                {/* Other Universities Header with responsive text */}
+                <div
+                  className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                  onMouseEnter={(e) => showHeaderTooltip(e, 'Другие университеты')}
+                  onMouseLeave={hideHeaderTooltip}
+                >
+                  <span className="hidden lg:inline">Другие университеты</span>
+                  <span className="hidden sm:inline lg:hidden">Другие ун-ты</span>
+                  <span className="inline sm:hidden">Др</span>
+                </div>
+
+                {/* Notes Header with responsive text */}
+                <div
+                  className="header-cell px-2 py-1 xs:px-3 xs:py-2 text-center sticky top-0 bg-[#1b1b1f] z-10 truncate whitespace-nowrap cursor-help border-l border-[#1b1b1f] first:border-l-0"
+                  onMouseEnter={(e) => showHeaderTooltip(e, 'Примечания')}
+                  onMouseLeave={hideHeaderTooltip}
+                >
+                  <span className="hidden md:inline">Примечания</span>
+                  <span className="hidden sm:inline md:hidden">Примеч.</span>
+                  <span className="inline sm:hidden">П</span>
+                </div>
+              </div>
+
+              {/* Body */}
+              {applications.map((app, index) => {
+                const isLoading = loadingStudentId === app.studentId;
+                const rowClasses = `${isLoading ? 'bg-yellow-600/50 animate-pulse' : ''} col-span-6 grid grid-cols-subgrid transition-colors cursor-pointer ${app.passes
+                  ? 'bg-gradient-to-r from-violet-700/40 to-fuchsia-700/40 hover:from-violet-700/50 hover:to-fuchsia-700/50'
+                  : index % 2 === 0
+                    ? 'bg-black/50 hover:bg-black/60'
+                    : 'bg-black/40 hover:bg-black/60'
+                  }`;
+                return (
+                  <div
+                    key={`${index}-${app.rank}-${app.studentId}`}
+                    className={rowClasses}
+                    onClick={(e) => handleRowClick(app, e)}
+                  >
+                    {/* Rank */}
+                    <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap ${app.passes ? 'text-green-300 font-semibold' : 'text-gray-200'}`}>
+                      {isLoading ? (
+                        <svg className="animate-spin h-4 w-4 text-white mx-auto" style={{ animationDuration: '0.6s' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                      ) : (
+                        app.rank
+                      )}
+                    </div>
+
+                    {/* Student ID */}
+                    <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono overflow-hidden text-ellipsis ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
+                      <span className="truncate">{app.studentId}</span>
+                    </div>
+
+                    {/* Priority */}
+                    <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
+                      {app.priority}
+                    </div>
+
+                    {/* Score */}
+                    <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono whitespace-nowrap text-center ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
+                      {renderScore(app)}
+                    </div>
+
+                    {/* Other Universities */}
+                    <div className={`px-2 py-1 xs:px-3 xs:py-2 text-center ${app.passes ? 'font-semibold text-white' : ''}`}>
+                      {renderOtherUniversities(app.otherUniversitiesCount)}
+                    </div>
+
+                    {/* Notes */}
+                    <div className='px-2 py-1 xs:px-3 xs:py-2 text-center'>
+                      {renderNotes(app)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
       <div
         className="w-full h-6 bg-[#1b1b1f] hover:bg-[#24242b] cursor-ns-resize flex items-center justify-center select-none rounded-b-xl border border-white/10 border-t-0 -mt-px transition-colors"
