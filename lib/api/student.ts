@@ -11,6 +11,7 @@ export interface ProgramRow {
   score: number;
   rank: number;
   delta?: string | null;
+  headingId: number;
 }
 
 export interface UniversitySection {
@@ -179,6 +180,7 @@ export async function fetchStudentAdmissionData(
           score: app.score,
           rank: app.ratingPlace,
           delta, // Now properly calculated from API
+          headingId: app.headingId,
         });
       }
 
