@@ -48,7 +48,7 @@ export default function HelpButton() {
         ease: 'sine.inOut',
         repeat: -1,
         yoyo: true,
-        repeatDelay: 5,
+        repeatDelay: 8,
       });
     }
   }, []);
