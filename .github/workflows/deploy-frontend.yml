@@ -1,0 +1,81 @@
+name: Deploy Frontend to Production
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'public/**'
+      - 'styles/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'next.config.js'
+      - 'tailwind.config.js'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test -- --passWithNoTests
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Deploy to production
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PROD_HOST }}
+        username: analabit
+        key: ${{ secrets.PROD_SSH_KEY }}
+        script: |
+          set -e
+          
+          APP_DIR="/opt/analabit-webui"
+          
+          # Create app directory if it doesn't exist
+          mkdir -p $APP_DIR
+          
+          # Clone or update repository
+          if [ -d "$APP_DIR/.git" ]; then
+            cd $APP_DIR
+            git fetch origin main
+            git reset --hard origin/main
+          else
+            git clone https://github.com/YOUR_USERNAME/analabit-webui.git $APP_DIR
+            cd $APP_DIR
+          fi
+          
+          # Install dependencies
+          npm ci --production
+          
+          # Build application
+          npm run build
+          
+          # Restart the application
+          sudo systemctl restart analabit-webui || true
+          
+          # Health check
+          echo "Waiting for frontend to be ready..."
+          sleep 10
+          
+          # Check if frontend is responding
+          curl -f http://localhost:3000 || exit 1
+          
+          echo "Frontend deployment successful!"
