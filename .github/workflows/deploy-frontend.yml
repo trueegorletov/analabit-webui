@@ -36,12 +36,12 @@ jobs:
     - name: Create deployment package
       run: |
         tar -czf deployment-package.tar.gz \
+          --exclude=node_modules \
           .next \
           public \
           package.json \
           package-lock.json \
-          next.config.ts \
-          --exclude=node_modules
+          next.config.ts
       
     - name: Upload deployment package
       uses: actions/upload-artifact@v4
@@ -61,6 +61,15 @@ jobs:
       with:
         name: deployment-package
         
+    - name: Upload package to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.PROD_HOST }}
+        username: analabit
+        key: ${{ secrets.PROD_SSH_KEY }}
+        source: deployment-package.tar.gz
+        target: /tmp/
+        
     - name: Deploy to production
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -77,6 +86,7 @@ jobs:
           BACKUP_DIR="/opt/${APP_NAME}-backup"
           SERVICE_NAME="${APP_NAME}"
           HEALTH_URL="http://localhost:3000"
+          PACKAGE_PATH="/tmp/deployment-package.tar.gz"
           
           echo "🚀 Starting deployment of ${APP_NAME}..."
           
@@ -84,15 +94,9 @@ jobs:
           mkdir -p "$STAGING_DIR"
           cd "$STAGING_DIR"
           
-          echo "📦 Setting up Node.js environment..."
-          # Ensure we have the right Node.js version
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm use ${{ env.NODE_VERSION }} || nvm install ${{ env.NODE_VERSION }}
-          
-          echo "📥 Downloading and extracting deployment package..."
-          # Note: The artifact will be uploaded separately via SCP
-          # For now, we'll use git approach but with proper error handling
+          # Extract deployment package
+          echo "� Extracting deployment package..."
+          tar -xzf "$PACKAGE_PATH"
           
           # Check if current app directory exists and backup if needed
           if [ -d "$APP_DIR" ]; then
@@ -101,29 +105,8 @@ jobs:
             sudo cp -r "$APP_DIR" "$BACKUP_DIR" || true
           fi
           
-          # Handle repository setup in staging
-          if [ -d "$APP_DIR/.git" ]; then
-            echo "📋 Copying existing repository..."
-            cp -r "$APP_DIR" "$STAGING_DIR/app"
-            cd "$STAGING_DIR/app"
-            git fetch origin main
-            git reset --hard origin/main
-          else
-            echo "🔄 Fresh repository clone..."
-            # Remove any existing non-git content from app dir
-            sudo rm -rf "$APP_DIR" || true
-            mkdir -p "$APP_DIR"
-            
-            # Clone to staging first
-            git clone https://github.com/${{ github.repository }}.git "$STAGING_DIR/app"
-            cd "$STAGING_DIR/app"
-          fi
-          
           echo "📦 Installing dependencies..."
           npm ci --only=production
-          
-          echo "🏗️ Building application..."
-          npm run build:production
           
           echo "⚡ Performing atomic deployment..."
           # Stop the service before deployment
@@ -133,7 +116,8 @@ jobs:
           if [ -d "$APP_DIR" ]; then
             sudo rm -rf "$APP_DIR"
           fi
-          sudo mv "$STAGING_DIR/app" "$APP_DIR"
+          sudo mkdir -p "$APP_DIR"
+          sudo cp -r ./* "$APP_DIR/"
           
           # Set proper ownership
           sudo chown -R analabit:analabit "$APP_DIR"
@@ -179,6 +163,7 @@ jobs:
           # Cleanup
           echo "🧹 Cleaning up..."
           rm -rf "$STAGING_DIR"
+          rm -f "$PACKAGE_PATH"
           
           # Remove old backups (keep only latest)
           find /opt -name "${APP_NAME}-backup-*" -type d -mtime +7 -exec sudo rm -rf {} + 2>/dev/null || true
