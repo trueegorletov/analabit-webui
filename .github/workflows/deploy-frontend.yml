@@ -113,8 +113,8 @@ jobs:
           sudo rm -rf "$APP_DIR"
           sudo mkdir -p "$APP_DIR"
           
-          # Copy new files
-          sudo cp -r ./* "$APP_DIR/"
+          # Copy new files (including hidden directories like .next)
+          sudo cp -r . "$APP_DIR/"
           sudo chown -R analabit:analabit "$APP_DIR"
           
           # Start service
