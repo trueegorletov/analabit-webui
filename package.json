@@ -59,7 +59,7 @@
     "@storybook/nextjs-vite": "^9.0.13",
     "@stylistic/eslint-plugin": "^5.0.0",
     "@types/flubber": "^0.4.0",
-    "@types/node": "^20",
+    "@types/node": "^20.19.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/browser": "^3.2.4",
