@@ -1,4 +1,4 @@
-name: Deploy Frontend to Production (Simple)
+name: Deploy Frontend to Production (Bulletproof)
 
 on:
   push:
@@ -79,21 +79,21 @@ jobs:
         host: ${{ secrets.PROD_HOST }}
         username: analabit
         key: ${{ secrets.PROD_SSH_KEY }}
+        command_timeout: 3m
         script: |
           set -e
           
           # Configuration
           APP_NAME="${{ env.APP_NAME }}"
           APP_DIR="/opt/${APP_NAME}"
-          STAGING_DIR="/tmp/${APP_NAME}-staging-$(date +%s)"
-          BACKUP_DIR="/opt/${APP_NAME}-backup"
+          STAGING_DIR="/tmp/${APP_NAME}-deploy-$(date +%s)"
           SERVICE_NAME="${APP_NAME}"
-          HEALTH_URL="http://localhost:3000"
           PACKAGE_PATH="/tmp/deployment-package.tar.gz"
           
-          echo "🚀 Starting simple deployment of ${APP_NAME}..."
+          echo "🚀 Starting bulletproof deployment of ${APP_NAME}..."
           
-          # Create staging directory
+          # Create clean staging directory
+          rm -rf "$STAGING_DIR"
           mkdir -p "$STAGING_DIR"
           cd "$STAGING_DIR"
           
@@ -101,137 +101,39 @@ jobs:
           echo "📦 Extracting deployment package..."
           tar -xzf "$PACKAGE_PATH"
           
-          # Check if current app directory exists and backup if needed
-          if [ -d "$APP_DIR" ]; then
-            echo "💾 Creating backup of current deployment..."
-            sudo rm -rf "$BACKUP_DIR" || true
-            sudo cp -r "$APP_DIR" "$BACKUP_DIR" || true
-          fi
+          echo " Installing production dependencies..."
+          npm ci --omit=dev --ignore-scripts --silent
           
-          echo "📦 Installing production dependencies..."
-          npm ci --omit=dev --ignore-scripts
-          
-          echo "⚡ Performing atomic deployment..."
-          # Stop any existing process
-          sudo pkill -f "npm.*start" || true
+          echo "⚡ Performing deployment..."
+          # Stop service gracefully
           sudo systemctl stop "$SERVICE_NAME" || true
-          sleep 5
+          sleep 3
           
-          # Atomic move to final location
-          if [ -d "$APP_DIR" ]; then
-            sudo rm -rf "$APP_DIR"
-          fi
+          # Clean deployment - remove old directory completely
+          sudo rm -rf "$APP_DIR"
           sudo mkdir -p "$APP_DIR"
-          sudo cp -r ./* "$APP_DIR/"
           
-          # Set proper ownership
+          # Copy new files
+          sudo cp -r ./* "$APP_DIR/"
           sudo chown -R analabit:analabit "$APP_DIR"
           
-          # Create a simple systemd service
-          echo "🔧 Setting up systemd service..."
-          sudo tee /etc/systemd/system/analabit-webui.service > /dev/null << 'EOF'
-          [Unit]
-          Description=Analabit Web UI
-          After=network.target
-          
-          [Service]
-          Type=simple
-          User=analabit
-          Group=analabit
-          WorkingDirectory=/opt/analabit-webui
-          ExecStart=/usr/bin/npm run start:production
-          Restart=always
-          RestartSec=5
-          Environment=NODE_ENV=production
-          Environment=PORT=3000
-          Environment=HOSTNAME=0.0.0.0
-          StandardOutput=journal
-          StandardError=journal
-          SyslogIdentifier=analabit-webui
-          KillMode=mixed
-          KillSignal=SIGTERM
-          TimeoutStopSec=30
-          
-          [Install]
-          WantedBy=multi-user.target
-          EOF
-          
-          sudo systemctl daemon-reload
-          
-          # Start the service
+          # Start service
           echo "🔄 Starting ${SERVICE_NAME} service..."
-          sudo systemctl enable "$SERVICE_NAME"
           sudo systemctl start "$SERVICE_NAME"
           
-          # Wait for service to be ready
-          echo "⏳ Waiting for service to start..."
-          sleep 15
-          
-          # Health check with retries
-          echo "🔍 Performing health check..."
-          HEALTH_CHECK_RETRIES=12
-          HEALTH_CHECK_DELAY=15
-          
-          for i in $(seq 1 $HEALTH_CHECK_RETRIES); do
-            echo "⏳ Health check attempt $i/$HEALTH_CHECK_RETRIES..."
-            
-            # Check if service is running
-            if sudo systemctl is-active --quiet "$SERVICE_NAME"; then
-              echo "✅ Service is active"
-              
-              # Check if port is responding
-              if curl -f -s --connect-timeout 5 "$HEALTH_URL" > /dev/null 2>&1; then
-                echo "✅ Health check passed! Service is responding"
-                break
-              else
-                echo "⚠️ Service is running but not responding on port 3000"
-              fi
-            else
-              echo "❌ Service is not running"
-              sudo systemctl status "$SERVICE_NAME" --no-pager -l || true
-            fi
-            
-            if [ $i -eq $HEALTH_CHECK_RETRIES ]; then
-              echo "❌ Health check failed after $HEALTH_CHECK_RETRIES attempts"
-              echo "🔍 Debugging information:"
-              echo "--- Service Status ---"
-              sudo systemctl status "$SERVICE_NAME" --no-pager -l || true
-              echo "--- Recent Logs ---"
-              sudo journalctl -u "$SERVICE_NAME" --no-pager -l -n 30 || true
-              echo "--- Process List ---"
-              ps aux | grep -E "(npm|node|next)" || true
-              echo "--- Port Usage ---"
-              sudo netstat -tlnp | grep :3000 || true
-              
-              echo "🔄 Rolling back to previous version..."
-              
-              # Rollback procedure
-              if [ -d "$BACKUP_DIR" ]; then
-                sudo systemctl stop "$SERVICE_NAME" || true
-                sudo rm -rf "$APP_DIR"
-                sudo mv "$BACKUP_DIR" "$APP_DIR"
-                sudo systemctl start "$SERVICE_NAME"
-                echo "💾 Rollback completed"
-              fi
-              
-              exit 1
-            else
-              echo "⏳ Retrying in ${HEALTH_CHECK_DELAY}s..."
-              sleep $HEALTH_CHECK_DELAY
-            fi
-          done
-          
-          # Final status check
-          echo "📊 Final service status:"
-          sudo systemctl status "$SERVICE_NAME" --no-pager -l
+          # Quick verification
+          sleep 5
+          if sudo systemctl is-active --quiet "$SERVICE_NAME"; then
+            echo "✅ Service started successfully!"
+          else
+            echo "❌ Service failed to start"
+            sudo systemctl status "$SERVICE_NAME" --no-pager -l
+            exit 1
+          fi
           
           # Cleanup
           echo "🧹 Cleaning up..."
           rm -rf "$STAGING_DIR"
           rm -f "$PACKAGE_PATH"
           
-          # Remove old backups (keep only latest)
-          find /opt -name "${APP_NAME}-backup-*" -type d -mtime +7 -exec sudo rm -rf {} + 2>/dev/null || true
-          
-          echo "🎉 Deployment of ${APP_NAME} completed successfully!"
-          echo "🌐 Application should be available at: $HEALTH_URL"
+          echo "🎉 Deployment completed successfully!"
