@@ -7,11 +7,9 @@ import Footer from './components/Footer';
 import HelpButton from './components/HelpButton';
 import RootProviders from './RootProviders';
 import Shell from './Shell';
+import { generateHomeMetadata } from '../lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Analabit Admission',
-  description: 'Check your admission status',
-};
+export const metadata: Metadata = generateHomeMetadata();
 
 export default function RootLayout({
   children,

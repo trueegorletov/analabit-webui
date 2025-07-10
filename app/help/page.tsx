@@ -1,9 +1,7 @@
 import React from 'react';
+import { generateHelpMetadata } from '../../lib/metadata';
 
-export const metadata = {
-  title: 'О сервисе analabit',
-  description: 'Подробная информация о том, как работает analabit и его симуляции оттока оригиналов.',
-};
+export const metadata = generateHelpMetadata();
 
 export default function HelpPage() {
   return (

@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import React from 'react';
+import type { Metadata } from 'next';
 import DashboardApp from '../_dashboard/DashboardApp';
+import { generateDirectionMetadata } from '../../../lib/metadata';
 
 interface HeadingApiResponse {
   id: number;
@@ -20,6 +22,51 @@ interface HeadingApiResponse {
 }
 
 type Params = { direction_id: string };
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const headingId = Number(params.direction_id);
+  if (Number.isNaN(headingId)) {
+    return {
+      title: 'Направление не найдено | analabit',
+      description: 'Запрашиваемое направление поступления не найдено.',
+      robots: 'noindex, nofollow',
+    };
+  }
+
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+      throw new Error('API base URL is not configured');
+    }
+
+    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/headings/${headingId}`, {
+      cache: 'no-cache',
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch heading');
+    }
+
+    const heading: HeadingApiResponse = await res.json();
+    const varsityName = heading.varsity?.name || heading.varsity_code.toUpperCase();
+    const varsityCode = heading.varsity?.code || heading.varsity_code;
+
+    return generateDirectionMetadata(heading.name, varsityName, params.direction_id, {
+      programCode: heading.code,
+      universityCode: varsityCode,
+      additionalKeywords: [
+        'конкурс', 'списки', 'рейтинг', 'проходной балл', 'места',
+        `${heading.code} направление`, `${varsityCode} университет`,
+      ],
+    });
+  } catch {
+    return {
+      title: 'Направление не найдено | analabit',
+      description: 'Запрашиваемое направление поступления не найдено.',
+      robots: 'noindex, nofollow',
+    };
+  }
+}
 
 export default async function DirectionPage({ params }: { params: Params }) {
   const headingId = Number(params.direction_id);

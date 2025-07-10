@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g clip-path="url(#SvgjsClipPath2826)"><rect width="1000" height="1000" fill="#d3e5e1"></rect><g transform="matrix(12.5,0,0,12.5,100,100)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="64"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+  <!-- Rounded rect: white fill inside, black stroke; everything outside is transparent -->
+  <path d="M20 5 H80 A15 15 0 0 1 95 20 V80 A15 15 0 0 1 80 95 H20 A15 15 0 0 1 5 80 V20 A15 15 0 0 1 20 5 Z" fill="white" stroke="black" stroke-width="8" stroke-linejoin="round"></path>
+  <!-- Inner wave: black stroke -->
+  <path d="M23 76 Q45 38 55 54 T78 38" fill="none" stroke="black" stroke-width="8" stroke-linecap="round"></path>
+</svg></svg></g></g><defs><clipPath id="SvgjsClipPath2826"><rect width="1000" height="1000" x="0" y="0" rx="300" ry="300"></rect></clipPath></defs></svg>
