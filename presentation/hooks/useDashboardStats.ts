@@ -11,6 +11,7 @@ import {
 } from '../../application/DataProvider';
 import { enrichApplications } from '../../domain/services/calculatePasses';
 import type { Application, Results } from '../../domain/models';
+import { useQuery } from '@tanstack/react-query';
 
 export interface DashboardStat {
   value: number;
@@ -240,12 +241,60 @@ function calculateDashboardStats(
  * Replaces the legacy useApplications hook
  */
 export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) {
-  const { applications, loading, error, refetch } = useDashboardStats(options);
+  const { headingId, varsityCode } = options;
+
+  const applicationRepo = useApplicationRepository();
+  const headingRepo = useHeadingRepository();
+  const resultsRepo = useResultsRepository();
+
+  const {
+    data: applications = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<Application[]>({
+    queryKey: [
+      'enrichedApplications',
+      options.headingId,
+      options.varsityCode,
+      applicationRepo,
+      headingRepo,
+      resultsRepo,
+    ],
+    queryFn: async () => {
+      const { headingId, varsityCode } = options;
+
+      // Fetch all data in parallel
+      const [rawApplications, headings, results] = await Promise.all([
+        applicationRepo.getApplications({
+          headingId,
+          varsityCode,
+        }),
+        // Fetch all headings for the varsity if no specific heading is requested
+        headingRepo.getHeadings({ varsityCode }),
+        resultsRepo.getResults({
+          headingIds: headingId ? String(headingId) : undefined,
+          varsityCode,
+          primary: 'latest',
+          drained: 'all',
+        }),
+      ]);
+
+      if (!rawApplications || rawApplications.length === 0) {
+        return [];
+      }
+
+      // Enrich applications with passing status
+      const enriched = enrichApplications(rawApplications, results, headings);
+      return enriched;
+    },
+    enabled: !!(options.headingId || options.varsityCode),
+  });
 
   return {
     applications,
-    isLoading: loading,
-    error: error ? new Error(error) : null,
+    isLoading,
+    error: error ? error : null,
     refetch,
   };
-} 
+}
