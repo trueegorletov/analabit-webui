@@ -25,7 +25,7 @@ export default function Footer() {
         <div className="space-y-2 md:text-right whitespace-normal md:whitespace-nowrap">
           <div className="flex flex-wrap md:justify-end gap-4">
             <a
-              href="https://boosty.to/egorletov"
+              href="https://boosty.to/analabit"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-white transition-colors"
@@ -33,7 +33,7 @@ export default function Footer() {
               Boosty
             </a>
             <a
-              href="https://t.me/your_telegram"
+              href="https://t.me/trueegorletov"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-white transition-colors"
@@ -41,7 +41,7 @@ export default function Footer() {
               Telegram
             </a>
             <a
-              href="https://github.com/trueegorletov"
+              href="https://github.com/trueegorletov/analabit"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-white transition-colors"

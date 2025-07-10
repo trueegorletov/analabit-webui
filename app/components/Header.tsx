@@ -58,12 +58,12 @@ function Header() {
         </Link>
         <div className="flex items-center gap-2">
           <IconButton
-            href="https://github.com/analabit"
+            href="https://github.com/trueegorletov/analabit"
             label="GitHub"
             icon={SiGithub}
           />
           <IconButton
-            href="https://t.me/analabit"
+            href="https://t.me/trueegorletov"
             label="Telegram"
             icon={SiTelegram}
           />
