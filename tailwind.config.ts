@@ -32,7 +32,7 @@ const config: Config = {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         'card-bg': 'rgba(255,255,255,0.02)',
-        'glass-bg': 'rgba(11, 11, 11, 0.811)',
+        'glass-bg': 'rgba(6, 6, 6, 0.87)',
         'glass-border': 'rgba(255,255,255,0.08)',
         card: {
           DEFAULT: 'hsl(var(--card))',
