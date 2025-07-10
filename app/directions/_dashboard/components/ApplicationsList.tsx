@@ -1,6 +1,13 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  memo,
+} from 'react';
 import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
@@ -74,8 +81,9 @@ interface ApplicationsListProps {
   varsityCode?: string;
 }
 
-export default function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
-  const { applications: domainApplications, isLoading: applicationsLoading } = useEnrichedApplications({ headingId, varsityCode });
+function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
+  const { applications: domainApplications, isLoading: applicationsLoading } =
+    useEnrichedApplications({ headingId, varsityCode });
   const applications: UiApplication[] = domainApplications.map(adaptApplicationToUi);
 
   // Repository hooks for API calls
@@ -125,15 +133,12 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
   const toggleTableHeight = useCallback(() => {
     if (!contentHeight) return;
     setCurrentHeight(prevHeight => {
-      const currentContentHeight = contentRef.current?.scrollHeight || contentHeight;
-      const isCollapsed = Math.abs(prevHeight - currentContentHeight) > 1;
-      if (isCollapsed) {
-        return currentContentHeight;
-      } else {
-        return Math.min(INITIAL_TABLE_HEIGHT, currentContentHeight);
+      if (prevHeight < contentHeight) {
+        return contentHeight;
       }
+      return MIN_TABLE_HEIGHT;
     });
-  }, [contentHeight]);
+  }, [contentHeight, MIN_TABLE_HEIGHT]);
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
     if (!dragStateRef.current.isDragging) return;
@@ -686,3 +691,5 @@ export default function ApplicationsList({ headingId, varsityCode }: Application
     </div>
   );
 }
+
+export default memo(ApplicationsList);
