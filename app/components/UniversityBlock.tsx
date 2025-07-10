@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
 import { Copy } from 'lucide-react';
@@ -52,6 +52,12 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
   const [tooltipData, setTooltipData] = useState<{ top: number; left: number } | null>(null);
   // Persist glow timeline across renders so we can reliably kill it
   const glowTl = useRef<gsap.core.Timeline | null>(null);
+
+  // Sort directions alphabetically by name
+  const sortedDirections = useMemo(() => {
+    if (!directionsState?.directions) return [];
+    return [...directionsState.directions].sort((a, b) => a.name.localeCompare(b.name));
+  }, [directionsState?.directions]);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the block from toggling
@@ -240,7 +246,7 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
           </div>
 
           {/* Body */}
-          {directionsState.directions.map((direction: Direction) => (
+          {sortedDirections.map((direction: Direction) => (
             <Link
               key={direction.id}
               href={`/directions/${direction.id}`}

@@ -78,6 +78,11 @@ export default function Home() {
     return mapping;
   }, [universities, getUniversityColor]);
 
+  // Sort universities alphabetically by name
+  const sortedUniversities = useMemo(() => 
+    [...universities].sort((a, b) => a.name.localeCompare(b.name)), 
+  [universities]);
+
   const [pendingScroll, setPendingScroll] = useState<string | null>(null);
 
   // Popup state handling
@@ -421,7 +426,7 @@ export default function Home() {
   }
 
   const renderUniversityBlocks = () => {
-    return universities.map((university) => (
+    return sortedUniversities.map((university) => (
       <UniversityBlock
         key={university.code}
         university={university}
@@ -438,7 +443,7 @@ export default function Home() {
       <div className="dashboard-container">
         {/* Dynamic tag buttons based on loaded universities */}
         <div className="tags">
-          {universities.map((university) => (
+          {sortedUniversities.map((university) => (
             <div
               key={university.code}
               className="tag"
