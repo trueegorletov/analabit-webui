@@ -7,6 +7,11 @@ interface HeadingApiResponse {
   code: string;
   name: string;
   varsity_code: string;
+  // Capacity fields for dashboard stats
+  regular_capacity: number;
+  target_quota_capacity: number;
+  dedicated_quota_capacity: number;
+  special_quota_capacity: number;
   varsity?: {
     id: number;
     code: string;
@@ -48,6 +53,17 @@ export default async function DirectionPage({ params }: { params: Params }) {
         headingName={heading.name}
         varsityCode={varsityCode}
         varsityName={varsityName}
+        headingData={{
+          id: heading.id,
+          code: heading.code,
+          name: heading.name,
+          regularCapacity: heading.regular_capacity,
+          targetQuotaCapacity: heading.target_quota_capacity,
+          dedicatedQuotaCapacity: heading.dedicated_quota_capacity,
+          specialQuotaCapacity: heading.special_quota_capacity,
+          varsityCode: varsityCode,
+          varsityName: varsityName,
+        }}
       />
     );
   } catch {

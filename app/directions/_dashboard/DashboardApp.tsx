@@ -12,12 +12,15 @@ import { useResults } from '@/presentation/hooks/useResults';
 import { CriticalLoadingScreen } from '@/app/components/LoadingComponents';
 import ScrollReset from './ScrollReset';
 
+import type { Heading } from '@/domain/models';
+
 interface DashboardAppProps {
   directionId?: string;
   headingId?: number;
   varsityCode?: string;
   headingName?: string;
   varsityName?: string;
+  headingData?: Heading;
 }
 
 export default function DashboardApp({
@@ -25,9 +28,14 @@ export default function DashboardApp({
   varsityCode,
   headingName,
   varsityName,
+  headingData,
 }: Omit<DashboardAppProps, 'directionId'> = {}) {
   // Get dashboard stats including passing score and admitted rank
-  const { stats, loading: statsLoading } = useDashboardStats({ headingId, varsityCode });
+  const { stats, loading: statsLoading } = useDashboardStats({
+    headingId,
+    varsityCode,
+    headingData,
+  });
 
   // Get drained results loading state for critical data check
   const { loading: drainedLoading } = useResults({
@@ -48,7 +56,9 @@ export default function DashboardApp({
   }, []);
 
   // Check if critical data is still loading
-  const isCriticalDataLoading = statsLoading || drainedLoading;
+  // If headingData is provided, stats should load immediately (basic capacity data)
+  // Only wait for applications/results if no headingData or if specifically needed
+  const isCriticalDataLoading = (headingData ? false : statsLoading) || drainedLoading;
 
   // Show loading screen while critical data loads
   if (isCriticalDataLoading) {
@@ -68,7 +78,7 @@ export default function DashboardApp({
       {/* Main dashboard stats and info */}
       <div className="dashboard-container">
         <Header headingName={headingName} varsityCode={varsityCode} varsityName={varsityName} />
-        <StatsOverview headingId={headingId} varsityCode={varsityCode} />
+        <StatsOverview headingId={headingId} varsityCode={varsityCode} headingData={headingData} />
         <AdmissionInfo
           passingScore={stats.passingScore}
           admittedRank={stats.admittedRank}

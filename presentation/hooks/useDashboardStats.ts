@@ -3,11 +3,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { 
-  useApplicationRepository, 
-  useHeadingRepository, 
-  useResultsRepository, 
+import { useState, useEffect, useCallback } from 'react';
+import {
+  useApplicationRepository,
+  useHeadingRepository,
+  useResultsRepository,
 } from '../../application/DataProvider';
 import { enrichApplications } from '../../domain/services/calculatePasses';
 import type { Application, Results } from '../../domain/models';
@@ -29,6 +29,7 @@ export interface DashboardStats {
 interface UseDashboardStatsOptions {
   headingId?: number;
   varsityCode?: string;
+  headingData?: import('../../domain/models').Heading;
 }
 
 interface UseDashboardStatsReturn {
@@ -54,10 +55,33 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
   const headingRepo = useHeadingRepository();
   const resultsRepo = useResultsRepository();
 
-  const fetchDashboardData = async () => {
+  // If headingData is provided, immediately set basic capacity stats
+  useEffect(() => {
+    if (options.headingData) {
+      setStats({
+        total: options.headingData.regularCapacity,
+        special: options.headingData.specialQuotaCapacity,
+        targeted: options.headingData.targetQuotaCapacity,
+        separate: options.headingData.dedicatedQuotaCapacity,
+      });
+      setLoading(false); // No need to show loading for basic capacity data
+    }
+  }, [options.headingData]);
+
+  const fetchDashboardData = useCallback(async () => {
     try {
-      setLoading(true);
+      // If we have headingData, we don't need to show loading for basic stats
+      if (!options.headingData) {
+        setLoading(true);
+      }
       setError(null);
+
+      // Use pre-fetched heading data if available, otherwise fetch from API
+      const headingsPromise = options.headingData
+        ? Promise.resolve([options.headingData])
+        : headingRepo.getHeadings({
+          varsityCode: options.varsityCode,
+        });
 
       // Fetch all data in parallel
       const [rawApplications, headings, results] = await Promise.all([
@@ -65,9 +89,7 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
           headingId: options.headingId,
           varsityCode: options.varsityCode,
         }),
-        headingRepo.getHeadings({
-          varsityCode: options.varsityCode,
-        }),
+        headingsPromise,
         resultsRepo.getResults({
           headingIds: options.headingId ? String(options.headingId) : undefined,
           varsityCode: options.varsityCode,
@@ -97,20 +119,23 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
       setApplications([]);
-      setStats({
-        total: 0,
-        special: 0,
-        targeted: 0,
-        separate: 0,
-      });
+      // If we have headingData, preserve the basic capacity stats on error
+      if (!options.headingData) {
+        setStats({
+          total: 0,
+          special: 0,
+          targeted: 0,
+          separate: 0,
+        });
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [options.headingId, options.varsityCode, options.headingData, applicationRepo, headingRepo, resultsRepo]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [options.headingId, options.varsityCode]);
+  }, [fetchDashboardData]);
 
   return {
     stats,
@@ -132,7 +157,7 @@ function calculateDashboardStats(
 ): DashboardStats {
   // Find the relevant heading to get capacity data from
   let relevantHeading: import('../../domain/models').Heading | undefined;
-  
+
   if (headingId && headings.length > 0) {
     relevantHeading = headings.find(h => h.id === headingId);
   } else if (headings.length === 1) {
@@ -164,7 +189,7 @@ function calculateDashboardStats(
     }
 
     total = applications.length;
-    
+
     // Group by competition type (Regular, BVI, TargetQuota, DedicatedQuota, SpecialQuota)
     const byCompetitionType = applications.reduce((acc, app) => {
       acc[app.competitionType] = (acc[app.competitionType] || 0) + 1;
@@ -216,7 +241,7 @@ function calculateDashboardStats(
  */
 export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) {
   const { applications, loading, error, refetch } = useDashboardStats(options);
-  
+
   return {
     applications,
     isLoading: loading,
