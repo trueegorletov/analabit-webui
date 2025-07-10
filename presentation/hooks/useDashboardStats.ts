@@ -241,8 +241,6 @@ function calculateDashboardStats(
  * Replaces the legacy useApplications hook
  */
 export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) {
-  const { headingId, varsityCode } = options;
-
   const applicationRepo = useApplicationRepository();
   const headingRepo = useHeadingRepository();
   const resultsRepo = useResultsRepository();
@@ -262,19 +260,17 @@ export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) 
       resultsRepo,
     ],
     queryFn: async () => {
-      const { headingId, varsityCode } = options;
-
       // Fetch all data in parallel
       const [rawApplications, headings, results] = await Promise.all([
         applicationRepo.getApplications({
-          headingId,
-          varsityCode,
+          headingId: options.headingId,
+          varsityCode: options.varsityCode,
         }),
         // Fetch all headings for the varsity if no specific heading is requested
-        headingRepo.getHeadings({ varsityCode }),
+        headingRepo.getHeadings({ varsityCode: options.varsityCode }),
         resultsRepo.getResults({
-          headingIds: headingId ? String(headingId) : undefined,
-          varsityCode,
+          headingIds: options.headingId ? String(options.headingId) : undefined,
+          varsityCode: options.varsityCode,
           primary: 'latest',
           drained: 'all',
         }),
