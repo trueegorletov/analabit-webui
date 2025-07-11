@@ -172,9 +172,12 @@
   }
 
   /* Responsive scaling for dashboard container */
+  /* Note: padding-bottom is removed on scaled containers to prevent spacing inconsistencies,
+     and margin-bottom is used instead for unscaled spacing between containers */
   @media (max-width: 768px) {
     .dashboard-container {
-      @apply p-5 w-[95%] mt-14;
+      @apply p-5 w-[95%] mt-16;
+      padding-bottom: 0;
       transform: scale(0.96);
       transform-origin: top;
     }
@@ -193,7 +196,8 @@
 
   @media (max-width: 480px) {
     .dashboard-container {
-      @apply p-3 mt-11;
+      @apply p-3 mt-16;
+      padding-bottom: 0;
       transform: scale(0.96);
       transform-origin: top;
     }
@@ -212,7 +216,8 @@
 
   @media (max-width: 320px) {
     .dashboard-container {
-      @apply p-2.5 w-[99%] mt-10;
+      @apply p-2.5 w-[99%] mt-16;
+      padding-bottom: 0;
       transform: scale(0.95);
       transform-origin: top;
     }
@@ -237,6 +242,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  margin-bottom: 0;
   padding: 0 20px;
   width: 100%;
   box-sizing: border-box;

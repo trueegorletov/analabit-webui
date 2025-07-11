@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-neutral-950 text-neutral-400 text-xs sm:text-sm px-4 py-6 mt-12">
+    <footer className="w-full bg-neutral-950 text-neutral-400 text-xs sm:text-sm px-4 py-6 mt-13 md:mt-16">
       <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row justify-between gap-6">
         {/* Feedback & rights notice */}
         <div className="space-y-2 max-w-prose">
