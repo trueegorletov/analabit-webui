@@ -262,8 +262,15 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   // Tooltip state for "Примечания" status icons
   const FADE_DURATION = 180; // ms
   const HOVER_LEAVE_DELAY = 120; // ms – небольшая задержка, чтобы избежать мерцаний при быстром перемещении курсора
-  const [noteTooltip, setNoteTooltip] = useState<{
+
+  // Interface for tooltip items with icon and text
+  interface TooltipItem {
+    icon: React.ReactNode;
     text: string;
+  }
+
+  const [noteTooltip, setNoteTooltip] = useState<{
+    items: TooltipItem[];
     top: number;
     left: number;
     visible: boolean;
@@ -288,6 +295,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   }, []);
 
   const renderNotes = (app: UiApplication) => {
+    const statuses = collectNoteStatuses(app);
     const icons = [];
 
     // Rule C: original quit
@@ -296,8 +304,6 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
         <div
           key="quit"
           className="flex items-center justify-center"
-          onMouseEnter={(e) => showNoteTooltip(e, 'QUIT')}
-          onMouseLeave={hideNoteTooltip}
         >
           <XCircle className="w-[1.1em] h-[1.1em] text-red-500" />
         </div>,
@@ -317,8 +323,6 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
         <div
           key="status"
           className="flex items-center justify-center"
-          onMouseEnter={(e) => showNoteTooltip(e, status)}
-          onMouseLeave={hideNoteTooltip}
         >
           {icon}
         </div>,
@@ -330,8 +334,6 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
           <div
             key="passing"
             className="flex items-center justify-center"
-            onMouseEnter={(e) => showNoteTooltip(e, 'PASSING_HIGHER')}
-            onMouseLeave={hideNoteTooltip}
           >
             <Circle className="w-[1.1em] h-[1.1em] text-yellow-500" />
           </div>,
@@ -344,7 +346,15 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
     }
 
     return (
-      <div className='flex items-center justify-center h-full space-x-1.5'>
+      <div
+        className='flex items-center justify-center h-full space-x-1.5 cursor-pointer'
+        onMouseEnter={(e) => showNoteTooltip(e, statuses)}
+        onMouseLeave={hideNoteTooltip}
+        onClick={(e) => {
+          e.stopPropagation();
+          showNoteTooltip(e, statuses, true);
+        }}
+      >
         {icons}
       </div>
     );
@@ -466,6 +476,54 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
     };
   }, [popupOpen]);
 
+  // Helper function to collect applicable note statuses for an application
+  const collectNoteStatuses = useCallback((app: UiApplication): (NoteStatusKey | 'PASSING_HIGHER')[] => {
+    const statuses: (NoteStatusKey | 'PASSING_HIGHER')[] = [];
+
+    // Add primary status first (left-to-right display order)
+    if (app.status === 'QUIT') {
+      statuses.push('QUIT');
+    } else if (app.status === 'SUBMITTED' || app.status === 'UNKNOWN') {
+      statuses.push(app.status);
+
+      // Add passing status if applicable (only for non-quit statuses)
+      if (app.passingToMorePriority) {
+        statuses.push('PASSING_HIGHER');
+      }
+    }
+
+    return statuses;
+  }, []);
+
+  // Helper function to create tooltip items from status array
+  const createTooltipItems = useCallback((statuses: (NoteStatusKey | 'PASSING_HIGHER')[]): TooltipItem[] => {
+    return statuses.map(status => {
+      let icon: React.ReactNode;
+
+      switch (status) {
+        case 'QUIT':
+          icon = <XCircle className="w-4 h-4 text-red-500" />;
+          break;
+        case 'SUBMITTED':
+          icon = <CircleCheck className="w-4 h-4 text-green-500" />;
+          break;
+        case 'UNKNOWN':
+          icon = <HelpCircle className="w-6 h-6 text-gray-300" />;
+          break;
+        case 'PASSING_HIGHER':
+          icon = <Circle className="w-6 h-6 text-yellow-500" />;
+          break;
+        default:
+          icon = <HelpCircle className="w-6 h-6 text-gray-300" />;
+      }
+
+      return {
+        icon,
+        text: NOTES_STATUS_TEXT[status],
+      };
+    });
+  }, []);
+
   // --- Tooltip handling helpers (moved above to satisfy hook dependency order) ---
   const scheduleFadeOut = () => {
     setNoteTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
@@ -488,16 +546,19 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const showNoteTooltip = useCallback(
     (
       e: React.MouseEvent<HTMLDivElement>,
-      status: NoteStatusKey | 'PASSING_HIGHER',
+      statuses: (NoteStatusKey | 'PASSING_HIGHER')[],
       autoHide: boolean = false,
     ) => {
       if (noteTooltipTimeoutRef.current) {
         clearTimeout(noteTooltipTimeoutRef.current);
         noteTooltipTimeoutRef.current = null;
       }
+
+      const items = createTooltipItems(statuses);
       const rect = e.currentTarget.getBoundingClientRect();
+
       setNoteTooltip({
-        text: NOTES_STATUS_TEXT[status],
+        items,
         top: rect.top - 8,
         left: rect.left + rect.width / 2,
         visible: true,
@@ -509,7 +570,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
         }, 2000);
       }
     },
-    [hideNoteTooltip],
+    [hideNoteTooltip, createTooltipItems],
   );
 
   return (
@@ -714,9 +775,19 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
               zIndex: 9999,
             }}
           >
-            <span className="inline-block max-w-28 whitespace-normal break-normal text-center leading-snug px-3 py-1.5 rounded-md bg-[#1b1b1f] text-white text-xs font-medium shadow-xl border border-white/15">
-              {noteTooltip.text}
-            </span>
+            <div className="inline-block max-w-64 whitespace-normal break-normal text-left leading-snug px-3 py-2 rounded-md bg-[#1b1b1f] text-white text-xs font-medium shadow-xl border border-white/15">
+              {noteTooltip.items.map((item, index) => (
+                <div key={index}>
+                  <div className="flex items-center gap-2">
+                    {item.icon}
+                    <span>{item.text}</span>
+                  </div>
+                  {index < noteTooltip.items.length - 1 && (
+                    <div className="my-2 border-t border-white/20"></div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>,
           document.body,
         )}
