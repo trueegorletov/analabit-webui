@@ -79,9 +79,9 @@ export default function Home() {
   }, [universities, getUniversityColor]);
 
   // Sort universities alphabetically by name
-  const sortedUniversities = useMemo(() => 
-    [...universities].sort((a, b) => a.name.localeCompare(b.name)), 
-  [universities]);
+  const sortedUniversities = useMemo(() =>
+    [...universities].sort((a, b) => a.name.localeCompare(b.name)),
+    [universities]);
 
   const [pendingScroll, setPendingScroll] = useState<string | null>(null);
 
@@ -455,13 +455,13 @@ export default function Home() {
           ))}
         </div>
         <div className="wave-container">
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div>Загрузка...</div>}>
             <Animation loading={loadingStatus} error={blobError} />
           </Suspense>
         </div>
         <div className="title hero-title">Проверка статуса поступления</div>
         <div className="desc">
-          Введите ID абитуриента, чтобы узнать, в какие университеты он зачислен
+          Введите ID абитуриента, чтобы узнать, на какие образовательные программы он проходит
         </div>
         <div className="input-group flex gap-4 items-start">
           <div className="relative flex-grow">
@@ -474,8 +474,8 @@ export default function Home() {
               onChange={handleIdInputChange}
               onKeyDown={handleInputKeydown}
               className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${inputError
-                  ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
-                  : 'focus:ring-2 focus:ring-violet-500/80'
+                ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
+                : 'focus:ring-2 focus:ring-violet-500/80'
                 }`}
             />
             <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{ opacity: showTooltip ? 1 : 0 }}>
@@ -504,7 +504,7 @@ export default function Home() {
 
       {/* Results section with glass container styling */}
       <div className="dashboard-container mt-1 sm:mt-2 md:mt-8">
-        <h2 className="section-title">Результаты по направлениям</h2>
+        <h2 className="section-title">Проходные по ОП</h2>
         {renderUniversityBlocks()}
       </div>
 
