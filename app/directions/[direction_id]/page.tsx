@@ -21,10 +21,11 @@ interface HeadingApiResponse {
   };
 }
 
-type Params = { direction_id: string };
+type Params = Promise<{ direction_id: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const headingId = Number(params.direction_id);
+  const { direction_id } = await params;
+  const headingId = Number(direction_id);
   if (Number.isNaN(headingId)) {
     return {
       title: 'Направление не найдено | analabit',
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const varsityName = heading.varsity?.name || heading.varsity_code.toUpperCase();
     const varsityCode = heading.varsity?.code || heading.varsity_code;
 
-    return generateDirectionMetadata(heading.name, varsityName, params.direction_id, {
+    return generateDirectionMetadata(heading.name, varsityName, direction_id, {
       programCode: heading.code,
       universityCode: varsityCode,
       additionalKeywords: [
@@ -69,7 +70,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function DirectionPage({ params }: { params: Params }) {
-  const headingId = Number(params.direction_id);
+  const { direction_id } = await params;
+  const headingId = Number(direction_id);
   if (Number.isNaN(headingId)) {
     return notFound();
   }

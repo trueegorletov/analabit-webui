@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   useApplicationRepository,
   useHeadingRepository,
@@ -11,7 +11,8 @@ import {
 } from '../../application/DataProvider';
 import { enrichApplications } from '../../domain/services/calculatePasses';
 import type { Application, Results } from '../../domain/models';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { APPLICATIONS_PAGE_SIZE } from '../../app/directions/_dashboard/constants';
 
 export interface DashboardStat {
   value: number;
@@ -237,37 +238,30 @@ function calculateDashboardStats(
 }
 
 /**
- * Hook for fetching applications with enriched data
- * Replaces the legacy useApplications hook
+ * Hook for fetching static application data (headings and results)
+ * This data is fetched once and reused across all pages
  */
-export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) {
-  const applicationRepo = useApplicationRepository();
+function useStaticApplicationData(options: UseDashboardStatsOptions = {}) {
   const headingRepo = useHeadingRepository();
   const resultsRepo = useResultsRepository();
 
   const {
-    data: applications = [],
+    data: staticData,
     isLoading,
     error,
-    refetch,
-  } = useQuery<Application[]>({
-    queryKey: [
-      'enrichedApplications',
-      options.headingId,
-      options.varsityCode,
-      applicationRepo,
-      headingRepo,
-      resultsRepo,
-    ],
+  } = useQuery({
+    queryKey: ['static-application-data', options.headingId, options.varsityCode],
     queryFn: async () => {
-      // Fetch all data in parallel
-      const [rawApplications, headings, results] = await Promise.all([
-        applicationRepo.getApplications({
-          headingId: options.headingId,
+      // Use pre-fetched heading data if available, otherwise fetch from API
+      const headingsPromise = options.headingData
+        ? Promise.resolve([options.headingData])
+        : headingRepo.getHeadings({
           varsityCode: options.varsityCode,
-        }),
-        // Fetch all headings for the varsity if no specific heading is requested
-        headingRepo.getHeadings({ varsityCode: options.varsityCode }),
+        });
+
+      // Fetch headings and results in parallel
+      const [headings, results] = await Promise.all([
+        headingsPromise,
         resultsRepo.getResults({
           headingIds: options.headingId ? String(options.headingId) : undefined,
           varsityCode: options.varsityCode,
@@ -276,21 +270,84 @@ export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) 
         }),
       ]);
 
-      if (!rawApplications || rawApplications.length === 0) {
-        return [];
-      }
-
-      // Enrich applications with passing status
-      const enriched = enrichApplications(rawApplications, results, headings);
-      return enriched;
+      return { headings, results };
     },
     enabled: !!(options.headingId || options.varsityCode),
   });
+
+  return {
+    headings: staticData?.headings || [],
+    results: staticData?.results || { primary: [], secondary: [], steps: [], drained: [] },
+    isLoading,
+    error: error ? error : null,
+  };
+}
+
+/**
+ * Hook for fetching applications with enriched data and pagination
+ * Replaces the legacy useApplications hook
+ */
+export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) {
+  const applicationRepo = useApplicationRepository();
+
+  // Fetch static data separately (headings and results)
+  const { headings, results, isLoading: isLoadingStatic, error: staticError } =
+    useStaticApplicationData(options);
+
+  // Infinite query for paginated applications
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingApplications,
+    error: applicationsError,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ['enriched-applications', options.headingId, options.varsityCode],
+    queryFn: async ({ pageParam = 0 }) => {
+      const rawApplications = await applicationRepo.getApplications({
+        headingId: options.headingId,
+        varsityCode: options.varsityCode,
+        limit: APPLICATIONS_PAGE_SIZE,
+        offset: pageParam,
+      });
+
+      return rawApplications || [];
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      // If the last page has fewer items than the page size, we've reached the end
+      if (lastPage.length < APPLICATIONS_PAGE_SIZE) {
+        return undefined;
+      }
+      return lastPageParam + APPLICATIONS_PAGE_SIZE;
+    },
+    enabled: !!(options.headingId || options.varsityCode) && !isLoadingStatic && !staticError,
+  });
+
+  // Enrich all pages of applications with static data
+  const applications = useMemo(() => {
+    if (!data?.pages || !headings.length || !results.primary) {
+      return [];
+    }
+
+    return data.pages.flatMap(page =>
+      enrichApplications(page, results, headings),
+    );
+  }, [data?.pages, headings, results]);
+
+  const isLoading = isLoadingStatic || isLoadingApplications;
+  const error = staticError || applicationsError;
 
   return {
     applications,
     isLoading,
     error: error ? error : null,
     refetch,
+    // Pagination controls
+    fetchNextPage,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
   };
 }

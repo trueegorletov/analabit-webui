@@ -20,14 +20,10 @@ interface Direction {
   universityCode: string;
 }
 
-interface UniversityDirectionsState {
-  isLoading: boolean;
-  error: string | null;
-  directions: Direction[];
-}
 import {
   DirectionsLoadingPlaceholder,
 } from './LoadingComponents';
+import type { UniversityDirectionsState } from '@/hooks/useUniversitiesData';
 
 interface UniversityBlockProps {
   university: University;

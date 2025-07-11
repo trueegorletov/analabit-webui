@@ -814,3 +814,169 @@ export const TableLoadingPlaceholder: React.FC = () => {
     </div>
   );
 };
+
+// Pagination-specific loading components
+export const PaginationLoadingIndicator: React.FC<{
+  rows?: number;
+}> = ({ rows = 3 }) => {
+  return (
+    <div className="pagination-loading-indicator">
+      {/* Skeleton rows that match the applications table structure */}
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="skeleton-row">
+          <div className="skeleton-cell rank">
+            <div className="skeleton-shimmer"></div>
+          </div>
+          <div className="skeleton-cell student-id">
+            <div className="skeleton-shimmer"></div>
+          </div>
+          <div className="skeleton-cell priority">
+            <div className="skeleton-shimmer"></div>
+          </div>
+          <div className="skeleton-cell score">
+            <div className="skeleton-shimmer"></div>
+          </div>
+          <div className="skeleton-cell universities">
+            <div className="skeleton-shimmer"></div>
+          </div>
+          <div className="skeleton-cell notes">
+            <div className="skeleton-shimmer"></div>
+          </div>
+        </div>
+      ))}
+
+      <style jsx>{`
+        .pagination-loading-indicator {
+          padding: 0.5rem 1rem;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 0.5rem;
+          margin-top: 0.5rem;
+        }
+        
+        .skeleton-row {
+          display: grid;
+          grid-template-columns: 60px 120px 80px 100px 80px 120px;
+          gap: 1rem;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .skeleton-row:last-child {
+          border-bottom: none;
+        }
+        
+        .skeleton-cell {
+          height: 1.25rem;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 0.25rem;
+          overflow: hidden;
+          position: relative;
+        }
+        
+        .skeleton-shimmer {
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+          );
+          animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// Fallback button for manual pagination
+export const LoadMoreButton: React.FC<{
+  onClick: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+  hasMore?: boolean;
+}> = ({ onClick, isLoading = false, disabled = false, hasMore = true }) => {
+  const handleClick = () => {
+    if (!disabled && !isLoading && hasMore) {
+      onClick();
+    }
+  };
+
+  return (
+    <div className="load-more-container">
+      <button
+        onClick={handleClick}
+        disabled={disabled || isLoading || !hasMore}
+        className="load-more-button"
+        aria-label={
+          isLoading
+            ? 'Loading more applications...'
+            : hasMore
+              ? 'Load more applications'
+              : 'No more applications to load'
+        }
+      >
+        {isLoading ? (
+          <>
+            <LoadingSpinner size="sm" />
+            <span>Загружаем...</span>
+          </>
+        ) : hasMore ? (
+          <span>Загрузить ещё</span>
+        ) : (
+          <span>Больше нет данных</span>
+        )}
+      </button>
+
+      <style jsx>{`
+        .load-more-container {
+          display: flex;
+          justify-content: center;
+          padding: 1rem;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 0.5rem;
+          margin-top: 0.5rem;
+        }
+        
+        .load-more-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 0.5rem;
+          color: white;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .load-more-button:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .load-more-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .load-more-button:focus {
+          outline: 2px solid rgba(59, 130, 246, 0.5);
+          outline-offset: 2px;
+        }
+      `}</style>
+    </div>
+  );
+};

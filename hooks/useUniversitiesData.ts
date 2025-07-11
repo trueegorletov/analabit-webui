@@ -20,6 +20,8 @@ interface UniversityDirectionsState {
   directions: Direction[];
 }
 
+export type { UniversityDirectionsState };
+
 interface DirectionsCache {
   [universityCode: string]: UniversityDirectionsState;
 }

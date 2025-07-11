@@ -1,13 +1,14 @@
 // Presentation Layer Hook - Applications management
 // Uses repositories and domain services
+// DEPRECATED: Use useEnrichedApplications for new code
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { 
-  useApplicationRepository, 
-  useHeadingRepository, 
-  useResultsRepository, 
+import { useState, useEffect, useCallback } from 'react';
+import {
+  useApplicationRepository,
+  useHeadingRepository,
+  useResultsRepository,
 } from '../../application/DataProvider';
 import { enrichApplications } from '../../domain/services/calculatePasses';
 import type { Application } from '../../domain/models';
@@ -19,6 +20,8 @@ interface UseApplicationsOptions {
   varsityCode?: string;
   headingId?: number;
   includeResults?: boolean; // Whether to enrich with passes/otherUnlv
+  pageSize?: number; // For pagination support
+  currentPage?: number; // For pagination support
 }
 
 interface UseApplicationsReturn {
@@ -37,29 +40,47 @@ export function useApplications(options: UseApplicationsOptions = {}): UseApplic
   const headingRepo = useHeadingRepository();
   const resultsRepo = useResultsRepository();
 
-  const fetchApplications = async () => {
+  // Memoize options to prevent unnecessary effect triggers  
+  const memoizedOptions = useCallback(() => options, [options]);
+
+  const fetchApplications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
+      const opts = memoizedOptions();
+
+      // Calculate pagination parameters
+      const limit = opts.pageSize ? opts.pageSize : opts.limit;
+      const offset = opts.currentPage && opts.pageSize
+        ? (opts.currentPage - 1) * opts.pageSize
+        : opts.offset;
+
       // Fetch applications
       const rawApplications = await applicationRepo.getApplications({
-        limit: options.limit,
-        offset: options.offset,
-        studentId: options.studentId,
-        varsityCode: options.varsityCode,
-        headingId: options.headingId,
+        limit,
+        offset,
+        studentId: opts.studentId,
+        varsityCode: opts.varsityCode,
+        headingId: opts.headingId,
       });
 
-      if (!options.includeResults) {
+      if (!opts.includeResults) {
         setApplications(rawApplications);
         return;
       }
 
       // If we need enriched data, fetch headings and results
       const [headings, results] = await Promise.all([
-        headingRepo.getHeadings(),
-        resultsRepo.getResults(),
+        headingRepo.getHeadings({
+          varsityCode: opts.varsityCode,
+        }),
+        resultsRepo.getResults({
+          headingIds: opts.headingId ? String(opts.headingId) : undefined,
+          varsityCode: opts.varsityCode,
+          primary: 'latest',
+          drained: 'all',
+        }),
       ]);
 
       // Enrich applications with derived properties
@@ -76,18 +97,12 @@ export function useApplications(options: UseApplicationsOptions = {}): UseApplic
     } finally {
       setLoading(false);
     }
-  };
+  }, [memoizedOptions, applicationRepo, headingRepo, resultsRepo]);
 
+  // Use stable dependencies - no repository objects in the dependency array
   useEffect(() => {
     fetchApplications();
-  }, [
-    options.limit,
-    options.offset,
-    options.studentId,
-    options.varsityCode,
-    options.headingId,
-    options.includeResults,
-  ]);
+  }, [fetchApplications]);
 
   return {
     applications,
@@ -107,7 +122,7 @@ export function useStudentApplications(studentId: string): UseApplicationsReturn
 
   const applicationRepo = useApplicationRepository();
 
-  const fetchStudentApplications = async () => {
+  const fetchStudentApplications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -120,13 +135,13 @@ export function useStudentApplications(studentId: string): UseApplicationsReturn
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId, applicationRepo]);
 
   useEffect(() => {
     if (studentId) {
       fetchStudentApplications();
     }
-  }, [studentId]);
+  }, [studentId, fetchStudentApplications]);
 
   return {
     applications,
