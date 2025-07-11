@@ -438,7 +438,7 @@ export default function Home() {
   };
 
   return (
-    <main>
+    <div className="min-h-screen">
       {/* Hero section with glass container styling */}
       <div className="dashboard-container">
         {/* Dynamic tag buttons based on loaded universities */}
@@ -503,7 +503,7 @@ export default function Home() {
       </div>
 
       {/* Results section with glass container styling */}
-      <div className="dashboard-container mt-1 sm:mt-2 md:mt-8">
+      <div className="dashboard-container-secondary">
         <h2 className="section-title">Проходные по ОП</h2>
         {renderUniversityBlocks()}
       </div>
@@ -530,6 +530,6 @@ export default function Home() {
         </div>
       )}
 
-    </main>
+    </div>
   );
 }

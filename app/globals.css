@@ -100,6 +100,8 @@
 
   html {
     scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -107,7 +109,34 @@
    Glass Panel Component Classes (restored from deleted _dashboard-container.scss)
    ============================================================================= */
 
+/*
+  Container Classes Usage Guide:
+  
+  .dashboard-container - PRIMARY container class for page entry points
+  - Use for the FIRST container on any page (main page, help page, direction pages)
+  - Provides large top margins for proper spacing from header: 80px/56px/44px/40px
+  - Creates visual hierarchy and consistent page entry experience
+  - Examples: Hero sections, main content areas that appear first on page
+  
+  .dashboard-container-secondary - SECONDARY container class for subsequent content
+  - Use for containers that FOLLOW other content sections
+  - Provides smaller top margins for content flow: 32px/8px/8px/4px
+  - Maintains visual rhythm without excessive spacing between related sections
+  - Examples: Additional info blocks, tables, content that appears after main sections
+  
+  Responsive Breakpoints:
+  - Desktop (>768px): mt-20 (80px) for primary, mt-8 (32px) for secondary
+  - Tablet (≤768px): mt-14 (56px) for primary, mt-2 (8px) for secondary  
+  - Mobile (≤480px): mt-11 (44px) for primary, mt-2 (8px) for secondary
+  - Small (≤320px): mt-10 (40px) for primary, mt-1 (4px) for secondary
+  
+  IMPORTANT: Always use .dashboard-container for the first container on any page
+  to ensure consistent top spacing across the entire application.
+*/
+
 @layer components {
+
+  /* PRIMARY container - use for first container on pages */
   .dashboard-container {
     @apply bg-glass-bg backdrop-blur-md backdrop-saturate-150 border border-glass-border;
     @apply text-center rounded-2xl shadow-dashboard;
@@ -118,7 +147,19 @@
     backdrop-filter: blur(16px) saturate(160%);
   }
 
-  .dashboard-container:hover {
+  /* SECONDARY container - use for containers that follow other content */
+  .dashboard-container-secondary {
+    @apply bg-glass-bg backdrop-blur-md backdrop-saturate-150 border border-glass-border;
+    @apply text-center rounded-2xl shadow-dashboard;
+    @apply w-[90%] max-w-[700px] p-10 mx-auto mt-8;
+    @apply transition-all duration-300 ease-out;
+
+    /* Backdrop filter for all browsers with Safari prefix */
+    backdrop-filter: blur(16px) saturate(160%);
+  }
+
+  .dashboard-container:hover,
+  .dashboard-container-secondary:hover {
     @apply -translate-y-0.5 shadow-dashboard-hover;
   }
 
@@ -135,9 +176,17 @@
     .dashboard-container {
       @apply p-5 w-[95%] mt-14;
       transform: scale(0.96);
+      transform-origin: top;
     }
 
-    .dashboard-container:hover {
+    .dashboard-container-secondary {
+      @apply p-5 w-[95%] mt-2;
+      transform: scale(0.96);
+      transform-origin: top;
+    }
+
+    .dashboard-container:hover,
+    .dashboard-container-secondary:hover {
       transform: scale(0.96) translateY(-1px);
     }
   }
@@ -146,9 +195,17 @@
     .dashboard-container {
       @apply p-3 mt-11;
       transform: scale(0.96);
+      transform-origin: top;
     }
 
-    .dashboard-container:hover {
+    .dashboard-container-secondary {
+      @apply p-3 mt-2;
+      transform: scale(0.96);
+      transform-origin: top;
+    }
+
+    .dashboard-container:hover,
+    .dashboard-container-secondary:hover {
       transform: scale(0.96) translateY(-1px);
     }
   }
@@ -157,9 +214,17 @@
     .dashboard-container {
       @apply p-2.5 w-[99%] mt-10;
       transform: scale(0.95);
+      transform-origin: top;
     }
 
-    .dashboard-container:hover {
+    .dashboard-container-secondary {
+      @apply p-2.5 w-[99%] mt-1;
+      transform: scale(0.95);
+      transform-origin: top;
+    }
+
+    .dashboard-container:hover,
+    .dashboard-container-secondary:hover {
       transform: scale(0.95) translateY(-1px);
     }
   }

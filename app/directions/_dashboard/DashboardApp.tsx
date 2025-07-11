@@ -71,7 +71,7 @@ export default function DashboardApp({
   }
 
   return (
-    <main className="min-h-screen">
+    <div className="min-h-screen">
       <ScrollReset />
       {/* Enhanced dashboard with improved spacing and visual hierarchy */}
 
@@ -87,7 +87,7 @@ export default function DashboardApp({
       </div>
 
       {/* Applications list */}
-      <div className="dashboard-container mt-1 sm:mt-2 md:mt-8">
+      <div className="dashboard-container-secondary">
         <ApplicationsList headingId={headingId} varsityCode={varsityCode} />
 
         {/* Legend with improved spacing and typography */}
@@ -98,6 +98,6 @@ export default function DashboardApp({
 
       {/* Bottom spacing for better visual balance */}
       <div className="pb-8"></div>
-    </main>
+    </div>
   );
 }
