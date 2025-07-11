@@ -469,7 +469,7 @@ export default function Home() {
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              placeholder="ID студента"
+              placeholder="ID абитуриента"
               value={studentIdInput}
               onChange={handleIdInputChange}
               onKeyDown={handleInputKeydown}
