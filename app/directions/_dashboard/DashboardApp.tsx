@@ -8,7 +8,7 @@ import DrainedResults from './components/DrainedResults';
 import Legend from './components/Legend';
 import ApplicationsList from './components/ApplicationsList';
 import { useDashboardStats } from '@/presentation/hooks/useDashboardStats';
-import { useResults } from '@/presentation/hooks/useResults';
+import { useUnifiedResults } from '@/presentation/hooks/useUnifiedResults';
 import { CriticalLoadingScreen } from '@/app/components/LoadingComponents';
 import ScrollReset from './ScrollReset';
 
@@ -37,11 +37,10 @@ export default function DashboardApp({
     headingData,
   });
 
-  // Get drained results loading state for critical data check
-  const { loading: drainedLoading } = useResults({
-    headingIds: headingId ? String(headingId) : undefined,
+  // Use unified results for both primary and drained data
+  const { passingScore, admittedRank, processedDrainedData, loading: unifiedLoading, error: unifiedError } = useUnifiedResults({
+    headingId,
     varsityCode,
-    drained: 'all',
   });
 
   // Ensure the page always starts at the top, regardless of browser scroll restoration
@@ -58,7 +57,7 @@ export default function DashboardApp({
   // Check if critical data is still loading
   // If headingData is provided, stats should load immediately (basic capacity data)
   // Only wait for applications/results if no headingData or if specifically needed
-  const isCriticalDataLoading = (headingData ? false : statsLoading) || drainedLoading;
+  const isCriticalDataLoading = (headingData ? false : statsLoading) || unifiedLoading;
 
   // Show loading screen while critical data loads
   if (isCriticalDataLoading) {
@@ -78,12 +77,12 @@ export default function DashboardApp({
       {/* Main dashboard stats and info */}
       <div className="dashboard-container">
         <Header headingName={headingName} varsityCode={varsityCode} varsityName={varsityName} />
-        <StatsOverview headingId={headingId} varsityCode={varsityCode} headingData={headingData} />
+        <StatsOverview capacity={stats.capacity} />
         <AdmissionInfo
-          passingScore={stats.passingScore}
-          admittedRank={stats.admittedRank}
+          passingScore={passingScore}
+          admittedRank={admittedRank}
         />
-        <DrainedResults headingId={headingId} varsityCode={varsityCode} />
+        <DrainedResults processedDrainedData={processedDrainedData} loading={unifiedLoading} error={unifiedError} />
       </div>
 
       {/* Applications list */}

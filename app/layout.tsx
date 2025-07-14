@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import Image from 'next/image';
 import './globals.css';
 import Header from './components/Header';
 import ParallaxBackground from './components/ParallaxBackground';
@@ -42,10 +43,13 @@ export default function RootLayout({
         />
         <noscript>
           <div>
-            <img
+            <Image
               src="https://mc.yandex.ru/watch/103269604"
               style={{ position: 'absolute', left: '-9999px' }}
               alt=""
+              width={1}
+              height={1}
+              unoptimized
             />
           </div>
         </noscript>

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useDashboardStats } from '@/presentation/hooks/useDashboardStats';
-import type { Heading } from '@/domain/models';
+
+import type { DashboardStats } from '../types'; // Import the simplified DashboardStats type
 
 interface StatCardProps {
   value: number;
@@ -32,33 +32,31 @@ function StatCard({ value, label }: StatCardProps) {
 }
 
 interface StatsOverviewProps {
-  headingId?: number;
-  varsityCode?: string;
-  headingData?: Heading;
+  capacity: DashboardStats['capacity'];
 }
 
-export default function StatsOverview({ headingId, varsityCode, headingData }: StatsOverviewProps) {
-  const { stats } = useDashboardStats({ headingId, varsityCode, headingData });
+export default function StatsOverview({ capacity }: StatsOverviewProps) {
+  const { total, special, targeted, separate } = capacity;
 
   return (
     <div className="w-full mb-8">
       {/* Mobile/Small-Tablet Layout: full-width 2×2 grid with equal gaps */}
       <div className="md:hidden px-8">
         <div className="grid grid-cols-2 gap-4 sm:gap-2 w-full">
-          <StatCard value={stats.total} label="Всего" />
-          <StatCard value={stats.special} label="Особая" />
-          <StatCard value={stats.targeted} label="Целевая" />
-          <StatCard value={stats.separate} label="Отдельная" />
+          <StatCard value={total} label="Всего" />
+          <StatCard value={special} label="Особая" />
+          <StatCard value={targeted} label="Целевая" />
+          <StatCard value={separate} label="Отдельная" />
         </div>
       </div>
 
       {/* Desktop Layout: 4 circles in a row */}
       <div className="hidden md:block max-w-4xl mx-auto px-4">
         <div className="grid grid-cols-4 gap-6 lg:gap-8">
-          <StatCard value={stats.total} label="Всего" />
-          <StatCard value={stats.special} label="Особая" />
-          <StatCard value={stats.targeted} label="Целевая" />
-          <StatCard value={stats.separate} label="Отдельная" />
+          <StatCard value={total} label="Всего" />
+          <StatCard value={special} label="Особая" />
+          <StatCard value={targeted} label="Целевая" />
+          <StatCard value={separate} label="Отдельная" />
         </div>
       </div>
     </div>

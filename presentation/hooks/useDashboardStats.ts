@@ -7,10 +7,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   useApplicationRepository,
   useHeadingRepository,
-  useResultsRepository,
 } from '../../application/DataProvider';
 import { enrichApplications } from '../../domain/services/calculatePasses';
-import type { Application, Results } from '../../domain/models';
+import type { Application } from '../../domain/models';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { APPLICATIONS_PAGE_SIZE } from '../../app/directions/_dashboard/constants';
 
@@ -20,12 +19,12 @@ export interface DashboardStat {
 }
 
 export interface DashboardStats {
-  total: number;
-  special: number;
-  targeted: number;
-  separate: number;
-  passingScore?: number;
-  admittedRank?: number;
+  capacity: {
+    total: number;
+    special: number;
+    targeted: number;
+    separate: number;
+  };
 }
 
 interface UseDashboardStatsOptions {
@@ -45,26 +44,31 @@ interface UseDashboardStatsReturn {
 export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDashboardStatsReturn {
   const [applications, setApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
-    total: 0,
-    special: 0,
-    targeted: 0,
-    separate: 0,
+    capacity: {
+      total: 0,
+      special: 0,
+      targeted: 0,
+      separate: 0,
+    }
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const applicationRepo = useApplicationRepository();
   const headingRepo = useHeadingRepository();
-  const resultsRepo = useResultsRepository();
+  
+
 
   // If headingData is provided, immediately set basic capacity stats
   useEffect(() => {
     if (options.headingData) {
       setStats({
-        total: options.headingData.regularCapacity,
-        special: options.headingData.specialQuotaCapacity,
-        targeted: options.headingData.targetQuotaCapacity,
-        separate: options.headingData.dedicatedQuotaCapacity,
+        capacity: {
+          total: options.headingData.regularCapacity,
+          special: options.headingData.specialQuotaCapacity,
+          targeted: options.headingData.targetQuotaCapacity,
+          separate: options.headingData.dedicatedQuotaCapacity,
+        }
       });
       setLoading(false); // No need to show loading for basic capacity data
     }
@@ -86,24 +90,18 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
         });
 
       // Fetch all data in parallel
-      const [rawApplications, headings, results] = await Promise.all([
+      const [rawApplications, headings] = await Promise.all([
         applicationRepo.getApplications({
           headingId: options.headingId,
           varsityCode: options.varsityCode,
         }),
         headingsPromise,
-        resultsRepo.getResults({
-          headingIds: options.headingId ? String(options.headingId) : undefined,
-          varsityCode: options.varsityCode,
-          primary: 'latest',
-          drained: 'all',
-        }),
       ]);
 
       // Enrich applications with derived properties
       const enrichedApplications = enrichApplications(
         rawApplications,
-        results,
+        { primary: [], steps: {}, drained: [] }, // Empty results since removed
         headings,
       );
 
@@ -112,28 +110,29 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
       // Calculate dashboard statistics
       const calculatedStats = calculateDashboardStats(
         enrichedApplications,
-        results,
         options.headingId,
         headings,
       );
 
-      setStats(calculatedStats);
+      setStats({ capacity: calculatedStats });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
       setApplications([]);
       // If we have headingData, preserve the basic capacity stats on error
       if (!options.headingData) {
         setStats({
-          total: 0,
-          special: 0,
-          targeted: 0,
-          separate: 0,
+          capacity: {
+            total: 0,
+            special: 0,
+            targeted: 0,
+            separate: 0,
+          }
         });
       }
     } finally {
       setLoading(false);
     }
-  }, [options.headingId, options.varsityCode, options.headingData, applicationRepo, headingRepo, resultsRepo]);
+  }, [options.headingId, options.varsityCode, options.headingData, applicationRepo, headingRepo]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -153,10 +152,9 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
  */
 function calculateDashboardStats(
   applications: Application[],
-  results: Results,
   headingId?: number,
   headings: import('../../domain/models').Heading[] = [],
-): DashboardStats {
+): DashboardStats['capacity'] {
   // Find the relevant heading to get capacity data from
   let relevantHeading: import('../../domain/models').Heading | undefined;
 
@@ -203,37 +201,11 @@ function calculateDashboardStats(
     separate = byCompetitionType['DedicatedQuota'] || 0;
   }
 
-  // Calculate passing score and admitted rank from results
-  let passingScore: number | undefined;
-  let admittedRank: number | undefined;
-
-  if (results.primary.length > 0) {
-    if (headingId) {
-      const resultForHeading = results.primary.find(r => r.headingId === headingId);
-      if (resultForHeading) {
-        passingScore = resultForHeading.passingScore;
-        admittedRank = resultForHeading.lastAdmittedRatingPlace;
-      }
-    } else {
-      // If multiple headings (e.g., by varsity), take highest passing score
-      const best = results.primary.reduce((acc, cur) => {
-        if (!acc || cur.passingScore > acc.passingScore) return cur;
-        return acc;
-      }, undefined as typeof results.primary[0] | undefined);
-      if (best) {
-        passingScore = best.passingScore;
-        admittedRank = best.lastAdmittedRatingPlace;
-      }
-    }
-  }
-
   return {
     total,
     special,
     targeted,
     separate,
-    passingScore,
-    admittedRank,
   };
 }
 
@@ -243,7 +215,8 @@ function calculateDashboardStats(
  */
 function useStaticApplicationData(options: UseDashboardStatsOptions = {}) {
   const headingRepo = useHeadingRepository();
-  const resultsRepo = useResultsRepository();
+  
+
 
   const {
     data: staticData,
@@ -260,24 +233,18 @@ function useStaticApplicationData(options: UseDashboardStatsOptions = {}) {
         });
 
       // Fetch headings and results in parallel
-      const [headings, results] = await Promise.all([
+      const [headings] = await Promise.all([
         headingsPromise,
-        resultsRepo.getResults({
-          headingIds: options.headingId ? String(options.headingId) : undefined,
-          varsityCode: options.varsityCode,
-          primary: 'latest',
-          drained: 'all',
-        }),
       ]);
 
-      return { headings, results };
+      return { headings, results: { primary: [], secondary: [], steps: [], drained: [] } };
     },
     enabled: !!(options.headingId || options.varsityCode),
   });
 
   return {
     headings: staticData?.headings || [],
-    results: staticData?.results || { primary: [], secondary: [], steps: [], drained: [] },
+    results: { primary: [], secondary: [], steps: [], drained: [] },
     isLoading,
     error: error ? error : null,
   };
@@ -323,7 +290,7 @@ export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) 
       }
       return lastPageParam + APPLICATIONS_PAGE_SIZE;
     },
-    enabled: !!(options.headingId || options.varsityCode) && !isLoadingStatic && !staticError,
+    enabled: !!(options.headingId || options.varsityCode),
   });
 
   // Enrich all pages of applications with static data

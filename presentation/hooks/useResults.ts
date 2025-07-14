@@ -3,9 +3,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useResultsRepository } from '../../application/DataProvider';
+import { useUnifiedResults } from './useUnifiedResults';
 import type { Results, DrainedResult } from '../../domain/models';
+
 
 interface UseResultsOptions {
   headingIds?: string;
@@ -15,12 +15,9 @@ interface UseResultsOptions {
   run?: string;
 }
 
-interface ProcessedDrainedData {
+export interface ProcessedDrainedData {
   section: string;
-  rows: Array<{
-    metric: string;
-    [key: string]: string;
-  }>;
+  rows: Array<Record<string, string>>;
 }
 
 interface UseResultsReturn {
@@ -28,67 +25,42 @@ interface UseResultsReturn {
   processedDrainedData: ProcessedDrainedData[];
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => void;
 }
+
+// DEPRECATED: Use useUnifiedResults instead for new code
 
 /**
  * Hook for fetching and processing results data including drained statistics
  */
 export function useResults(options: UseResultsOptions = {}): UseResultsReturn {
-  const [results, setResults] = useState<Results | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { drained, processedDrainedData, loading, error, refetch } = useUnifiedResults({
+    headingId: options.headingIds ? Number(options.headingIds) : undefined,
+    varsityCode: options.varsityCode,
+    run: options.run,
+  });
 
-  const resultsRepo = useResultsRepository();
-
-  const fetchResults = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const fetchedResults = await resultsRepo.getResults({
-        headingIds: options.headingIds,
-        varsityCode: options.varsityCode,
-        primary: options.primary || 'latest',
-        drained: options.drained || 'all',
-        run: options.run || 'latest',
-      });
-
-      setResults(fetchedResults);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch results');
-      setResults(null);
-    } finally {
-      setLoading(false);
-    }
+  // Adapt to original Results type, focusing on drained
+  const adaptedResults: Results | null = {
+    steps: {}, // Not used in original
+    primary: [], // Primary not needed for drained focus
+    drained: (drained || []).map(d => ({ ...d, headingId: Number(options.headingIds) || 0, runId: Number(options.run) || 0 })),
   };
 
-  useEffect(() => {
-    fetchResults();
-  }, [
-    options.headingIds,
-    options.varsityCode,
-    options.primary,
-    options.drained,
-    options.run,
-  ]);
-
-  // Process drained results into table format
-  const processedDrainedData = results ? processDrainedResults(results.drained) : [];
-
   return {
-    results,
+    results: adaptedResults,
     processedDrainedData,
     loading,
     error,
-    refetch: fetchResults,
+    refetch,
   };
 }
 
 /**
  * Process drained results into the format expected by the DrainedResults component
  */
-function processDrainedResults(drainedResults: DrainedResult[]): ProcessedDrainedData[] {
+// Keep existing processDrainedResults function as is
+export function processDrainedResults(drainedResults: DrainedResult[]): ProcessedDrainedData[] {
   if (drainedResults.length === 0) {
     return [];
   }
@@ -171,4 +143,4 @@ function processDrainedResults(drainedResults: DrainedResult[]): ProcessedDraine
   ];
 
   return tableData;
-} 
+}

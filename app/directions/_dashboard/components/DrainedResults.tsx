@@ -1,5 +1,4 @@
 import React from 'react';
-import { useResults } from '@/presentation/hooks/useResults';
 
 interface DrainedResultsProps {
   /**
@@ -7,21 +6,18 @@ interface DrainedResultsProps {
    * Defaults to 100 when not provided.
    */
   simulationCount?: number;
-  headingId?: number;
-  varsityCode?: string;
+  processedDrainedData: Array<{ section: string; rows: Array<Record<string, string | number>> }>;
+  loading: boolean;
+  error: string | null;
 }
 
 export default function DrainedResults({
   simulationCount = 100,
-  headingId,
-  varsityCode,
+  processedDrainedData: tableData,
+  loading,
+  error,
 }: DrainedResultsProps) {
-  // Fetch drained results data using the new repository system
-  const { processedDrainedData: tableData, loading, error } = useResults({
-    headingIds: headingId ? String(headingId) : undefined,
-    varsityCode,
-    drained: 'all',
-  });
+
 
   // If no data is available, show mock percentages for fallback
   const percentages = tableData.length > 0 && tableData[0]?.rows.length > 0
