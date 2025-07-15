@@ -31,6 +31,30 @@ interface UseApplicationsReturn {
   refetch: () => Promise<void>;
 }
 
+// New interfaces for cursor-based pagination
+interface UseApplicationsPaginatedOptions {
+  first?: number;
+  after?: string;
+  studentId?: string;
+  varsityCode?: string;
+  headingId?: number;
+  run?: string | number;
+  includeResults?: boolean;
+}
+
+interface UseApplicationsPaginatedReturn {
+  applications: Application[];
+  pageInfo: {
+    hasNextPage: boolean;
+    endCursor: string;
+  };
+  totalCount: number;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  loadMore: () => Promise<void>;
+}
+
 export function useApplications(options: UseApplicationsOptions = {}): UseApplicationsReturn {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,4 +173,191 @@ export function useStudentApplications(studentId: string): UseApplicationsReturn
     error,
     refetch: fetchStudentApplications,
   };
-} 
+}
+
+/**
+ * New hook for cursor-based pagination
+ */
+export function useApplicationsPaginated(options: UseApplicationsPaginatedOptions = {}): UseApplicationsPaginatedReturn {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [pageInfo, setPageInfo] = useState({ hasNextPage: false, endCursor: '' });
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const applicationRepo = useApplicationRepository();
+  const headingRepo = useHeadingRepository();
+  const resultsRepo = useResultsRepository();
+
+  const memoizedOptions = useCallback(() => options, [options]);
+
+  const fetchApplications = useCallback(async (cursor?: string, append = false) => {
+    try {
+      if (!append) {
+        setLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      setError(null);
+
+      const opts = memoizedOptions();
+
+      // Fetch paginated applications
+      const result = await applicationRepo.getApplicationsPaginated({
+        first: opts.first || 20,
+        after: cursor || opts.after,
+        studentId: opts.studentId,
+        varsityCode: opts.varsityCode,
+        headingId: opts.headingId,
+        run: opts.run,
+      });
+
+      let finalApplications = result.applications;
+
+      if (opts.includeResults && finalApplications.length > 0) {
+        // If we need enriched data, fetch headings and results
+        const [headings, results] = await Promise.all([
+          headingRepo.getHeadings({
+            varsityCode: opts.varsityCode,
+          }),
+          resultsRepo.getResults({
+            headingIds: opts.headingId ? String(opts.headingId) : undefined,
+            varsityCode: opts.varsityCode,
+            primary: 'latest',
+            drained: 'all',
+          }),
+        ]);
+
+        // Enrich applications with derived properties
+        finalApplications = enrichApplications(
+          result.applications,
+          results,
+          headings,
+        );
+      }
+
+      if (append) {
+        setApplications(prev => [...prev, ...finalApplications]);
+      } else {
+        setApplications(finalApplications);
+      }
+      
+      setPageInfo(result.pageInfo);
+      setTotalCount(result.totalCount);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch applications');
+      if (!append) {
+        setApplications([]);
+        setPageInfo({ hasNextPage: false, endCursor: '' });
+        setTotalCount(0);
+      }
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [memoizedOptions, applicationRepo, headingRepo, resultsRepo]);
+
+  const loadMore = useCallback(async () => {
+    if (pageInfo.hasNextPage && !isLoadingMore) {
+      await fetchApplications(pageInfo.endCursor, true);
+    }
+  }, [fetchApplications, pageInfo.hasNextPage, pageInfo.endCursor, isLoadingMore]);
+
+  const refetch = useCallback(async () => {
+    await fetchApplications();
+  }, [fetchApplications]);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  return {
+    applications,
+    pageInfo,
+    totalCount,
+    loading: loading || isLoadingMore,
+    error,
+    refetch,
+    loadMore,
+  };
+}
+
+/**
+ * New hook for cursor-based student applications
+ */
+export function useStudentApplicationsPaginated(
+  studentId: string,
+  options: { first?: number; after?: string; run?: string | number } = {}
+): UseApplicationsPaginatedReturn {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [pageInfo, setPageInfo] = useState({ hasNextPage: false, endCursor: '' });
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const applicationRepo = useApplicationRepository();
+
+  const fetchStudentApplications = useCallback(async (cursor?: string, append = false) => {
+    try {
+      if (!append) {
+        setLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      setError(null);
+
+      const result = await applicationRepo.getStudentApplicationsPaginated(studentId, {
+        first: options.first || 20,
+        after: cursor || options.after,
+        run: options.run,
+      });
+
+      if (append) {
+        setApplications(prev => [...prev, ...result.applications]);
+      } else {
+        setApplications(result.applications);
+      }
+      
+      setPageInfo(result.pageInfo);
+      setTotalCount(result.totalCount);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch student applications');
+      if (!append) {
+        setApplications([]);
+        setPageInfo({ hasNextPage: false, endCursor: '' });
+        setTotalCount(0);
+      }
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [studentId, options, applicationRepo]);
+
+  const loadMore = useCallback(async () => {
+    if (pageInfo.hasNextPage && !isLoadingMore) {
+      await fetchStudentApplications(pageInfo.endCursor, true);
+    }
+  }, [fetchStudentApplications, pageInfo.hasNextPage, pageInfo.endCursor, isLoadingMore]);
+
+  const refetch = useCallback(async () => {
+    await fetchStudentApplications();
+  }, [fetchStudentApplications]);
+
+  useEffect(() => {
+    if (studentId) {
+      fetchStudentApplications();
+    }
+  }, [studentId, fetchStudentApplications]);
+
+  return {
+    applications,
+    pageInfo,
+    totalCount,
+    loading: loading || isLoadingMore,
+    error,
+    refetch,
+    loadMore,
+  };
+}

@@ -15,6 +15,8 @@ import type {
   VarsityDto,
   HeadingDto,
   ApplicationDto,
+  ApplicationsConnection,
+  PageInfo,
   PrimaryResultDto,
   DrainedResultDto,
   ResultsDto,
@@ -148,4 +150,33 @@ export function adaptHeadings(dtos: HeadingDto[]): Heading[] {
 
 export function adaptApplications(dtos: ApplicationDto[]): Application[] {
   return dtos.map(adaptApplication);
+}
+
+// New adapter for connection-based responses
+export function adaptApplicationsConnection(connection: ApplicationsConnection): {
+  applications: Application[];
+  pageInfo: PageInfo;
+  totalCount: number;
+} {
+  return {
+    applications: connection.edges.map(edge => adaptApplication(edge.node)),
+    pageInfo: connection.pageInfo,
+    totalCount: connection.totalCount,
+  };
+}
+
+// Helper to detect and adapt both legacy array and new connection formats
+export function adaptApplicationsResponse(response: ApplicationDto[] | ApplicationsConnection): {
+  applications: Application[];
+  pageInfo?: PageInfo;
+  totalCount?: number;
+} {
+  // Check if it's a connection object (has edges property)
+  if ('edges' in response) {
+    return adaptApplicationsConnection(response);
+  }
+  // Legacy array format
+  return {
+    applications: adaptApplications(response),
+  };
 }

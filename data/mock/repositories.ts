@@ -6,6 +6,7 @@ import type {
   IHeadingRepository,
   IApplicationRepository,
   IResultsRepository,
+  PaginatedApplications,
 } from '../../application/repositories';
 
 import type {
@@ -451,6 +452,104 @@ export class ApplicationRepositoryMock implements IApplicationRepository {
   async getStudentApplications(studentId: string): Promise<Application[]> {
     await simulateDelay();
     return mockApplications.filter(a => a.studentId === studentId);
+  }
+
+  // New cursor-based pagination methods
+  async getApplicationsPaginated(options?: {
+    first?: number;
+    after?: string;
+    studentId?: string;
+    varsityCode?: string;
+    headingId?: number;
+    run?: string | number;
+  }): Promise<PaginatedApplications> {
+    await simulateDelay();
+    
+    let result = [...mockApplications];
+    
+    if (options?.studentId) {
+      result = result.filter(a => a.studentId === options.studentId);
+    }
+    
+    if (options?.headingId !== undefined) {
+      result = result.filter(a => a.headingId === options.headingId);
+    }
+    
+    if (options?.varsityCode) {
+      // Need to join with headings to filter by varsity
+      const headingsForVarsity = mockHeadings.filter(h => h.varsityCode === options.varsityCode);
+      const headingIds = headingsForVarsity.map(h => h.id);
+      result = result.filter(a => headingIds.includes(a.headingId));
+    }
+    
+    // Handle cursor-based pagination
+    let startIndex = 0;
+    if (options?.after) {
+      // Find the index after the cursor (cursor is base64 encoded index)
+      try {
+        const cursorIndex = parseInt(atob(options.after), 10);
+        startIndex = cursorIndex + 1;
+      } catch {
+        startIndex = 0;
+      }
+    }
+    
+    const pageSize = options?.first || 20;
+    const paginatedResult = result.slice(startIndex, startIndex + pageSize);
+    const hasNextPage = startIndex + pageSize < result.length;
+    const endCursor = paginatedResult.length > 0 
+      ? btoa((startIndex + paginatedResult.length - 1).toString())
+      : '';
+    
+    return {
+      applications: paginatedResult,
+      pageInfo: {
+        hasNextPage,
+        endCursor,
+      },
+      totalCount: result.length,
+    };
+  }
+
+  async getStudentApplicationsPaginated(
+    studentId: string,
+    options?: {
+      first?: number;
+      after?: string;
+      run?: string | number;
+    }
+  ): Promise<PaginatedApplications> {
+    await simulateDelay();
+    
+    const result = mockApplications.filter(a => a.studentId === studentId);
+    
+    // Handle cursor-based pagination
+    let startIndex = 0;
+    if (options?.after) {
+      // Find the index after the cursor (cursor is base64 encoded index)
+      try {
+        const cursorIndex = parseInt(atob(options.after), 10);
+        startIndex = cursorIndex + 1;
+      } catch {
+        startIndex = 0;
+      }
+    }
+    
+    const pageSize = options?.first || 20;
+    const paginatedResult = result.slice(startIndex, startIndex + pageSize);
+    const hasNextPage = startIndex + pageSize < result.length;
+    const endCursor = paginatedResult.length > 0 
+      ? btoa((startIndex + paginatedResult.length - 1).toString())
+      : '';
+    
+    return {
+      applications: paginatedResult,
+      pageInfo: {
+        hasNextPage,
+        endCursor,
+      },
+      totalCount: result.length,
+    };
   }
 }
 

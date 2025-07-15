@@ -6,6 +6,7 @@ import type {
   IHeadingRepository,
   IApplicationRepository,
   IResultsRepository,
+  PaginatedApplications,
 } from '../../application/repositories';
 
 import type { HttpClient } from './httpClient';
@@ -20,7 +21,7 @@ import type {
 import {
   adaptVarsities,
   adaptHeadings,
-  adaptApplications,
+  adaptApplicationsResponse,
   adaptHeading,
   adaptResults,
 } from './adapters';
@@ -85,6 +86,7 @@ export class HeadingRepositoryRest implements IHeadingRepository {
 export class ApplicationRepositoryRest implements IApplicationRepository {
   constructor(private httpClient: HttpClient) {}
 
+  // Legacy offset-based method (for backward compatibility)
   async getApplications(options?: {
     limit?: number;
     offset?: number;
@@ -102,13 +104,89 @@ export class ApplicationRepositoryRest implements IApplicationRepository {
     const query = params.toString();
     const endpoint = `/applications${query ? `?${query}` : ''}`;
     
-    const dtos = await this.httpClient.get<ApplicationsResponse>(endpoint);
-    return adaptApplications(dtos);
+    const response = await this.httpClient.get<ApplicationsResponse>(endpoint);
+    const adapted = adaptApplicationsResponse(response);
+    return adapted.applications;
   }
 
   async getStudentApplications(studentId: string) {
-    const dtos = await this.httpClient.get<ApplicationsResponse>(`/applications?studentID=${studentId}`);
-    return adaptApplications(dtos);
+    const response = await this.httpClient.get<ApplicationsResponse>(`/applications?studentID=${studentId}`);
+    const adapted = adaptApplicationsResponse(response);
+    return adapted.applications;
+  }
+
+  // New cursor-based methods
+  async getApplicationsPaginated(options?: {
+    first?: number;
+    after?: string;
+    studentId?: string;
+    varsityCode?: string;
+    headingId?: number;
+    run?: string | number;
+  }): Promise<PaginatedApplications> {
+    const params = new URLSearchParams();
+    if (options?.first !== undefined) params.append('first', options.first.toString());
+    if (options?.after) params.append('after', options.after);
+    if (options?.studentId) params.append('studentID', options.studentId);
+    if (options?.varsityCode) params.append('varsityCode', options.varsityCode);
+    if (options?.headingId !== undefined) params.append('headingId', options.headingId.toString());
+    if (options?.run !== undefined) params.append('run', options.run.toString());
+    
+    const query = params.toString();
+    const endpoint = `/applications${query ? `?${query}` : ''}`;
+    
+    const response = await this.httpClient.get<ApplicationsResponse>(endpoint);
+    const adapted = adaptApplicationsResponse(response);
+    
+    // Ensure we have pagination info for the new method
+    if (!adapted.pageInfo || adapted.totalCount === undefined) {
+      // Fallback for legacy responses
+      return {
+        applications: adapted.applications,
+        pageInfo: { hasNextPage: false, endCursor: '' },
+        totalCount: adapted.applications.length,
+      };
+    }
+    
+    return {
+      applications: adapted.applications,
+      pageInfo: adapted.pageInfo,
+      totalCount: adapted.totalCount,
+    };
+  }
+
+  async getStudentApplicationsPaginated(studentId: string, options?: {
+    first?: number;
+    after?: string;
+    run?: string | number;
+  }): Promise<PaginatedApplications> {
+    const params = new URLSearchParams();
+    params.append('studentID', studentId);
+    if (options?.first !== undefined) params.append('first', options.first.toString());
+    if (options?.after) params.append('after', options.after);
+    if (options?.run !== undefined) params.append('run', options.run.toString());
+    
+    const query = params.toString();
+    const endpoint = `/applications?${query}`;
+    
+    const response = await this.httpClient.get<ApplicationsResponse>(endpoint);
+    const adapted = adaptApplicationsResponse(response);
+    
+    // Ensure we have pagination info for the new method
+    if (!adapted.pageInfo || adapted.totalCount === undefined) {
+      // Fallback for legacy responses
+      return {
+        applications: adapted.applications,
+        pageInfo: { hasNextPage: false, endCursor: '' },
+        totalCount: adapted.applications.length,
+      };
+    }
+    
+    return {
+      applications: adapted.applications,
+      pageInfo: adapted.pageInfo,
+      totalCount: adapted.totalCount,
+    };
   }
 }
 
@@ -135,4 +213,4 @@ export class ResultsRepositoryRest implements IResultsRepository {
     const dto = await this.httpClient.get<ResultsDto>(endpoint);
     return adaptResults(dto);
   }
-} 
+}

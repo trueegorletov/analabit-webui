@@ -7,6 +7,16 @@ import type {
   Application, 
   Results, 
 } from '../domain/models';
+import type { PageInfo } from '../data/rest/dtos';
+
+// Re-export PageInfo for convenience
+export type { PageInfo };
+
+export interface PaginatedApplications {
+  applications: Application[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
 
 export interface IVarsityRepository {
   getVarsities(limit?: number, offset?: number): Promise<Varsity[]>;
@@ -23,6 +33,7 @@ export interface IHeadingRepository {
 }
 
 export interface IApplicationRepository {
+  // Legacy offset-based methods (for backward compatibility)
   getApplications(options?: {
     limit?: number;
     offset?: number;
@@ -31,6 +42,21 @@ export interface IApplicationRepository {
     headingId?: number;
   }): Promise<Application[]>;
   getStudentApplications(studentId: string): Promise<Application[]>;
+  
+  // New cursor-based methods
+  getApplicationsPaginated(options?: {
+    first?: number;
+    after?: string;
+    studentId?: string;
+    varsityCode?: string;
+    headingId?: number;
+    run?: string | number;
+  }): Promise<PaginatedApplications>;
+  getStudentApplicationsPaginated(studentId: string, options?: {
+    first?: number;
+    after?: string;
+    run?: string | number;
+  }): Promise<PaginatedApplications>;
 }
 
 export interface IResultsRepository {
@@ -49,4 +75,4 @@ export interface IDataRepositories {
   headings: IHeadingRepository;
   applications: IApplicationRepository;
   results: IResultsRepository;
-} 
+}

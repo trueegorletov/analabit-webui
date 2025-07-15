@@ -75,7 +75,25 @@ export interface ResultsDto {
   drained: Record<string, DrainedResultDto[]>;
 }
 
+// Cursor-based pagination structures (Relay-style)
+export interface PageInfo {
+  hasNextPage: boolean;
+  endCursor: string;
+}
+
+export interface ApplicationEdge {
+  node: ApplicationDto;
+  cursor: string;
+}
+
+export interface ApplicationsConnection {
+  edges: ApplicationEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
 // API Response wrapper types (arrays for list endpoints)
 export type VarsitiesResponse = VarsityDto[];
 export type HeadingsResponse = HeadingDto[];
-export type ApplicationsResponse = ApplicationDto[]; 
+// Updated to support both legacy array and new connection format
+export type ApplicationsResponse = ApplicationDto[] | ApplicationsConnection;

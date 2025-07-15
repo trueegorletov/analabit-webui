@@ -261,7 +261,7 @@ export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) 
   const { headings, results, isLoading: isLoadingStatic, error: staticError } =
     useStaticApplicationData(options);
 
-  // Infinite query for paginated applications
+  // Infinite query for paginated applications using cursor-based pagination
   const {
     data,
     fetchNextPage,
@@ -272,23 +272,24 @@ export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) 
     refetch,
   } = useInfiniteQuery({
     queryKey: ['enriched-applications', options.headingId, options.varsityCode],
-    queryFn: async ({ pageParam = 0 }) => {
-      const rawApplications = await applicationRepo.getApplications({
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+      const result = await applicationRepo.getApplicationsPaginated({
         headingId: options.headingId,
         varsityCode: options.varsityCode,
-        limit: APPLICATIONS_PAGE_SIZE,
-        offset: pageParam,
+        first: APPLICATIONS_PAGE_SIZE,
+        after: pageParam,
       });
 
-      return rawApplications || [];
+      return {
+        applications: result.applications || [],
+        pageInfo: result.pageInfo,
+        totalCount: result.totalCount,
+      };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      // If the last page has fewer items than the page size, we've reached the end
-      if (lastPage.length < APPLICATIONS_PAGE_SIZE) {
-        return undefined;
-      }
-      return lastPageParam + APPLICATIONS_PAGE_SIZE;
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      // Use cursor-based pagination
+      return lastPage.pageInfo.hasNextPage ? lastPage.pageInfo.endCursor : undefined;
     },
     enabled: !!(options.headingId || options.varsityCode),
   });
@@ -300,15 +301,19 @@ export function useEnrichedApplications(options: UseDashboardStatsOptions = {}) 
     }
 
     return data.pages.flatMap(page =>
-      enrichApplications(page, results, headings),
+      enrichApplications(page.applications, results, headings),
     );
   }, [data?.pages, headings, results]);
+
+  // Get total count from the first page
+  const totalCount = data?.pages?.[0]?.totalCount || 0;
 
   const isLoading = isLoadingStatic || isLoadingApplications;
   const error = staticError || applicationsError;
 
   return {
     applications,
+    totalCount,
     isLoading,
     error: error ? error : null,
     refetch,
