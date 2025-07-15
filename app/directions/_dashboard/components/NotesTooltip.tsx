@@ -14,7 +14,7 @@ const NOTES_STATUS_TEXT = {
   SUBMITTED: 'Оригинал подан',
   PASSING_HIGHER: 'Проходит на более приоритетное направление',
   UNKNOWN: 'Нет данных о наличии или отсутствии подачи аттестата',
-  QUIT: 'Покинул конкурс'
+  QUIT: 'Покинул конкурс',
 };
 
 const getStatusIcon = (status: StatusKey) => {
@@ -95,7 +95,7 @@ export const NotesTooltip: React.FC<NotesTooltipProps> = ({ statuses, children }
 
       setTooltip({
         visible: true,
-        position: { x: left, y: rect.top - 8 }
+        position: { x: left, y: rect.top - 8 },
       });
 
       if (autoHide) {
@@ -104,7 +104,9 @@ export const NotesTooltip: React.FC<NotesTooltipProps> = ({ statuses, children }
         }, 2000);
       }
     },
-    [hideTooltip]
+    [
+      hideTooltip,
+    ],
   );
 
   return (
@@ -151,7 +153,7 @@ export const NotesTooltip: React.FC<NotesTooltipProps> = ({ statuses, children }
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )
       }
     </>

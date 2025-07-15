@@ -178,13 +178,7 @@ ResizableContainer.displayName = 'ResizableContainer';
 // Define keys for note statuses (original and passing)
 type NoteStatusKey = 'SUBMITTED' | 'UNKNOWN' | 'QUIT';
 
-// Tooltip text mapping for "Примечания" column icons
-const NOTES_STATUS_TEXT: Record<NoteStatusKey | 'PASSING_HIGHER', string> = {
-  SUBMITTED: 'Оригинал подан',
-  UNKNOWN: 'Нет данных о наличии или отсутствии подачи аттестата',
-  QUIT: 'Покинул конкурс',
-  PASSING_HIGHER: 'Проходит на более приоритетное направление в этом конкурсе',
-};
+// Note: NOTES_STATUS_TEXT is defined in NotesTooltip.tsx
 
 // Clean UI interface decoupled from domain model
 interface UiApplication {
@@ -262,9 +256,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
     left: number;
   } | null>(null);
 
-  // Tooltip state for "Примечания" status icons
-  const FADE_DURATION = 180; // ms
-  const HOVER_LEAVE_DELAY = 120; // ms – небольшая задержка, чтобы избежать мерцаний при быстром перемещении курсора
+  // Note: FADE_DURATION and HOVER_LEAVE_DELAY are defined in NotesTooltip.tsx
 
   // Interface for tooltip items with icon and text
 
