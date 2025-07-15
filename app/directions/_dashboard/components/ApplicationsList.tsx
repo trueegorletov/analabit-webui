@@ -8,9 +8,11 @@ import React, {
   useLayoutEffect,
   memo,
 } from 'react';
-import { CircleCheck, Circle, GripHorizontal, HelpCircle, XCircle } from 'lucide-react';
+import { GripHorizontal } from 'lucide-react';
+import { NoSymbolIcon, ArrowUpCircleIcon, QuestionMarkCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import ReactDOM from 'react-dom';
 import { AdmissionStatusPopup } from '@/app/components/AdmissionStatusPopup';
+import { NotesTooltip } from './NotesTooltip';
 import {
   useEnrichedApplications,
 } from '@/presentation/hooks/useDashboardStats';
@@ -21,6 +23,7 @@ import {
   type AdmissionData,
   type StudentNotFoundError,
   type StudentDataError,
+  type StudentTimeoutError,
 } from '@/lib/api/student';
 import { useApplicationRepository, useHeadingRepository, useResultsRepository } from '@/application/DataProvider';
 import {
@@ -264,18 +267,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const HOVER_LEAVE_DELAY = 120; // ms – небольшая задержка, чтобы избежать мерцаний при быстром перемещении курсора
 
   // Interface for tooltip items with icon and text
-  interface TooltipItem {
-    icon: React.ReactNode;
-    text: string;
-  }
 
-  const [noteTooltip, setNoteTooltip] = useState<{
-    items: TooltipItem[];
-    top: number;
-    left: number;
-    visible: boolean;
-  } | null>(null);
-  const noteTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
@@ -287,12 +279,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
   const ERROR_DURATION = 3750; // ms (25% shorter than 5s)
   const CANCEL_DURATION = 2625; // ms (25% shorter than 3.5s)
 
-  useEffect(() => {
-    // Cleanup tooltip timer on unmount
-    if (noteTooltipTimeoutRef.current) {
-      clearTimeout(noteTooltipTimeoutRef.current);
-    }
-  }, []);
+
 
   const renderNotes = (app: UiApplication) => {
     const statuses = collectNoteStatuses(app);
@@ -305,7 +292,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
           key="quit"
           className="flex items-center justify-center"
         >
-          <XCircle className="w-[1.1em] h-[1.1em] text-red-500" />
+          <NoSymbolIcon className="w-[1.1em] h-[1.1em] text-red-500" />
         </div>,
       );
     }
@@ -314,9 +301,9 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
       const status = app.status;
       const icon =
         status === 'SUBMITTED' ? (
-          <CircleCheck className="w-[1.1em] h-[1.1em] text-green-500" />
+          <CheckCircleIcon className="w-[1.1em] h-[1.1em] text-green-500" />
         ) : (
-          <HelpCircle className="w-[1.1em] h-[1.1em] text-gray-300" />
+          <QuestionMarkCircleIcon className="w-[1.1em] h-[1.1em] text-gray-300" />
         );
 
       icons.push(
@@ -335,7 +322,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
             key="passing"
             className="flex items-center justify-center"
           >
-            <Circle className="w-[1.1em] h-[1.1em] text-yellow-500" />
+            <ArrowUpCircleIcon className="w-[1.1em] h-[1.1em] text-yellow-500" />
           </div>,
         );
       }
@@ -346,17 +333,11 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
     }
 
     return (
-      <div
-        className='flex items-center justify-center h-full space-x-1.5 cursor-pointer'
-        onMouseEnter={(e) => showNoteTooltip(e, statuses)}
-        onMouseLeave={hideNoteTooltip}
-        onClick={(e) => {
-          e.stopPropagation();
-          showNoteTooltip(e, statuses, true);
-        }}
-      >
-        {icons}
-      </div>
+      <NotesTooltip statuses={statuses}>
+        <div className='flex items-center justify-center h-full space-x-1.5 cursor-pointer'>
+          {icons}
+        </div>
+      </NotesTooltip>
     );
   };
 
@@ -443,11 +424,20 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
           setPopupOpen(true);
           setLoadingStudentId(null);
         })
-        .catch((error: StudentNotFoundError | StudentDataError) => {
+        .catch((error: StudentNotFoundError | StudentDataError | StudentTimeoutError) => {
           const isNotFound = error.type === 'NOT_FOUND';
+          const isTimeout = error.type === 'TIMEOUT';
+          let tooltipMessage = 'Произошла ошибка';
+          
+          if (isNotFound) {
+            tooltipMessage = 'ID не найден';
+          } else if (isTimeout) {
+            tooltipMessage = 'Превышено время ожидания';
+          }
+          
           const rect = getIdCellRect();
           setErrorTooltip({
-            text: isNotFound ? 'ID не найден' : 'Произошла ошибка',
+            text: tooltipMessage,
             top: rect.top - 8,
             left: rect.left + rect.width / 2,
           });
@@ -495,83 +485,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
     return statuses;
   }, []);
 
-  // Helper function to create tooltip items from status array
-  const createTooltipItems = useCallback((statuses: (NoteStatusKey | 'PASSING_HIGHER')[]): TooltipItem[] => {
-    return statuses.map(status => {
-      let icon: React.ReactNode;
 
-      switch (status) {
-        case 'QUIT':
-          icon = <XCircle className="w-4 h-4 text-red-500" />;
-          break;
-        case 'SUBMITTED':
-          icon = <CircleCheck className="w-4 h-4 text-green-500" />;
-          break;
-        case 'UNKNOWN':
-          icon = <HelpCircle className="w-6 h-6 text-gray-300" />;
-          break;
-        case 'PASSING_HIGHER':
-          icon = <Circle className="w-6 h-6 text-yellow-500" />;
-          break;
-        default:
-          icon = <HelpCircle className="w-6 h-6 text-gray-300" />;
-      }
-
-      return {
-        icon,
-        text: NOTES_STATUS_TEXT[status],
-      };
-    });
-  }, []);
-
-  // --- Tooltip handling helpers (moved above to satisfy hook dependency order) ---
-  const scheduleFadeOut = () => {
-    setNoteTooltip((prev) => (prev ? { ...prev, visible: false } : prev));
-    noteTooltipTimeoutRef.current = setTimeout(() => {
-      setNoteTooltip(null);
-      noteTooltipTimeoutRef.current = null;
-    }, FADE_DURATION);
-  };
-
-  const hideNoteTooltip = useCallback(() => {
-    if (noteTooltipTimeoutRef.current) {
-      clearTimeout(noteTooltipTimeoutRef.current);
-      noteTooltipTimeoutRef.current = null;
-    }
-    noteTooltipTimeoutRef.current = setTimeout(() => {
-      scheduleFadeOut();
-    }, HOVER_LEAVE_DELAY);
-  }, []);
-
-  const showNoteTooltip = useCallback(
-    (
-      e: React.MouseEvent<HTMLDivElement>,
-      statuses: (NoteStatusKey | 'PASSING_HIGHER')[],
-      autoHide: boolean = false,
-    ) => {
-      if (noteTooltipTimeoutRef.current) {
-        clearTimeout(noteTooltipTimeoutRef.current);
-        noteTooltipTimeoutRef.current = null;
-      }
-
-      const items = createTooltipItems(statuses);
-      const rect = e.currentTarget.getBoundingClientRect();
-
-      setNoteTooltip({
-        items,
-        top: rect.top - 8,
-        left: rect.left + rect.width / 2,
-        visible: true,
-      });
-
-      if (autoHide) {
-        noteTooltipTimeoutRef.current = setTimeout(() => {
-          hideNoteTooltip();
-        }, 2000);
-      }
-    },
-    [hideNoteTooltip, createTooltipItems],
-  );
 
   return (
     <div>
@@ -763,34 +677,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
           document.body,
         )}
 
-      {/* Note status tooltip portal */}
-      {noteTooltip &&
-        ReactDOM.createPortal(
-          <div
-            className={`fixed pointer-events-none -translate-x-1/2 -translate-y-full transition-opacity duration-150 ${noteTooltip.visible ? 'opacity-100' : 'opacity-0'
-              }`}
-            style={{
-              left: noteTooltip.left,
-              top: noteTooltip.top,
-              zIndex: 9999,
-            }}
-          >
-            <div className="inline-block max-w-64 whitespace-normal break-normal text-left leading-snug px-3 py-2 rounded-md bg-[#1b1b1f] text-white text-xs font-medium shadow-xl border border-white/15">
-              {noteTooltip.items.map((item, index) => (
-                <div key={index}>
-                  <div className="flex items-center gap-2">
-                    {item.icon}
-                    <span>{item.text}</span>
-                  </div>
-                  {index < noteTooltip.items.length - 1 && (
-                    <div className="my-2 border-t border-white/20"></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>,
-          document.body,
-        )}
+
 
       {/* Popup overlay */}
       {popupOpen &&

@@ -17,6 +17,7 @@ import {
   type AdmissionData,
   type StudentNotFoundError,
   type StudentDataError,
+  type StudentTimeoutError,
 } from '../lib/api/student';
 import { useApplicationRepository, useHeadingRepository, useResultsRepository } from '../application/DataProvider';
 
@@ -179,9 +180,18 @@ export default function Home() {
           setLoadingStatus(false);
           setInputError(false);
         })
-        .catch((error: StudentNotFoundError | StudentDataError) => {
+        .catch((error: StudentNotFoundError | StudentDataError | StudentTimeoutError) => {
           const isNotFound = error.type === 'NOT_FOUND';
-          setTooltipText(isNotFound ? 'Абитуриент не найден' : 'Произошла ошибка при загрузке данных');
+          const isTimeout = error.type === 'TIMEOUT';
+          let tooltipMessage = 'Произошла ошибка при загрузке данных';
+          
+          if (isNotFound) {
+            tooltipMessage = 'Абитуриент не найден';
+          } else if (isTimeout) {
+            tooltipMessage = 'Превышено время ожидания запроса';
+          }
+          
+          setTooltipText(tooltipMessage);
           setInputError(true);
           setShowTooltip(true);
           setBlobError(true);

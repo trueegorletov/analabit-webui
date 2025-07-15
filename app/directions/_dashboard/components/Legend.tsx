@@ -1,5 +1,5 @@
 import React from 'react';
-import { CircleCheck, Circle, CircleHelp, CircleX } from 'lucide-react';
+import { NoSymbolIcon, ArrowUpCircleIcon, QuestionMarkCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 export default function Legend() {
   return (
@@ -11,7 +11,7 @@ export default function Legend() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-left">
         {/* Green check */}
         <div className="flex items-start gap-3">
-          <CircleCheck className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+          <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-300">
             <span className="font-medium">Оригинал подан в этот вуз</span>
             <p className="text-xs text-gray-400 mt-1">
@@ -22,7 +22,7 @@ export default function Legend() {
 
         {/* Yellow circle */}
         <div className="flex items-start gap-3">
-          <Circle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+          <ArrowUpCircleIcon className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-300">
             <span className="font-medium">Проходит на приоритетное направление</span>
             <p className="text-xs text-gray-400 mt-1">
@@ -33,7 +33,7 @@ export default function Legend() {
 
         {/* Question mark */}
         <div className="flex items-start gap-3">
-          <CircleHelp className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+          <QuestionMarkCircleIcon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-300">
             <span className="font-medium">Выбор аттестата неизвестен</span>
             <p className="text-xs text-gray-400 mt-1">
@@ -44,7 +44,7 @@ export default function Legend() {
 
         {/* Red X */}
         <div className="flex items-start gap-3">
-          <CircleX className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+          <NoSymbolIcon className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-300">
             <span className="font-medium">Покинул конкурс</span>
             <p className="text-xs text-gray-400 mt-1">

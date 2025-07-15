@@ -65,11 +65,15 @@ export function adaptHeading(dto: HeadingDto): Heading {
     varsityName: dto.varsity?.name, // Include varsity name for better display
   };
 }
+function prettifyStudentId(rawStudentId: string): string {
+  // trim the possible starting multiple "0" chars prefix
+  return rawStudentId.replace(/^0+/, '');
+}
 
 export function adaptApplication(dto: ApplicationDto): Application {
   return {
     id: dto.id,
-    studentId: dto.student_id,
+    studentId: prettifyStudentId(dto.student_id),
     priority: dto.priority,
     competitionType: dto.competition_type,
     ratingPlace: dto.rating_place,

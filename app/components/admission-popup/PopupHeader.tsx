@@ -22,11 +22,11 @@ export const PopupHeader: React.FC<PopupHeaderProps> = ({ studentId, mainStatus,
 
   return (
     <div className="relative z-10 text-center space-y-2">
-      <span className="block text-sm text-gray-400 font-medium tracking-widest">{studentId}</span>
+      <span className="block text-base text-gray-400 font-medium tracking-widest">{studentId}</span>
       <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight bg-gradient-to-r from-violet-300 via-fuchsia-300 to-indigo-300 bg-clip-text text-transparent drop-shadow-sm">
         {mainStatus}
       </h2>
       {originalMessage}
     </div>
   );
-}; 
+};

@@ -1,5 +1,9 @@
 // HTTP Client - Wraps fetch with base URL, timeout, and error handling
 
+export interface TimeoutError extends Error {
+  type: 'TIMEOUT';
+}
+
 interface HttpClientConfig {
   baseUrl: string;
   timeout: number;
@@ -29,7 +33,9 @@ export class HttpClient {
   private handleError(error: unknown, operation: string): never {
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
-        throw new Error(`${operation} timed out. Please check your connection.`);
+        const timeoutError = new Error(`${operation} timed out. Please check your connection.`) as TimeoutError;
+        timeoutError.type = 'TIMEOUT';
+        throw timeoutError;
       }
       throw new Error(`${operation} failed: ${error.message}`);
     }
@@ -108,7 +114,7 @@ export function createHttpClient(): HttpClient {
 
   return new HttpClient({
     baseUrl,
-    timeout: 10000, // 10 seconds
+    timeout: 11500, // 11.5 seconds (15% increase from 10 seconds)
     headers: {
       'Content-Type': 'application/json',
       'ngrok-skip-browser-warning': 'any-value',

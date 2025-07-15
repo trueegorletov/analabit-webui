@@ -3,6 +3,7 @@
 
 import type { IApplicationRepository, IHeadingRepository, IResultsRepository } from '../../application/repositories';
 import type { Application, Heading } from '../../domain/models';
+import type { TimeoutError } from '../../data/rest/httpClient';
 
 // Types for the popup data structure (matching existing mock data format)
 export interface ProgramRow {
@@ -34,6 +35,10 @@ export interface StudentNotFoundError extends Error {
 
 export interface StudentDataError extends Error {
   type: 'DATA_ERROR';
+}
+
+export interface StudentTimeoutError extends Error {
+  type: 'TIMEOUT';
 }
 
 /**
@@ -256,7 +261,17 @@ export async function fetchStudentAdmissionData(
     };
 
   } catch (error) {
-    if ((error as StudentNotFoundError | StudentDataError).type === 'NOT_FOUND' || (error as StudentNotFoundError | StudentDataError).type === 'DATA_ERROR') {
+    if ((error as StudentNotFoundError | StudentDataError | StudentTimeoutError).type === 'NOT_FOUND' || 
+        (error as StudentNotFoundError | StudentDataError | StudentTimeoutError).type === 'DATA_ERROR' ||
+        (error as StudentNotFoundError | StudentDataError | StudentTimeoutError).type === 'TIMEOUT') {
+      
+      // Handle timeout errors specifically
+      if ((error as TimeoutError).type === 'TIMEOUT') {
+        const timeoutError = new Error('Request timed out while fetching student admission data') as StudentTimeoutError;
+        timeoutError.type = 'TIMEOUT';
+        throw timeoutError;
+      }
+      
       throw error; // Re-throw our custom errors
     }
 
