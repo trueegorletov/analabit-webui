@@ -138,11 +138,11 @@ export const NotesTooltip: React.FC<NotesTooltipProps> = ({ statuses, children }
                     {index > 0 && (
                       <div className="border-t border-white/20 -mx-2 sm:-mx-2.5 md:-mx-3 my-0.5 sm:my-1" />
                     )}
-                    <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
-                      <div className="flex-shrink-0 mt-1">
+                    <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
                         {getStatusIcon(status)}
                       </div>
-                      <div className="text-[8px] sm:text-2xs text-gray-200 leading-relaxed">
+                      <div className="text-[8px] sm:text-xs text-gray-200 leading-relaxed">
                         {NOTES_STATUS_TEXT[status]}
                       </div>
                     </div>

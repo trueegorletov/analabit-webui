@@ -84,7 +84,7 @@ export default function Header({ headingName, varsityCode, varsityName }: Header
         </Link>
       )}
       <div className="mx-auto max-w-fit">
-        <h1 className="title">{headingName || 'Направление'}</h1>
+        <h1 className="title-direction">{headingName || 'Направление'}</h1>
       </div>
     </div>
   );
