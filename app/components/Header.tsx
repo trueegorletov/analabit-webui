@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SiGithub, SiTelegram, SiBoosty } from 'react-icons/si';
 import CustomIcon from './CustomIcon';
+import Image from 'next/image';
 
 // Shared IconButton component as suggested in the plan
 const IconButton = ({
@@ -43,11 +44,44 @@ function Header() {
   return (
     <header
       role="banner"
-      className={`fixed top-0 left-0 w-full z-50 bg-[rgba(2,1,1,0.82)] border-b border-[rgba(255,255,255,0.2)] transition-shadow px-2 backdrop-blur-[22px] backdrop-saturate-[66%] backdrop-grayscale-[66%] ${scrolled ? 'shadow-lg' : ''}`}
+      className={`fixed top-0 left-0 w-full z-50 bg-[rgba(2,1,1,0.82)] border-b border-[rgba(255,255,255,0.2)] transition-shadow px-2 backdrop-blur-[22px] backdrop-saturate-[66%] backdrop-grayscale-[66%] ${scrolled ? 'shadow-lg' : ''} relative`}
     >
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="relative w-full h-full flex items-center justify-center">
+          <Image
+             src="/sigil_1.png"
+             alt=""
+             width={1024}
+             height={1024}
+             className="absolute opacity-[0.11] mix-blend-soft-light filter invert brightness-[0.97] contrast-110"
+             style={{
+               height: '75%',
+               width: '75%',
+               objectFit: 'contain',
+               transform: 'translateX(-20px)'
+             }}
+             priority
+           />
+           <Image
+             src="/sigil_2.png"
+             alt=""
+             width={1024}
+             height={1024}
+             className="absolute opacity-[0.2] mix-blend-soft-light filter invert brightness-[0.97] contrast-90"
+             style={{
+               height: '90%',
+               width: '90%',
+               objectFit: 'contain',
+               transform: 'translateX(20px)'
+             }}
+             priority
+           />
+        </div>
+      </div>
+      
       <nav
         aria-label="Main"
-        className="mx-auto flex max-w-7xl items-center justify-between h-[46px] sm:h-[48px] max-h-[46px] sm:max-h-[48px] px-2"
+        className="mx-auto flex max-w-7xl items-center justify-between h-[46px] sm:h-[48px] max-h-[46px] sm:max-h-[48px] px-2 relative z-10"
       >
         <Link
           href="/"
