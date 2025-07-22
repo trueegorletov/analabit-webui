@@ -58,7 +58,7 @@ function Header() {
                height: '75%',
                width: '75%',
                objectFit: 'contain',
-               transform: 'translateX(-20px)'
+               transform: 'translateX(-20px)',
              }}
              priority
            />
@@ -72,7 +72,7 @@ function Header() {
                height: '90%',
                width: '90%',
                objectFit: 'contain',
-               transform: 'translateX(20px)'
+               transform: 'translateX(20px)',
              }}
              priority
            />
