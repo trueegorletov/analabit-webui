@@ -6,15 +6,21 @@ interface PopupHeaderProps {
   studentId: string;
   mainStatus: string;
   originalKnown: boolean;
-  passingSection: UniversitySection;
+  originalUniversityCode: string | null;
+  allSections: UniversitySection[];
   onClose: () => void;
 }
 
-export const PopupHeader: React.FC<PopupHeaderProps> = ({ studentId, mainStatus, originalKnown, passingSection, onClose }) => {
-  const originalMessage = originalKnown ? (
+export const PopupHeader: React.FC<PopupHeaderProps> = ({ studentId, mainStatus, originalKnown, originalUniversityCode, allSections, onClose }) => {
+  // Find the original university section
+  const originalSection = originalKnown && originalUniversityCode 
+    ? allSections.find(section => section.code === originalUniversityCode)
+    : null;
+
+  const originalMessage = originalKnown && originalSection ? (
     <div className="flex items-center justify-center gap-2 text-sm sm:text-base">
       <span className="text-gray-300">Оригинал в</span>
-      <FlairButton code={passingSection.code} label={passingSection.university} onClick={onClose} />
+      <FlairButton code={originalSection.code} label={originalSection.university} onClick={onClose} />
     </div>
   ) : (
     <p className="text-sm sm:text-base text-gray-400">Абитуриент ещё не подал оригинал аттестата</p>

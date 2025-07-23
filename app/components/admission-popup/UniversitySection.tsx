@@ -17,6 +17,7 @@ interface UniversitySectionProps extends PopupNavigationProps {
   probabilityTabs: string[];
   onTabSelect: (sectionCode: string, tab: string) => void;
   onFlairClick: (code: string) => void;
+  isOriginalUniversity?: boolean;
 }
 
 export const UniversitySection: React.FC<UniversitySectionProps> = ({
@@ -27,12 +28,20 @@ export const UniversitySection: React.FC<UniversitySectionProps> = ({
   onFlairClick,
   currentHeadingId,
   onClose,
+  isOriginalUniversity = false,
 }) => {
   const dirName = runtime.highlightPriority !== null
     ? runtime.programs.find((p) => p.priority === runtime.highlightPriority)?.name
     : null;
 
-  const isNotPassing = runtime.highlightPriority === null;
+  // Check if student passes to ANY program (has at least one positive or zero delta)
+  const hasAnyPositiveDelta = runtime.programs.some(program => {
+    if (!program.delta) return false;
+    const deltaValue = parseInt(program.delta.replace('+', ''));
+    return deltaValue >= 0;
+  });
+  
+  const isNotPassing = !runtime.loading && runtime.programs.length > 0 && !hasAnyPositiveDelta;
 
   return (
     <section id={section.code} className="mt-4 first:mt-0">
@@ -40,7 +49,12 @@ export const UniversitySection: React.FC<UniversitySectionProps> = ({
       <div className="flex flex-col items-start md:flex-row md:flex-wrap md:items-center md:justify-between gap-3 mb-3">
         <FlairButton code={section.code} label={section.university} onClick={() => onFlairClick(section.code)} />
         <div className="flex items-center gap-2">
-          <div className={`w-6 h-6 flex items-center justify-center rounded flex-shrink-0 ${isNotPassing ? 'bg-red-600/90' : 'bg-violet-600/90'
+          <div className={`w-6 h-6 flex items-center justify-center rounded flex-shrink-0 ${
+            isNotPassing 
+              ? 'bg-red-600/90' 
+              : isOriginalUniversity 
+                ? 'bg-violet-600/90' 
+                : 'bg-gray-600/90'
             }`}>
             {isNotPassing ? (
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
@@ -84,4 +98,4 @@ export const UniversitySection: React.FC<UniversitySectionProps> = ({
       </div>
     </section>
   );
-}; 
+};

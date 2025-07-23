@@ -44,7 +44,7 @@ function Header() {
   return (
     <header
       role="banner"
-      className={`fixed top-0 left-0 w-full z-50 bg-[rgba(2,1,1,0.82)] border-b border-[rgba(255,255,255,0.2)] transition-shadow px-2 backdrop-blur-[22px] backdrop-saturate-[66%] backdrop-grayscale-[66%] ${scrolled ? 'shadow-lg' : ''} relative`}
+      className={`fixed top-0 left-0 w-full z-50 bg-[rgba(2,1,1,0.82)] border-b border-[rgba(255,255,255,0.2)] transition-shadow px-2 backdrop-blur-[22px] backdrop-saturate-[66%] backdrop-grayscale-[66%] ${scrolled ? 'shadow-lg' : ''}`}
     >
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="relative w-full h-full flex items-center justify-center">

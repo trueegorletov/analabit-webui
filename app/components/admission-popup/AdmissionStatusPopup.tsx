@@ -11,7 +11,7 @@ export interface AdmissionStatusPopupProps {
   studentId: string;
   mainStatus: string;
   originalKnown?: boolean;
-  passingSection: Section;
+  passingSection?: Section;
   probabilityTabs: string[];
   selectedProbabilityTab?: string;
   secondarySections?: Section[];
@@ -72,6 +72,9 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   const applicationRepo = useApplicationRepository();
   const resultsRepo = useResultsRepository();
 
+  // State for original university determination
+  const [originalUniversityCode, setOriginalUniversityCode] = React.useState<string | null>(null);
+
   // Extract current headingId from URL for same-direction navigation handling
   const pathname = usePathname();
   const currentHeadingId = React.useMemo(() => {
@@ -82,7 +85,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   // Initialize reducer state
   const initialState: State = React.useMemo(() => {
     const init: State = {};
-    [passingSection, ...secondarySections].forEach((s) => {
+    [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined).forEach((s) => {
       init[s.code] = {
         selectedTab: selectedProbabilityTab,
         loading: false,
@@ -95,6 +98,130 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
   const [sectionsState, dispatch] = useReducer(sectionReducer, initialState);
 
+  // Effect to determine original university from applications
+  useEffect(() => {
+    const determineOriginalUniversity = async () => {
+      if (!originalKnown) {
+        setOriginalUniversityCode(null);
+        return;
+      }
+
+      try {
+        const applications = await applicationRepo.getStudentApplications(studentId);
+        const allSections = [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined);
+        
+        // Find first university (in order) that has at least one application with originalSubmitted == true
+        for (const section of allSections) {
+          const sectionApplications = applications.filter(app => {
+            return section.programs.some(p =>
+              app.priority === p.priority &&
+              app.score === p.score &&
+              app.ratingPlace === p.rank,
+            );
+          });
+          
+          const hasOriginalSubmitted = sectionApplications.some(app => app.originalSubmitted);
+          if (hasOriginalSubmitted) {
+            setOriginalUniversityCode(section.code);
+            return;
+          }
+        }
+        
+        // If no university found with originalSubmitted, set to null
+        setOriginalUniversityCode(null);
+      } catch (error) {
+        console.error('Error determining original university:', error);
+        setOriginalUniversityCode(null);
+      }
+    };
+
+    determineOriginalUniversity();
+  }, [studentId, originalKnown, passingSection, secondarySections, applicationRepo]);
+
+  // Initialize proper highlighting and deltas on component mount
+  useEffect(() => {
+    const initializeData = async () => {
+      const allSections = [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined);
+      
+      for (const section of allSections) {
+        try {
+          // Get student applications for this section
+          const studentApplications = await applicationRepo.getStudentApplications(studentId);
+          
+          // Filter applications for this university section
+          const sectionApplications = studentApplications.filter(app => {
+            return section.programs.some(p =>
+              app.priority === p.priority &&
+              app.score === p.score &&
+              app.ratingPlace === p.rank,
+            );
+          });
+          
+          // Sort by priority to find the first passing direction
+          sectionApplications.sort((a, b) => a.priority - b.priority);
+          
+          // Get results to calculate deltas and find passing application
+          const headingIds = sectionApplications.map(app => app.headingId);
+          const results = await resultsRepo.getResults({
+            headingIds: headingIds.join(','),
+            primary: 'latest',
+          });
+          
+          // Find the first direction where student passes (rank <= last admitted rank)
+          let passingApp = null;
+          for (const app of sectionApplications) {
+            const primaryResult = results.primary.find(r => r.headingId === app.headingId);
+            if (primaryResult && app.ratingPlace <= primaryResult.lastAdmittedRatingPlace) {
+              passingApp = app;
+              break;
+            }
+          }
+          
+          const newHighlight = passingApp ? passingApp.priority : null;
+          
+          const newPrograms = section.programs.map(program => {
+            const matchingApp = sectionApplications.find(app =>
+              app.priority === program.priority &&
+              app.score === program.score &&
+              app.ratingPlace === program.rank,
+            );
+            
+            if (!matchingApp) {
+              return { ...program, delta: null };
+            }
+            
+            const primaryResult = results.primary.find(r => r.headingId === matchingApp.headingId);
+            if (!primaryResult) {
+              return { ...program, delta: null };
+            }
+            
+            // Calculate delta: if student rank <= last admitted rank, positive/zero; else negative
+            const delta = primaryResult.lastAdmittedRatingPlace - matchingApp.ratingPlace;
+            const deltaStr = delta === 0 ? undefined : delta > 0 ? `+${delta}` : `${delta}`;
+            
+            return {
+              ...program,
+              delta: deltaStr,
+            };
+          });
+          
+          dispatch({
+            type: 'TAB_CHANGE_SUCCESS',
+            code: section.code,
+            newTab: '–',
+            programs: newPrograms,
+            highlightPriority: newHighlight,
+          });
+          
+        } catch (error) {
+          console.error(`Error initializing data for section ${section.code}:`, error);
+        }
+      }
+    };
+    
+    initializeData();
+  }, [studentId, passingSection, secondarySections, applicationRepo, resultsRepo]);
+
   // Accessibility: close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -103,6 +230,11 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  // Early return if no sections to display
+  if (!passingSection && secondarySections.length === 0) {
+    return null;
+  }
 
   // Handler for tab selection with real API integration
   const handleTabSelect = async (code: string, newTab: string) => {
@@ -113,7 +245,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
     try {
       // Get all heading IDs for this university section
-      const allSections = [passingSection, ...secondarySections];
+      const allSections = [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined);
       const currentSection = allSections.find(s => s.code === code);
       if (!currentSection) {
         console.error(`Section with code ${code} not found`);
@@ -139,15 +271,25 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
         // Sort by priority to find the first passing direction
         sectionApplications.sort((a, b) => a.priority - b.priority);
-        const passingApp = sectionApplications.find(app => app.passingNow);
-        newHighlight = passingApp ? passingApp.priority : null;
-
-        // Create updated programs with deltas calculated from primary results
+        
+        // Get results first to calculate deltas and find passing application
         const headingIds = sectionApplications.map(app => app.headingId);
         const results = await resultsRepo.getResults({
           headingIds: headingIds.join(','),
           primary: 'latest',
         });
+        
+        // Find the first direction where student passes (rank <= last admitted rank)
+        let passingApp = null;
+        for (const app of sectionApplications) {
+          const primaryResult = results.primary.find(r => r.headingId === app.headingId);
+          if (primaryResult && app.ratingPlace <= primaryResult.lastAdmittedRatingPlace) {
+            passingApp = app;
+            break;
+          }
+        }
+        
+        newHighlight = passingApp ? passingApp.priority : null;
 
         newPrograms = currentSection.programs.map(program => {
           const matchingApp = sectionApplications.find(app =>
@@ -266,7 +408,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
     }
   };
 
-  const allSections = [passingSection, ...secondarySections];
+  const allSections = [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined);
 
   return (
     <div className="popup-outer relative w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl overflow-hidden rounded-2xl backdrop-blur-lg bg-black/60 shadow-2xl ring-1 ring-white/10" data-testid="admission-popup">
@@ -301,26 +443,35 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           studentId={studentId}
           mainStatus={mainStatus}
           originalKnown={originalKnown}
-          passingSection={passingSection}
+          originalUniversityCode={originalUniversityCode}
+          allSections={allSections}
           onClose={onClose ?? (() => { })}
         />
 
         <hr className="my-2 border-white/10" />
 
-        {allSections.map((section, idx) => (
-          <React.Fragment key={section.code}>
-            {idx !== 0 && <hr className="my-4 border-white/10" />}
-            <UniversitySection
-              section={section}
-              runtime={sectionsState[section.code]}
-              probabilityTabs={probabilityTabs}
-              onTabSelect={handleTabSelect}
-              onFlairClick={() => onClose?.()}
-              currentHeadingId={currentHeadingId}
-              onClose={onClose}
-            />
-          </React.Fragment>
-        ))}
+        {allSections.map((section, idx) => {
+          // Determine if this is the original university
+          const isOriginalUniversity = originalKnown && originalUniversityCode 
+            ? section.code === originalUniversityCode
+            : false;
+          
+          return (
+            <React.Fragment key={section.code}>
+              {idx !== 0 && <hr className="my-4 border-white/10" />}
+              <UniversitySection
+                section={section}
+                runtime={sectionsState[section.code]}
+                probabilityTabs={probabilityTabs}
+                onTabSelect={handleTabSelect}
+                onFlairClick={() => onClose?.()}
+                currentHeadingId={currentHeadingId}
+                onClose={onClose}
+                isOriginalUniversity={isOriginalUniversity}
+              />
+            </React.Fragment>
+          );
+        })}
       </div>
 
       {/* Scrollbar styling scoped to popup */}
