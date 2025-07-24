@@ -103,8 +103,7 @@ export async function fetchStudentAdmissionData(
       universityCode: string;
     }>();
 
-    console.log(`Processing ${applications.length} applications for student ${studentId}`);
-    console.log('Available headings in map:', Array.from(headingDetailsMap.keys()));
+
     
     applications.forEach(app => {
       // Skip applications with invalid heading IDs
@@ -145,12 +144,6 @@ export async function fetchStudentAdmissionData(
     });
 
     // Step 4: Transform into popup format
-    console.log(`Created ${universitySections.size} university sections:`, Array.from(universitySections.keys()));
-    console.log('University sections data:', Array.from(universitySections.entries()).map(([code, section]) => ({
-      code,
-      programCount: section.applications.length,
-      universityName: section.universityName
-    })));
     const sections: UniversitySection[] = [];
     let passingSection: UniversitySection | null = null;
 
@@ -263,9 +256,7 @@ export async function fetchStudentAdmissionData(
     // Step 7: Determine if original documents status is known
     const originalKnown = applications.some(app => app.originalSubmitted || app.originalQuit);
 
-    console.log('Final result - Passing section:', passingSection?.code);
-    console.log('Final result - Secondary sections:', secondarySections.map(s => s.code));
-    console.log('Total sections being returned:', (passingSection ? 1 : 0) + secondarySections.length);
+
 
     return {
       passingSection,

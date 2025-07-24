@@ -411,9 +411,6 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
       // Use the real API to fetch student admission data
       fetchStudentAdmissionData(app.studentId, applicationRepo, headingRepo, resultsRepo)
         .then((data) => {
-          console.log('ApplicationsList received data from fetchStudentAdmissionData:', data);
-          console.log('ApplicationsList - passingSection:', data.passingSection?.code);
-          console.log('ApplicationsList - secondarySections:', data.secondarySections?.map(s => s.code));
           setPopupData(data);
           setMainStatusForPopup('Статус подачи документов'); // Always use the same heading
           setPopupOpen(true);

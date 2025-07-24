@@ -410,11 +410,6 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
   const allSections = [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined);
 
-  // Debug logging to track what sections are being rendered
-  console.log('AdmissionStatusPopup rendering sections:', allSections.map(s => s?.code));
-  console.log('Passing section:', passingSection?.code);
-  console.log('Secondary sections:', secondarySections.map(s => s?.code));
-
   return (
     <div className="popup-outer relative w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl overflow-hidden rounded-2xl backdrop-blur-lg bg-black/60 shadow-2xl ring-1 ring-white/10" data-testid="admission-popup">
       {/* decorative gradient border */}
