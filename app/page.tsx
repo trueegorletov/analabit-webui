@@ -529,6 +529,7 @@ export default function Home() {
               <AdmissionStatusPopup
                 studentId={studentIdInput.trim()}
                 mainStatus="Статус подачи документов"
+                passingSection={popupData.passingSection}
                 originalKnown={popupData.originalKnown}
                 secondarySections={popupData.secondarySections}
                 probabilityTabs={popupData.probabilityTabs}
