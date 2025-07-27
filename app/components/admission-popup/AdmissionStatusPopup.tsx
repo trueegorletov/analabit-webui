@@ -148,14 +148,11 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           // Get student applications for this section
           const studentApplications = await applicationRepo.getStudentApplications(studentId);
           
-          // Filter applications for this university section
-          const sectionApplications = studentApplications.filter(app => {
-            return section.programs.some(p =>
-              app.priority === p.priority &&
-              app.score === p.score &&
-              app.ratingPlace === p.rank,
-            );
-          });
+          // Filter applications for this university section by headingId
+          const sectionHeadingIds = section.programs.map(p => p.headingId);
+          const sectionApplications = studentApplications.filter(app => 
+            sectionHeadingIds.includes(app.headingId)
+          );
           
           // Sort by priority to find the first passing direction
           sectionApplications.sort((a, b) => a.priority - b.priority);
@@ -181,9 +178,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
           
           const newPrograms = section.programs.map(program => {
             const matchingApp = sectionApplications.find(app =>
-              app.priority === program.priority &&
-              app.score === program.score &&
-              app.ratingPlace === program.rank,
+              app.headingId === program.headingId
             );
             
             if (!matchingApp) {
@@ -259,15 +254,11 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         // Primary results logic: use applications API to check passing_now
         const studentApplications = await applicationRepo.getStudentApplications(studentId);
 
-        // Filter applications for this university section
-        const sectionApplications = studentApplications.filter(app => {
-          return currentSection.programs.some(p =>
-            // Find matching applications by comparing properties we have available
-            app.priority === p.priority &&
-            app.score === p.score &&
-            app.ratingPlace === p.rank,
-          );
-        });
+        // Filter applications for this university section by headingId
+        const sectionHeadingIds = currentSection.programs.map(p => p.headingId);
+        const sectionApplications = studentApplications.filter(app => 
+          sectionHeadingIds.includes(app.headingId)
+        );
 
         // Sort by priority to find the first passing direction
         sectionApplications.sort((a, b) => a.priority - b.priority);
@@ -293,9 +284,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
         newPrograms = currentSection.programs.map(program => {
           const matchingApp = sectionApplications.find(app =>
-            app.priority === program.priority &&
-            app.score === program.score &&
-            app.ratingPlace === program.rank,
+            app.headingId === program.headingId
           );
 
           if (!matchingApp) {
@@ -324,14 +313,11 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         // Get student applications to get their rating places and heading IDs
         const studentApplications = await applicationRepo.getStudentApplications(studentId);
 
-        // Filter applications for this university section
-        const sectionApplications = studentApplications.filter(app => {
-          return currentSection.programs.some(p =>
-            app.priority === p.priority &&
-            app.score === p.score &&
-            app.ratingPlace === p.rank,
-          );
-        });
+        // Filter applications for this university section by headingId
+        const sectionHeadingIds = currentSection.programs.map(p => p.headingId);
+        const sectionApplications = studentApplications.filter(app => 
+          sectionHeadingIds.includes(app.headingId)
+        );
 
         // Sort by priority
         sectionApplications.sort((a, b) => a.priority - b.priority);
@@ -359,9 +345,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         // Create updated programs with deltas calculated from drained results
         newPrograms = currentSection.programs.map(program => {
           const matchingApp = sectionApplications.find(app =>
-            app.priority === program.priority &&
-            app.score === program.score &&
-            app.ratingPlace === program.rank,
+            app.headingId === program.headingId
           );
 
           if (!matchingApp) {
