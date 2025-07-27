@@ -33,7 +33,7 @@ export default function DrainedResults({
     // If timestamp is more than 1 year old, calculate previous :33 hour in MSK
     if (timestamp < oneYearAgo) {
       // Convert current time to MSK (UTC+3)
-      const mskNow = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Moscow"}));
+      const mskNow = new Date(now.toLocaleString('en-US', {timeZone: 'Europe/Moscow'}));
       
       // Get current hour and minute in MSK
       const currentHour = mskNow.getHours();
