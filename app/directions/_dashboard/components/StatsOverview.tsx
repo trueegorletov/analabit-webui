@@ -43,20 +43,20 @@ export default function StatsOverview({ capacity }: StatsOverviewProps) {
       {/* Mobile/Small-Tablet Layout: full-width 2×2 grid with equal gaps */}
       <div className="md:hidden px-8">
         <div className="grid grid-cols-2 gap-4 sm:gap-2 w-full">
-          <StatCard value={total} label="Всего" />
-          <StatCard value={special} label="Особая" />
-          <StatCard value={targeted} label="Целевая" />
-          <StatCard value={separate} label="Отдельная" />
+          <StatCard value={total} label="ОК" />
+          <StatCard value={special} label="ОсК" />
+          <StatCard value={targeted} label="ЦК" />
+          <StatCard value={separate} label="ОтдК" />
         </div>
       </div>
 
       {/* Desktop Layout: 4 circles in a row */}
       <div className="hidden md:block max-w-4xl mx-auto px-4">
         <div className="grid grid-cols-4 gap-6 lg:gap-8">
-          <StatCard value={total} label="Всего" />
-          <StatCard value={special} label="Особая" />
-          <StatCard value={targeted} label="Целевая" />
-          <StatCard value={separate} label="Отдельная" />
+          <StatCard value={total} label="ОК" />
+          <StatCard value={special} label="ОсК" />
+          <StatCard value={targeted} label="ЦК" />
+          <StatCard value={separate} label="ОтдК" />
         </div>
       </div>
     </div>

@@ -23,6 +23,41 @@ export default function DrainedResults({
   runFinishedAt,
 }: DrainedResultsProps) {
 
+  // Workaround for old timestamps: if more than 1 year old, use previous :33 hour in MSK
+  const getDisplayTimestamp = (timestamp?: Date): Date | undefined => {
+    if (!timestamp) return undefined;
+    
+    const now = new Date();
+    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    
+    // If timestamp is more than 1 year old, calculate previous :33 hour in MSK
+    if (timestamp < oneYearAgo) {
+      // Convert current time to MSK (UTC+3)
+      const mskNow = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Moscow"}));
+      
+      // Get current hour and minute in MSK
+      const currentHour = mskNow.getHours();
+      const currentMinute = mskNow.getMinutes();
+      
+      // Calculate previous :33 hour
+      let targetHour = currentHour;
+      if (currentMinute < 33) {
+        targetHour = currentHour - 1;
+        if (targetHour < 0) targetHour = 23;
+      }
+      
+      // Create new date with previous :33 hour in MSK
+      const result = new Date(mskNow);
+      result.setHours(targetHour, 33, 0, 0);
+      
+      return result;
+    }
+    
+    return timestamp;
+  };
+
+  const displayTimestamp = getDisplayTimestamp(runFinishedAt);
+
 
   // If no data is available, show mock percentages for fallback
   const percentages = tableData.length > 0 && tableData[0]?.rows.length > 0
@@ -125,8 +160,8 @@ export default function DrainedResults({
       {/* Simulation metadata */}
       <p className="mt-4 text-center text-[11px] xs:text-xs sm:text-sm text-gray-400 italic">
         Для каждого значения оттока аттестатов приведены результаты, полученные за {simulationCount}&nbsp;итераций симуляции.
-        {runFinishedAt && (
-          <> Данные обновлены {runFinishedAt.toLocaleString('ru-RU', {
+        {displayTimestamp && (
+          <> Данные обновлены {displayTimestamp.toLocaleString('ru-RU', {
              year: 'numeric',
              month: '2-digit',
              day: '2-digit',

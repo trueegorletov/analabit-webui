@@ -349,7 +349,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
       case 'DedicatedQuota':
         return 'СВО';
       case 'SpecialQuota':
-        return 'СПК';
+        return 'ОСК';
       case 'Regular':
       default:
         return app.score;
