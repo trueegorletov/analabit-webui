@@ -1,127 +1,119 @@
 {
-  "generatedAt": "2025-06-29T10:56:13.664Z",
-  "universities": [
-    "mfti",
-    "mgu",
-    "spbgu",
-    "hse_msk",
-    "itmo",
-    "tgu",
-    "yufu",
-    "ngu",
-    "hse_spb",
-    "bauman",
-    "spbpu",
-    "ural_fed"
-  ],
-  "mapping": {
-    "mfti": {
-      "paletteIndex": 0,
-      "palette": {
-        "name": "coral-orange",
-        "gradient": "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))",
-        "glow": "rgba(255, 120, 99, 0.3)",
-        "accent": "#ff6b6b"
-      }
-    },
-    "mgu": {
-      "paletteIndex": 16,
-      "palette": {
-        "name": "sky-blue",
-        "gradient": "linear-gradient(120deg, rgba(14, 165, 233, 0.6), rgba(59, 130, 246, 0.6))",
-        "glow": "rgba(36, 147, 239, 0.3)",
-        "accent": "#0ea5e9"
-      }
-    },
-    "spbgu": {
-      "paletteIndex": 9,
-      "palette": {
-        "name": "indigo-blue",
-        "gradient": "linear-gradient(120deg, rgba(79, 70, 229, 0.6), rgba(59, 130, 246, 0.6))",
-        "glow": "rgba(69, 100, 237, 0.3)",
-        "accent": "#4f46e5"
-      }
-    },
-    "hse_msk": {
-      "paletteIndex": 24,
-      "palette": {
-        "name": "pink-rose",
-        "gradient": "linear-gradient(120deg, rgba(236, 72, 153, 0.6), rgba(244, 63, 94, 0.6))",
-        "glow": "rgba(240, 67, 123, 0.3)",
-        "accent": "#ec4899"
-      }
-    },
-    "itmo": {
-      "paletteIndex": 8,
-      "palette": {
-        "name": "amber-yellow",
-        "gradient": "linear-gradient(120deg, rgba(245, 158, 11, 0.6), rgba(234, 179, 8, 0.6))",
-        "glow": "rgba(239, 168, 9, 0.3)",
-        "accent": "#f59e0b"
-      }
-    },
-    "tgu": {
-      "paletteIndex": 1,
-      "palette": {
-        "name": "blue-purple",
-        "gradient": "linear-gradient(120deg, rgba(95, 114, 190, 0.6), rgba(102, 153, 255, 0.6))",
-        "glow": "rgba(98, 135, 229, 0.3)",
-        "accent": "#5f72be"
-      }
-    },
-    "yufu": {
-      "paletteIndex": 22,
-      "palette": {
-        "name": "lime-green",
-        "gradient": "linear-gradient(120deg, rgba(132, 204, 22, 0.6), rgba(34, 197, 94, 0.6))",
-        "glow": "rgba(83, 200, 58, 0.3)",
-        "accent": "#84cc16"
-      }
-    },
-    "ngu": {
-      "paletteIndex": 19,
-      "palette": {
-        "name": "purple-indigo",
-        "gradient": "linear-gradient(120deg, rgba(147, 51, 234, 0.6), rgba(79, 70, 229, 0.6))",
-        "glow": "rgba(113, 60, 231, 0.3)",
-        "accent": "#9333ea"
-      }
-    },
-    "hse_spb": {
-      "paletteIndex": 2,
-      "palette": {
-        "name": "cyan-blue",
-        "gradient": "linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))",
-        "glow": "rgba(110, 190, 253, 0.3)",
-        "accent": "#7de2fc"
-      }
-    },
-    "bauman": {
-      "paletteIndex": 3,
-      "palette": {
-        "name": "orange-purple",
-        "gradient": "linear-gradient(120deg, rgba(255, 153, 102, 0.6), rgba(95, 114, 190, 0.6))",
-        "glow": "rgba(177, 135, 142, 0.3)",
-        "accent": "#ff9966"
-      }
-    },
-    "spbpu": {
-      "paletteIndex": 4,
-      "palette": {
-        "name": "coral-cyan",
-        "gradient": "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(125, 226, 252, 0.6))",
-        "glow": "rgba(191, 143, 179, 0.3)",
-        "accent": "#ff5e62"
-      }
-    },
-    "ural_fed": {
-      "paletteIndex": 7,
-      "palette": {
-        "name": "rose-pink",
-        "gradient": "linear-gradient(120deg, rgba(244, 63, 94, 0.6), rgba(236, 72, 153, 0.6))",
-        "glow": "rgba(240, 67, 123, 0.3)",
-        "accent": "#f43f5e"
-      }
+  "hse_msk": {
+    "paletteIndex": 7,
+    "palette": {
+      "name": "rose-pink",
+      "gradient": "linear-gradient(120deg, rgba(244, 63, 94, 0.6), rgba(236, 72, 153, 0.6))",
+      "glow": "rgba(240, 67, 123, 0.3)",
+      "accent": "#f43f5e"
+    }
+  },
+  "hse_nn": {
+    "paletteIndex": 8,
+    "palette": {
+      "name": "amber-yellow",
+      "gradient": "linear-gradient(120deg, rgba(245, 158, 11, 0.6), rgba(234, 179, 8, 0.6))",
+      "glow": "rgba(239, 168, 9, 0.3)",
+      "accent": "#f59e0b"
+    }
+  },
+  "hse_perm": {
+    "paletteIndex": 11,
+    "palette": {
+      "name": "red-orange",
+      "gradient": "linear-gradient(120deg, rgba(239, 68, 68, 0.6), rgba(249, 115, 22, 0.6))",
+      "glow": "rgba(244, 91, 45, 0.3)",
+      "accent": "#ef4444"
+    }
+  },
+  "hse_spb": {
+    "paletteIndex": 1,
+    "palette": {
+      "name": "blue-purple",
+      "gradient": "linear-gradient(120deg, rgba(95, 114, 190, 0.6), rgba(102, 153, 255, 0.6))",
+      "glow": "rgba(98, 135, 229, 0.3)",
+      "accent": "#5f72be"
+    }
+  },
+  "itmo": {
+    "paletteIndex": 12,
+    "palette": {
+      "name": "violet-purple",
+      "gradient": "linear-gradient(120deg, rgba(139, 92, 246, 0.6), rgba(168, 85, 247, 0.6))",
+      "glow": "rgba(153, 88, 246, 0.3)",
+      "accent": "#8b5cf6"
+    }
+  },
+  "mirea": {
+    "paletteIndex": 10,
+    "palette": {
+      "name": "green-lime",
+      "gradient": "linear-gradient(120deg, rgba(34, 197, 94, 0.6), rgba(132, 204, 22, 0.6))",
+      "glow": "rgba(83, 200, 58, 0.3)",
+      "accent": "#22c55e"
+    }
+  },
+  "mephi": {
+    "paletteIndex": 9,
+    "palette": {
+      "name": "indigo-blue",
+      "gradient": "linear-gradient(120deg, rgba(79, 70, 229, 0.6), rgba(59, 130, 246, 0.6))",
+      "glow": "rgba(69, 100, 237, 0.3)",
+      "accent": "#4f46e5"
+    }
+  },
+  "mipt": {
+    "paletteIndex": 3,
+    "palette": {
+      "name": "orange-purple",
+      "gradient": "linear-gradient(120deg, rgba(255, 153, 102, 0.6), rgba(95, 114, 190, 0.6))",
+      "glow": "rgba(177, 135, 142, 0.3)",
+      "accent": "#ff9966"
+    }
+  },
+  "fmsmu": {
+    "paletteIndex": 0,
+    "palette": {
+      "name": "coral-orange",
+      "gradient": "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))",
+      "glow": "rgba(255, 120, 99, 0.3)",
+      "accent": "#ff6b6b"
+    }
+  },
+  "rsmu": {
+    "paletteIndex": 2,
+    "palette": {
+      "name": "cyan-blue",
+      "gradient": "linear-gradient(120deg, rgba(125, 226, 252, 0.6), rgba(102, 153, 255, 0.6))",
+      "glow": "rgba(110, 190, 253, 0.3)",
+      "accent": "#7de2fc"
+    }
+  },
+  "rzgmu": {
+    "paletteIndex": 4,
+    "palette": {
+      "name": "coral-cyan",
+      "gradient": "linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(125, 226, 252, 0.6))",
+      "glow": "rgba(191, 143, 179, 0.3)",
+      "accent": "#ff5e62"
+    }
+  },
+  "spbsu": {
+    "paletteIndex": 6,
+    "palette": {
+      "name": "emerald-teal",
+      "gradient": "linear-gradient(120deg, rgba(16, 185, 129, 0.6), rgba(20, 184, 166, 0.6))",
+      "glow": "rgba(18, 184, 147, 0.3)",
+      "accent": "#10b981"
+    }
+  },
+  "spbstu": {
+    "paletteIndex": 5,
+    "palette": {
+      "name": "purple-violet",
+      "gradient": "linear-gradient(120deg, rgba(138, 43, 226, 0.6), rgba(74, 0, 224, 0.6))",
+      "glow": "rgba(106, 21, 225, 0.3)",
+      "accent": "#8a2be2"
     }
   }
 }

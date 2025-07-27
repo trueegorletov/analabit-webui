@@ -6,7 +6,7 @@ import { colorPalettes, getPaletteByIndex } from '../lib/colors/palette';
 import universityColorMappingData from '../lib/colors/universityColorMapping.json';
 
 // Extract the mapping from the imported data
-const universityColorMapping: UniversityColorMapping = (universityColorMappingData as { mapping: UniversityColorMapping }).mapping;
+const universityColorMapping: UniversityColorMapping = universityColorMappingData as UniversityColorMapping;
 
 // Fallback mapping for development or when mapping file doesn't exist
 const fallbackMapping: UniversityColorMapping = {
@@ -151,4 +151,4 @@ function hashString(str: string): number {
     hash = hash & hash; // Convert to 32-bit integer
   }
   return Math.abs(hash);
-} 
+}

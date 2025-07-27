@@ -108,12 +108,17 @@ function seedRandom(seed: number): void {
 }
 
 /**
- * Save the generated mapping to a JSON file
+ * Save the generated mapping to a JSON file (Node.js only)
  */
 export async function saveUniversityColorMapping(
   mapping: UniversityColorMapping, 
   filePath: string = 'lib/colors/universityColorMapping.json',
 ): Promise<void> {
+  // Only run in Node.js environment
+  if (typeof window !== 'undefined') {
+    throw new Error('saveUniversityColorMapping can only be used in Node.js environment');
+  }
+  
   const fs = await import('fs');
   const path = await import('path');
   
@@ -142,11 +147,17 @@ export async function saveUniversityColorMapping(
 }
 
 /**
- * Load university color mapping from JSON file
+ * Load university color mapping from JSON file (Node.js only)
  */
 export async function loadUniversityColorMapping(
   filePath: string = 'lib/colors/universityColorMapping.json',
 ): Promise<UniversityColorMapping | null> {
+  // Only run in Node.js environment
+  if (typeof window !== 'undefined') {
+    console.warn('loadUniversityColorMapping can only be used in Node.js environment');
+    return null;
+  }
+  
   try {
     const fs = await import('fs');
     const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -167,4 +178,4 @@ export async function generateAndSave(): Promise<void> {
   await saveUniversityColorMapping(mapping);
   
   console.log('✨ Color generation complete!');
-} 
+}
