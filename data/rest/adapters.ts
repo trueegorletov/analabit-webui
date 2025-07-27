@@ -138,10 +138,20 @@ export function adaptResults(dto: ResultsDto): Results {
     }
   });
 
+  // Handle run_finished_at with fallback to 10 minutes ago if not provided
+  let runFinishedAt: Date;
+  if (dto.run_finished_at) {
+    runFinishedAt = new Date(dto.run_finished_at);
+  } else {
+    // Fallback: 10 minutes ago
+    runFinishedAt = new Date(Date.now() - 10 * 60 * 1000);
+  }
+
   return {
     steps,
     primary,
     drained,
+    runFinishedAt,
   };
 }
 

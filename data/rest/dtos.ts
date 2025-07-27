@@ -75,6 +75,8 @@ export interface ResultsDto {
   /** Map of heading ID → primary result object (not an array) */
   primary: Record<string, PrimaryResultDto>;
   drained: Record<string, DrainedResultDto[]>;
+  /** Optional timestamp when the run was finished (ISO string) */
+  run_finished_at?: string;
 }
 
 // Cursor-based pagination structures (Relay-style)

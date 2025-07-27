@@ -101,7 +101,7 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}): UseDa
       // Enrich applications with derived properties
       const enrichedApplications = enrichApplications(
         rawApplications,
-        { primary: [], steps: {}, drained: [] }, // Empty results since removed
+        { primary: [], steps: {}, drained: [], runFinishedAt: new Date() }, // Empty results since removed
         headings,
       );
 
@@ -237,14 +237,14 @@ function useStaticApplicationData(options: UseDashboardStatsOptions = {}) {
         headingsPromise,
       ]);
 
-      return { headings, results: { primary: [], secondary: [], steps: [], drained: [] } };
+      return { headings, results: { primary: [], secondary: [], steps: [], drained: [], runFinishedAt: new Date() } };
     },
     enabled: !!(options.headingId || options.varsityCode),
   });
 
   return {
     headings: staticData?.headings || [],
-    results: { primary: [], secondary: [], steps: [], drained: [] },
+    results: { primary: [], secondary: [], steps: [], drained: [], runFinishedAt: new Date() },
     isLoading,
     error: error ? error : null,
   };

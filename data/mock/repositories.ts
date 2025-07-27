@@ -165,6 +165,7 @@ const mockResults: Results = {
     43: [33, 50, 66, 100],
     44: [33, 50, 66, 100],
   },
+  runFinishedAt: new Date('2024-01-15T14:30:00Z'),
   primary: [
     {
       headingCode: '09.03.03',

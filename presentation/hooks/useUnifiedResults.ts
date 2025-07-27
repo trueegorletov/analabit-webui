@@ -37,6 +37,7 @@ export interface UnifiedResults {
   admittedRank?: number;
   regularsAdmitted?: boolean;
   processedDrainedData: { section: string; rows: { metric: string; [key: string]: string | number }[] }[];
+  runFinishedAt?: Date;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -134,6 +135,7 @@ export function useUnifiedResults({ headingId, varsityCode, run }: UnifiedResult
     admittedRank,
     regularsAdmitted,
     processedDrainedData,
+    runFinishedAt: data?.runFinishedAt,
     loading: isLoading,
     error: error ? error.message : null,
     refetch,

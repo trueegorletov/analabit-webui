@@ -86,4 +86,5 @@ export interface Results {
   steps: Record<number, number[]>;
   primary: PrimaryResult[];
   drained: DrainedResult[];
+  runFinishedAt: Date;
 }

@@ -45,6 +45,7 @@ export function useResults(options: UseResultsOptions = {}): UseResultsReturn {
     steps: {}, // Not used in original
     primary: [], // Primary not needed for drained focus
     drained: (drained || []).map(d => ({ ...d, headingId: Number(options.headingIds) || 0, runId: Number(options.run) || 0 })),
+    runFinishedAt: new Date(), // Default timestamp for deprecated hook
   };
 
   return {

@@ -9,6 +9,10 @@ interface DrainedResultsProps {
   processedDrainedData: Array<{ section: string; rows: Array<Record<string, string | number>> }>;
   loading: boolean;
   error: string | null;
+  /**
+   * Timestamp when the run was finished.
+   */
+  runFinishedAt?: Date;
 }
 
 export default function DrainedResults({
@@ -16,6 +20,7 @@ export default function DrainedResults({
   processedDrainedData: tableData,
   loading,
   error,
+  runFinishedAt,
 }: DrainedResultsProps) {
 
 
@@ -120,6 +125,15 @@ export default function DrainedResults({
       {/* Simulation metadata */}
       <p className="mt-4 text-center text-[11px] xs:text-xs sm:text-sm text-gray-400 italic">
         Для каждого значения оттока аттестатов приведены результаты, полученные за {simulationCount}&nbsp;итераций симуляции.
+        {runFinishedAt && (
+          <> Данные обновлены {runFinishedAt.toLocaleString('ru-RU', {
+             year: 'numeric',
+             month: '2-digit',
+             day: '2-digit',
+             hour: '2-digit',
+             minute: '2-digit',
+           })}.</>
+        )}
       </p>
     </div>
   );

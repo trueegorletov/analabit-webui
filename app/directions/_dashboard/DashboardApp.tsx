@@ -38,7 +38,7 @@ export default function DashboardApp({
   });
 
   // Use unified results for both primary and drained data
-  const { passingScore, admittedRank, processedDrainedData, loading: unifiedLoading, error: unifiedError, regularsAdmitted } = useUnifiedResults({
+  const { passingScore, admittedRank, processedDrainedData, runFinishedAt, loading: unifiedLoading, error: unifiedError, regularsAdmitted } = useUnifiedResults({
     headingId,
     varsityCode,
   });
@@ -87,7 +87,7 @@ export default function DashboardApp({
           admittedRank={admittedRank ?? 0}
           regularsAdmitted={regularsAdmitted ?? false}
         />
-        <DrainedResults processedDrainedData={processedDrainedData} loading={unifiedLoading} error={unifiedError} />
+        <DrainedResults processedDrainedData={processedDrainedData} loading={unifiedLoading} error={unifiedError} runFinishedAt={runFinishedAt} />
       </div>
 
       {/* Applications list */}
