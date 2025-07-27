@@ -172,6 +172,7 @@ const mockResults: Results = {
       passingScore: 286,
       lastAdmittedRatingPlace: 1,
       runId: 7,
+      regularsAdmitted: true,
     },
   ],
   drained: [
@@ -189,6 +190,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 70,
       medLastAdmittedRatingPlace: 45,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '09.03.03',
@@ -203,6 +205,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 70,
       medLastAdmittedRatingPlace: 48,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '09.03.03',
@@ -217,6 +220,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 75,
       medLastAdmittedRatingPlace: 53,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '09.03.03',
@@ -231,6 +235,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 80,
       medLastAdmittedRatingPlace: 58,
       runId: 7,
+      regularsAdmitted: true,
     },
 
     // 01.03.02
@@ -247,6 +252,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 65,
       medLastAdmittedRatingPlace: 42,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '01.03.02',
@@ -261,6 +267,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 70,
       medLastAdmittedRatingPlace: 47,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '01.03.02',
@@ -275,6 +282,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 75,
       medLastAdmittedRatingPlace: 52,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '01.03.02',
@@ -289,6 +297,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 80,
       medLastAdmittedRatingPlace: 57,
       runId: 7,
+      regularsAdmitted: true,
     },
 
     // 02.03.01
@@ -305,6 +314,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 75,
       medLastAdmittedRatingPlace: 52,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '02.03.01',
@@ -319,6 +329,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 80,
       medLastAdmittedRatingPlace: 57,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '02.03.01',
@@ -333,6 +344,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 85,
       medLastAdmittedRatingPlace: 62,
       runId: 7,
+      regularsAdmitted: true,
     },
     {
       headingCode: '02.03.01',
@@ -347,6 +359,7 @@ const mockResults: Results = {
       maxLastAdmittedRatingPlace: 90,
       medLastAdmittedRatingPlace: 67,
       runId: 7,
+      regularsAdmitted: true,
     },
   ],
 };

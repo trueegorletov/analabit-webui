@@ -13,11 +13,13 @@ interface DrainedResult {
   maxLastAdmittedRatingPlace: number;
   avgLastAdmittedRatingPlace: number;
   medLastAdmittedRatingPlace: number;
+  regularsAdmitted: boolean;
 }
 
 interface PrimaryResult {
   passingScore: number;
   lastAdmittedRatingPlace: number;
+  regularsAdmitted: boolean;
 }
 
 import type { QueryFunctionContext } from '@tanstack/react-query';
@@ -33,90 +35,54 @@ export interface UnifiedResults {
   drained: DrainedResult[];
   passingScore?: number;
   admittedRank?: number;
-  processedDrainedData: { section: string; rows: { metric: string; [key: string]: string }[] }[];
+  regularsAdmitted?: boolean;
+  processedDrainedData: { section: string; rows: { metric: string; [key: string]: string | number }[] }[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
 }
 
-function processDrainedResults(drainedResults: DrainedResult[]): { section: string; rows: { metric: string; [key: string]: string }[] }[] {
+function processDrainedResults(drainedResults: DrainedResult[]): { section: string; rows: { metric: string; [key: string]: string | number }[] }[] {
   if (drainedResults.length === 0) {
     return [];
   }
 
-  // Group results by drained percent and extract unique steps
   const drainedSteps = [...new Set(drainedResults.map(r => r.drainedPercent))].sort((a, b) => a - b);
 
-  // Helper function to find result for a specific drained percent
-  const findResult = (drainedPercent: number) => 
-    drainedResults.find(r => r.drainedPercent === drainedPercent);
+  const findResult = (drainedPercent: number) => drainedResults.find(r => r.drainedPercent === drainedPercent);
 
-  // Build the table data structure
+  const regularsAdmittedMap = Object.fromEntries(
+    drainedSteps.map(step => [step, findResult(step)?.regularsAdmitted ?? false])
+  );
+
+  const createRow = (metric: string, getValue: (result: DrainedResult | undefined) => number | undefined, isPassingScore = false) => ({
+    metric,
+    ...Object.fromEntries(drainedSteps.map(step => {
+      const result = findResult(step);
+      if (!regularsAdmittedMap[step] && isPassingScore) {
+        return [`${step}%`, 'БВИ'];
+      }
+      return [`${step}%`, getValue(result)?.toString() ?? '—'];
+    })),
+  });
+
   const tableData = [
     {
       section: 'Проходной балл',
       rows: [
-        {
-          metric: 'Минимальный',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.minPassingScore?.toString() ?? '—'];
-          })),
-        },
-        {
-          metric: 'Максимальный',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.maxPassingScore?.toString() ?? '—'];
-          })),
-        },
-        {
-          metric: 'Средний',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.avgPassingScore?.toString() ?? '—'];
-          })),
-        },
-        {
-          metric: 'Медианный',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.medPassingScore?.toString() ?? '—'];
-          })),
-        },
+        createRow('Минимальный', r => r?.minPassingScore, true),
+        createRow('Максимальный', r => r?.maxPassingScore, true),
+        createRow('Средний', r => r?.avgPassingScore, true),
+        createRow('Медианный', r => r?.medPassingScore, true),
       ],
     },
     {
       section: 'Ранг',
       rows: [
-        {
-          metric: 'Минимальный',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.minLastAdmittedRatingPlace?.toString() ?? '—'];
-          })),
-        },
-        {
-          metric: 'Максимальный',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.maxLastAdmittedRatingPlace?.toString() ?? '—'];
-          })),
-        },
-        {
-          metric: 'Средний',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.avgLastAdmittedRatingPlace?.toString() ?? '—'];
-          })),
-        },
-        {
-          metric: 'Медианный',
-          ...Object.fromEntries(drainedSteps.map(step => {
-            const result = findResult(step);
-            return [`${step}%`, result?.medLastAdmittedRatingPlace?.toString() ?? '—'];
-          })),
-        },
+        createRow('Минимальный', r => r?.minLastAdmittedRatingPlace, false),
+        createRow('Максимальный', r => r?.maxLastAdmittedRatingPlace, false),
+        createRow('Средний', r => r?.avgLastAdmittedRatingPlace, false),
+        createRow('Медианный', r => r?.medLastAdmittedRatingPlace, false),
       ],
     },
   ];
@@ -124,12 +90,13 @@ function processDrainedResults(drainedResults: DrainedResult[]): { section: stri
   return tableData;
 }
 
-function derivePrimaryResults(primary: PrimaryResult[]): { passingScore?: number; admittedRank?: number } {
-  if (primary.length === 0) return { passingScore: undefined, admittedRank: undefined };
+function derivePrimaryResults(primary: PrimaryResult[]): { passingScore?: number; admittedRank?: number; regularsAdmitted?: boolean } {
+  if (primary.length === 0) return { passingScore: undefined, admittedRank: undefined, regularsAdmitted: undefined };
   const latest = primary[0];
   return {
     passingScore: latest.passingScore,
     admittedRank: latest.lastAdmittedRatingPlace,
+    regularsAdmitted: latest.regularsAdmitted,
   };
 }
 
@@ -157,7 +124,7 @@ export function useUnifiedResults({ headingId, varsityCode, run }: UnifiedResult
   const primary = data?.primary || [];
   const drained = data?.drained || [];
 
-  const { passingScore, admittedRank } = derivePrimaryResults(primary);
+  const { passingScore, admittedRank, regularsAdmitted } = derivePrimaryResults(primary);
   const processedDrainedData = processDrainedResults(drained);
 
   return {
@@ -165,6 +132,7 @@ export function useUnifiedResults({ headingId, varsityCode, run }: UnifiedResult
     drained,
     passingScore,
     admittedRank,
+    regularsAdmitted,
     processedDrainedData,
     loading: isLoading,
     error: error ? error.message : null,

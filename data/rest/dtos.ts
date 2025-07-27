@@ -50,6 +50,7 @@ export interface PrimaryResultDto {
   /** Rating place of the last admitted entrant for the primary calculation */
   last_admitted_rating_place: number;
   run_id: number;
+  regulars_admitted: boolean;
 }
 
 export interface DrainedResultDto {
@@ -66,6 +67,7 @@ export interface DrainedResultDto {
   max_last_admitted_rating_place: number;
   med_last_admitted_rating_place: number;
   run_id: number;
+  regulars_admitted: boolean;
 }
 
 export interface ResultsDto {

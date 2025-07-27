@@ -96,6 +96,7 @@ export function adaptPrimaryResult(dto: PrimaryResultDto): PrimaryResult {
     passingScore: dto.passing_score,
     lastAdmittedRatingPlace: dto.last_admitted_rating_place,
     runId: dto.run_id,
+    regularsAdmitted: dto.regulars_admitted ?? false,
   };
 }
 
@@ -113,6 +114,7 @@ export function adaptDrainedResult(dto: DrainedResultDto): DrainedResult {
     maxLastAdmittedRatingPlace: dto.max_last_admitted_rating_place,
     medLastAdmittedRatingPlace: dto.med_last_admitted_rating_place,
     runId: dto.run_id,
+    regularsAdmitted: dto.regulars_admitted ?? false,
   };
 }
 

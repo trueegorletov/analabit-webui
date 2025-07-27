@@ -38,10 +38,14 @@ export default function DashboardApp({
   });
 
   // Use unified results for both primary and drained data
-  const { passingScore, admittedRank, processedDrainedData, loading: unifiedLoading, error: unifiedError } = useUnifiedResults({
+  const { passingScore, admittedRank, processedDrainedData, loading: unifiedLoading, error: unifiedError, regularsAdmitted } = useUnifiedResults({
     headingId,
     varsityCode,
   });
+  // Compute drainedMedian from drained with max drainedPercent
+    // const drainedMedian = drained?.length > 0 
+    //   ? drained.sort((a, b) => b.drainedPercent - a.drainedPercent)[0]?.medPassingScore 
+    //   : undefined;
 
   // Ensure the page always starts at the top, regardless of browser scroll restoration
   useEffect(() => {
@@ -79,8 +83,9 @@ export default function DashboardApp({
         <Header headingName={headingName} varsityCode={varsityCode} varsityName={varsityName} />
         <StatsOverview capacity={stats.capacity} />
         <AdmissionInfo
-          passingScore={passingScore}
-          admittedRank={admittedRank}
+          passingScore={passingScore ?? 0}
+          admittedRank={admittedRank ?? 0}
+          regularsAdmitted={regularsAdmitted ?? false}
         />
         <DrainedResults processedDrainedData={processedDrainedData} loading={unifiedLoading} error={unifiedError} />
       </div>

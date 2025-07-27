@@ -17,7 +17,7 @@ interface UseResultsOptions {
 
 export interface ProcessedDrainedData {
   section: string;
-  rows: Array<Record<string, string>>;
+  rows: Array<Record<string, string | number>>;
 }
 
 interface UseResultsReturn {

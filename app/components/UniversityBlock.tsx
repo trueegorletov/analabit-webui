@@ -18,6 +18,9 @@ interface Direction {
   rank: number | string;
   range: string;
   universityCode: string;
+  regularsAdmitted: boolean;
+  drainedMedian?: number;
+  drainedRegularsAdmitted?: boolean;
 }
 
 import {
@@ -253,26 +256,52 @@ export const UniversityBlock: React.FC<UniversityBlockProps> = ({
                 <span className="dir-name-text" title={direction.name}>{direction.name}</span>
               </div>
               <div className="grid-cell points">
-                {(() => {
-                  if (direction.range && direction.range.includes('..')) {
-                    const [max, min] = direction.range.split('..');
+                {!direction.regularsAdmitted ? (
+                  // Special quota direction - always show БВИ, plus drained median if available
+                  <span className="inline-flex items-baseline gap-1">
+                    <span className="font-mono text-base sm:text-lg text-green-400 leading-none">
+                      БВИ
+                    </span>
+                    {direction.drainedMedian !== undefined && (
+                      <span className="font-mono text-[10px] sm:text-xs text-amber-400 leading-none">
+                        {direction.drainedRegularsAdmitted === false ? 'БВИ' : direction.drainedMedian}
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  // Regular direction - show score/range, no drained median for ranges
+                  (() => {
+                    const hasRange = direction.range && direction.range.includes('..');
+                    const hasDrainedMedian = direction.drainedMedian !== undefined;
+                    
+                    if (hasRange) {
+                      const [max, min] = direction.range.split('..');
+                      return (
+                        <span className="inline-flex items-baseline gap-1">
+                          <span className="max font-mono text-base sm:text-lg text-green-400 leading-none">
+                            {max}
+                          </span>
+                          <span className="min font-mono text-[10px] sm:text-xs text-amber-400 leading-none">
+                            {min}
+                          </span>
+                        </span>
+                      );
+                    }
+                    
                     return (
                       <span className="inline-flex items-baseline gap-1">
-                        <span className="max font-mono text-base sm:text-lg text-green-400 leading-none">
-                          {max}
+                        <span className="font-mono text-base sm:text-lg text-green-400 leading-none">
+                          {direction.score}
                         </span>
-                        <span className="min font-mono text-[10px] sm:text-xs text-amber-400 leading-none">
-                          {min}
-                        </span>
+                        {hasDrainedMedian && (
+                          <span className="font-mono text-[10px] sm:text-xs text-amber-400 leading-none">
+                            {direction.drainedRegularsAdmitted === false ? 'БВИ' : direction.drainedMedian}
+                          </span>
+                        )}
                       </span>
                     );
-                  }
-                  return (
-                    <span className="font-mono text-base sm:text-lg text-green-400">
-                      {direction.score}
-                    </span>
-                  );
-                })()}
+                  })()
+                )}
               </div>
               <div className="grid-cell rank font-mono text-center">
                 #{typeof direction.rank === 'string' ? direction.rank.replace(/^#/, '') : direction.rank}

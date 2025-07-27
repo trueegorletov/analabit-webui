@@ -12,6 +12,9 @@ interface Direction {
   rank: number | string;
   range: string;
   universityCode: string;
+  regularsAdmitted: boolean;
+  drainedMedian?: number;
+  drainedRegularsAdmitted?: boolean;
 }
 
 interface UniversityDirectionsState {
@@ -176,7 +179,7 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
           const primary = primaryByHeading[heading.id];
           const drained100 = drained100ByHeading[heading.id];
           const passingScore = primary?.passingScore ?? 0;
-          const minScore = drained100?.minPassingScore;
+          const minScore = drained100?.medPassingScore;
           const range = minScore !== undefined ? `${passingScore}..${minScore}` : '';
           return {
             id: String(heading.id),
@@ -185,6 +188,9 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
             rank: primary?.lastAdmittedRatingPlace ?? '-',
             range,
             universityCode: heading.varsityCode,
+            regularsAdmitted: primary?.regularsAdmitted ?? true,
+            drainedMedian: drained100?.medPassingScore,
+            drainedRegularsAdmitted: drained100?.regularsAdmitted,
           } as Direction;
         });
 
@@ -302,6 +308,9 @@ export function useUniversitiesData(): UseUniversitiesDataReturn {
           rank: primary?.lastAdmittedRatingPlace ?? '-',
           range,
           universityCode: heading.varsityCode,
+          regularsAdmitted: primary?.regularsAdmitted ?? true,
+          drainedMedian: drained100?.medPassingScore,
+          drainedRegularsAdmitted: drained100?.regularsAdmitted,
         };
       });
 

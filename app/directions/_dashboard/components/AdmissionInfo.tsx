@@ -1,14 +1,18 @@
 import React from 'react';
 
 interface AdmissionInfoProps {
-  passingScore?: number;
-  admittedRank?: number;
+  passingScore: number;
+  admittedRank: number;
+  regularsAdmitted: boolean;
 }
 
 export default function AdmissionInfo({
   passingScore,
   admittedRank,
+  regularsAdmitted,
 }: AdmissionInfoProps) {
+  const displayPassing = regularsAdmitted ? passingScore : 'БВИ';
+  const displayRank = admittedRank;
   return (
     <div className="flex justify-between items-start gap-4 xs:gap-6 sm:gap-8 mb-10 px-4">
       {/* Passing Score */}
@@ -21,11 +25,11 @@ export default function AdmissionInfo({
           <div className="relative">
             <p className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-white transition-all duration-300 group-hover:text-green-400" 
                style={{ textShadow: '0 4px 12px rgba(0, 0, 0, 0.6)' }}>
-              {passingScore !== undefined ? passingScore : '—'}
+              {displayPassing}
             </p>
             {/* Subtle glow effect */}
             <div className="absolute inset-0 text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-green-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm">
-              {passingScore !== undefined ? passingScore : '—'}
+              {displayPassing}
             </div>
           </div>
         </div>
@@ -44,11 +48,11 @@ export default function AdmissionInfo({
           <div className="relative">
             <p className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-white transition-all duration-300 group-hover:text-violet-400" 
                style={{ textShadow: '0 4px 12px rgba(0, 0, 0, 0.6)' }}>
-              {admittedRank !== undefined ? `#${admittedRank}` : '—'}
+              {displayRank}
             </p>
             {/* Subtle glow effect */}
             <div className="absolute inset-0 text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-violet-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm">
-              {admittedRank !== undefined ? `#${admittedRank}` : '—'}
+              {displayRank}
             </div>
           </div>
         </div>

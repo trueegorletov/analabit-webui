@@ -49,6 +49,8 @@ export interface PrimaryResult {
   passingScore: number;
   /** Rating place of the last admitted entrant for the primary calculation. */
   lastAdmittedRatingPlace: number;
+  /** Indicates if regulars are admitted in this result. */
+  regularsAdmitted: boolean;
   runId: number;
 }
 
@@ -70,6 +72,8 @@ export interface DrainedResult {
   minLastAdmittedRatingPlace: number;
   maxLastAdmittedRatingPlace: number;
   medLastAdmittedRatingPlace: number;
+  /** Indicates if regulars are admitted in this result. */
+  regularsAdmitted: boolean;
   runId: number;
 }
 
@@ -82,4 +86,4 @@ export interface Results {
   steps: Record<number, number[]>;
   primary: PrimaryResult[];
   drained: DrainedResult[];
-} 
+}
