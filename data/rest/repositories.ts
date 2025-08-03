@@ -110,7 +110,9 @@ export class ApplicationRepositoryRest implements IApplicationRepository {
   }
 
   async getStudentApplications(studentId: string) {
-    const response = await this.httpClient.get<ApplicationsResponse>(`/applications?studentID=${studentId}`);
+    const params = new URLSearchParams();
+    params.append('studentID', studentId);
+    const response = await this.httpClient.get<ApplicationsResponse>(`/applications?${params.toString()}`);
     const adapted = adaptApplicationsResponse(response);
     return adapted.applications;
   }

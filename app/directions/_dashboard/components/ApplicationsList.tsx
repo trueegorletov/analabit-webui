@@ -32,6 +32,7 @@ import {
   LoadMoreButton,
 } from '@/app/components/LoadingComponents';
 import { INTERSECTION_CONFIG } from '@/app/directions/_dashboard/constants';
+import { prettifyStudentId } from '@/data/rest/adapters';
 
 const MIN_TABLE_HEIGHT = 150;
 const INITIAL_TABLE_HEIGHT = 490;
@@ -184,6 +185,7 @@ type NoteStatusKey = 'SUBMITTED' | 'UNKNOWN' | 'QUIT';
 interface UiApplication {
   rank: number;
   studentId: string;
+  msuInternalId?: string;
   priority: number;
   score: number;
   competitionType: string;
@@ -205,6 +207,7 @@ function adaptApplicationToUi(domainApp: DomainApplication): UiApplication {
   return {
     rank: domainApp.ratingPlace,
     studentId: domainApp.studentId,
+    msuInternalId: domainApp.msuInternalId,
     priority: domainApp.priority,
     score: domainApp.score,
     competitionType: domainApp.competitionType,
@@ -213,6 +216,26 @@ function adaptApplicationToUi(domainApp: DomainApplication): UiApplication {
     passingToMorePriority: !!domainApp.passingToMorePriority,
     status,
   };
+}
+
+// Helper function to format student ID for table display
+function formatStudentIdForTable(app: UiApplication): string {
+  if (!app.msuInternalId) {
+    // No MSU internal ID - show student ID as is
+    return app.studentId;
+  }
+  
+  // Both IDs exist - check if they're equal after prettifying
+  const prettifiedStudentId = prettifyStudentId(app.studentId);
+  const prettifiedMsuId = prettifyStudentId(app.msuInternalId);
+  
+  if (prettifiedStudentId === prettifiedMsuId) {
+    // Equal after prettifying - show @msu_internal_id
+    return `@${prettifiedMsuId}`;
+  } else {
+    // Different - show student_id (as is, since it's already prettified in the domain model)
+    return app.studentId;
+  }
 }
 
 interface ApplicationsListProps {
@@ -585,7 +608,7 @@ function ApplicationsList({ headingId, varsityCode }: ApplicationsListProps) {
 
                     {/* Student ID */}
                     <div className={`px-2 py-1 xs:px-3 xs:py-2 font-mono overflow-hidden text-ellipsis ${app.passes ? 'font-semibold text-white' : 'text-gray-200'}`}>
-                      <span className="truncate">{app.studentId}</span>
+                      <span className="truncate">{formatStudentIdForTable(app)}</span>
                     </div>
 
                     {/* Priority */}

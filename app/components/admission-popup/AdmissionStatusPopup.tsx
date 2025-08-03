@@ -72,8 +72,9 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   const applicationRepo = useApplicationRepository();
   const resultsRepo = useResultsRepository();
 
-  // State for original university determination
+  // State for original university determination and MSU internal ID
   const [originalUniversityCode, setOriginalUniversityCode] = React.useState<string | null>(null);
+  const [msuInternalId, setMsuInternalId] = React.useState<string | undefined>(undefined);
 
   // Extract current headingId from URL for same-direction navigation handling
   const pathname = usePathname();
@@ -98,16 +99,22 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
   const [sectionsState, dispatch] = useReducer(sectionReducer, initialState);
 
-  // Effect to determine original university from applications
+  // Effect to determine original university and MSU internal ID from applications
   useEffect(() => {
-    const determineOriginalUniversity = async () => {
-      if (!originalKnown) {
-        setOriginalUniversityCode(null);
-        return;
-      }
-
+    const determineDataFromApplications = async () => {
       try {
         const applications = await applicationRepo.getStudentApplications(studentId);
+        
+        // Extract MSU internal ID from the first application that has one
+        const appWithMsuId = applications.find(app => app.msuInternalId);
+        setMsuInternalId(appWithMsuId?.msuInternalId);
+        
+        // Determine original university
+        if (!originalKnown) {
+          setOriginalUniversityCode(null);
+          return;
+        }
+
         const allSections = [passingSection, ...secondarySections].filter((section): section is Section => section !== undefined);
         
         // Find first university (in order) that has at least one application with originalSubmitted == true
@@ -130,12 +137,13 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         // If no university found with originalSubmitted, set to null
         setOriginalUniversityCode(null);
       } catch (error) {
-        console.error('Error determining original university:', error);
+        console.error('Error determining data from applications:', error);
         setOriginalUniversityCode(null);
+        setMsuInternalId(undefined);
       }
     };
 
-    determineOriginalUniversity();
+    determineDataFromApplications();
   }, [studentId, originalKnown, passingSection, secondarySections, applicationRepo]);
 
   // Initialize proper highlighting and deltas on component mount
@@ -425,6 +433,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
       <div className="popup-scroll overflow-x-hidden overflow-y-auto max-h-[90vh] p-4 sm:p-6 md:p-8 flex flex-col text-white">
         <PopupHeader
           studentId={studentId}
+          msuInternalId={msuInternalId}
           mainStatus={mainStatus}
           originalKnown={originalKnown}
           originalUniversityCode={originalUniversityCode}

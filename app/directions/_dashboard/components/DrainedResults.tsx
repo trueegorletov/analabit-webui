@@ -34,7 +34,7 @@ export default function DrainedResults({
     if (timestamp < oneYearAgo) {
       // Convert current time to MSK (UTC+3)
       const mskNow = new Date(now.toLocaleString('en-US', {timeZone: 'Europe/Moscow'}));
-      
+
       // Get current hour and minute in MSK
       const currentHour = mskNow.getHours();
       const currentMinute = mskNow.getMinutes();

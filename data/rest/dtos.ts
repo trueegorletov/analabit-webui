@@ -39,6 +39,8 @@ export interface ApplicationDto {
   passing_now: boolean;
   passing_to_more_priority: boolean;
   another_varsities_count: number;
+  // MSU internal ID support
+  msu_internal_id?: string;
 }
 
 export interface PrimaryResultDto {

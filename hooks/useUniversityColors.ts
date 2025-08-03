@@ -5,8 +5,8 @@ import { colorPalettes, getPaletteByIndex } from '../lib/colors/palette';
 // Static import of the generated mapping to ensure SSR compatibility
 import universityColorMappingData from '../lib/colors/universityColorMapping.json';
 
-// Extract the mapping from the imported data
-const universityColorMapping: UniversityColorMapping = universityColorMappingData as UniversityColorMapping;
+// Extract the mapping from the imported data and convert to expected format
+const universityColorMapping: UniversityColorMapping = universityColorMappingData as unknown as UniversityColorMapping;
 
 // Fallback mapping for development or when mapping file doesn't exist
 const fallbackMapping: UniversityColorMapping = {

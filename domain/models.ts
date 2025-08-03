@@ -34,6 +34,8 @@ export interface Application {
   passingNow: boolean;
   passingToMorePriority?: boolean;
   anotherVarsitiesCount?: number;
+  // MSU internal ID support
+  msuInternalId?: string;
 }
 
 export interface PrimaryResult {

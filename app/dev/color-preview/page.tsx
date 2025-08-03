@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { config } from '@/lib/config';
+import existingMapping from '@/lib/colors/universityColorMapping.json';
 
 // Types
 interface ColorPalette {
@@ -13,6 +14,7 @@ interface ColorPalette {
 }
 
 type UniversityColorMapping = Record<string, { palette: ColorPalette; name: string; }>;
+type Varsity = { id: number; code: string; name: string; };
 
 // Copy of color palettes to make this module self-contained
 const colorPalettes: ColorPalette[] = [
@@ -96,22 +98,27 @@ const colorPalettes: ColorPalette[] = [
   },
 ];
 
-// University codes from the user's provided data
-const USER_UNIVERSITY_CODES = [
-  'hse_perm',
-  'hse_nn', 
-  'rzgmu',
-  'mipt',
-  'itmo',
-  'hse_spb',
-  'hse_msk',
-  'spbsu',
-  'spbstu',
-  'mirea',
-  'rsmu',
-  'fmsmu',
-  'mephi',
+
+// University data matching the user's provided structure
+const UNIVERSITIES = [
+  { id: 1, code: 'hse_perm', name: 'ВШЭ (Пермь)' },
+  { id: 2, code: 'hse_nn', name: 'ВШЭ (НН)' },
+  { id: 3, code: 'rzgmu', name: 'РязГМУ' },
+  { id: 4, code: 'mipt', name: 'МФТИ' },
+  { id: 5, code: 'itmo', name: 'ИТМО' },
+  { id: 6, code: 'hse_spb', name: 'ВШЭ (СПб)' },
+  { id: 7, code: 'hse_msk', name: 'ВШЭ (Москва)' },
+  { id: 8, code: 'spbsu', name: 'СПбГУ' },
+  { id: 9, code: 'spbstu', name: 'СПбПУ' },
+  { id: 10, code: 'mirea', name: 'МИРЭА' },
+  { id: 11, code: 'rsmu', name: 'РНИМУ' },
+  { id: 12, code: 'fmsmu', name: 'ПМГМУ' },
+  { id: 13, code: 'mephi', name: 'МИФИ' },
+  { id: 14, code: 'msu', name: 'МГУ' },
 ];
+
+// Existing mapping from JSON (typed properly)
+const EXISTING_MAPPING = existingMapping as UniversityColorMapping;
 
 // Self-contained color generation logic
 function shuffleArray<T>(array: T[]): void {
@@ -141,43 +148,32 @@ function findDifferentIndex(
   return availableIndices[0];
 }
 
-function generateUniversityColorMapping(): UniversityColorMapping {
-  const universities = USER_UNIVERSITY_CODES;
+function generateColorsForMissingUniversities(
+  universities: Varsity[], 
+  existingMapping: UniversityColorMapping,
+): UniversityColorMapping {
   const palettes = colorPalettes;
+  const mapping: UniversityColorMapping = { ...existingMapping };
   
-  // Shuffle the palette indices to get random assignment
+  // Find universities that are not in the existing mapping
+  const missingUniversities = universities.filter(uni => !mapping[uni.code]);
+  
+  if (missingUniversities.length === 0) {
+    return mapping;
+  }
+  
+  // Shuffle the palette indices for random assignment
   const availablePaletteIndices = Array.from({ length: palettes.length }, (_, i) => i);
   shuffleArray(availablePaletteIndices);
   
-  const mapping: UniversityColorMapping = {};
   const usedIndices: Set<number> = new Set();
   let lastUsedIndex: number | null = null;
   
-  // Sort universities alphabetically by name for adjacent duplicate checking
-  const UNIVERSITY_NAMES: Record<string, string> = {
-    'hse_perm': 'ВШЭ (Пермь)',
-    'hse_nn': 'ВШЭ (НН)',
-    'rzgmu': 'РязГМУ',
-    'mipt': 'МФТИ',
-    'itmo': 'ИТМО',
-    'hse_spb': 'ВШЭ (СПб)',
-    'hse_msk': 'ВШЭ (Москва)',
-    'spbsu': 'СПбГУ',
-    'spbstu': 'СПбПУ',
-    'mirea': 'МИРЭА',
-    'rsmu': 'РНИМУ',
-    'fmsmu': 'ПМГМУ',
-    'mephi': 'МИФИ',
-  };
+  // Sort missing universities alphabetically to maintain consistency
+  const sortedMissingUniversities = [...missingUniversities].sort((a, b) => a.name.localeCompare(b.name));
   
-  const sortedCodes = [...universities].sort((a, b) => {
-    const nameA = UNIVERSITY_NAMES[a] || a;
-    const nameB = UNIVERSITY_NAMES[b] || b;
-    return nameA.localeCompare(nameB);
-  });
-  
-  for (let i = 0; i < sortedCodes.length; i++) {
-    const university = sortedCodes[i];
+  for (let i = 0; i < sortedMissingUniversities.length; i++) {
+    const university = sortedMissingUniversities[i];
     
     let selectedIndex: number;
     
@@ -195,38 +191,68 @@ function generateUniversityColorMapping(): UniversityColorMapping {
     usedIndices.add(selectedIndex);
     lastUsedIndex = selectedIndex;
     
-    mapping[university] = {
+    mapping[university.code] = {
       palette: palettes[selectedIndex],
-      name: UNIVERSITY_NAMES[university] || university,
+      name: university.name,
     };
   }
   
   return mapping;
 }
 
-// University data matching the user's provided structure
-const UNIVERSITIES = [
-  { id: 1, code: 'hse_perm', name: 'ВШЭ (Пермь)' },
-  { id: 2, code: 'hse_nn', name: 'ВШЭ (НН)' },
-  { id: 3, code: 'rzgmu', name: 'РязГМУ' },
-  { id: 4, code: 'mipt', name: 'МФТИ' },
-  { id: 5, code: 'itmo', name: 'ИТМО' },
-  { id: 6, code: 'hse_spb', name: 'ВШЭ (СПб)' },
-  { id: 7, code: 'hse_msk', name: 'ВШЭ (Москва)' },
-  { id: 8, code: 'spbsu', name: 'СПбГУ' },
-  { id: 9, code: 'spbstu', name: 'СПбПУ' },
-  { id: 10, code: 'mirea', name: 'МИРЭА' },
-  { id: 11, code: 'rsmu', name: 'РНИМУ' },
-  { id: 12, code: 'fmsmu', name: 'ПМГМУ' },
-  { id: 13, code: 'mephi', name: 'МИФИ' },
-];
+function generateFullRandomMapping(universities: Varsity[]): UniversityColorMapping {
+  const palettes = colorPalettes;
+  
+  // Shuffle the palette indices for random assignment
+  const availablePaletteIndices = Array.from({ length: palettes.length }, (_, i) => i);
+  shuffleArray(availablePaletteIndices);
+  
+  const mapping: UniversityColorMapping = {};
+  const usedIndices: Set<number> = new Set();
+  let lastUsedIndex: number | null = null;
+  
+  // Sort universities alphabetically for consistent adjacent checking
+  const sortedUniversities = [...universities].sort((a, b) => a.name.localeCompare(b.name));
+  
+  for (let i = 0; i < sortedUniversities.length; i++) {
+    const university = sortedUniversities[i];
+    
+    let selectedIndex: number;
+    
+    if (lastUsedIndex === null) {
+      selectedIndex = availablePaletteIndices[0];
+    } else {
+      selectedIndex = findDifferentIndex(availablePaletteIndices, lastUsedIndex, usedIndices);
+    }
+    
+    if (usedIndices.size >= palettes.length) {
+      usedIndices.clear();
+      shuffleArray(availablePaletteIndices);
+    }
+    
+    usedIndices.add(selectedIndex);
+    lastUsedIndex = selectedIndex;
+    
+    mapping[university.code] = {
+      palette: palettes[selectedIndex],
+      name: university.name,
+    };
+  }
+  
+  return mapping;
+}
+
 
 export default function ColorPreviewPage() {
   // Check if color preview is enabled
   if (!config.features.enableColorPreview) {
     notFound();
   }
-  const [mappings, setMappings] = useState<UniversityColorMapping>(() => generateUniversityColorMapping());
+  
+  // Use hardcoded data and load existing mapping with any missing universities getting random colors
+  const [mappings, setMappings] = useState<UniversityColorMapping>(() => 
+    generateColorsForMissingUniversities(UNIVERSITIES, EXISTING_MAPPING),
+  );
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
@@ -239,7 +265,7 @@ export default function ColorPreviewPage() {
     
     // Add a small delay to show the loading state
     setTimeout(() => {
-      const newMapping = generateUniversityColorMapping();
+      const newMapping = generateFullRandomMapping(UNIVERSITIES);
       setMappings(newMapping);
       setIsRegenerating(false);
     }, 500);
@@ -285,7 +311,7 @@ export default function ColorPreviewPage() {
             <div>
               <h2 className="text-xl font-semibold text-white mb-2">Color Management</h2>
               <p className="text-gray-300 text-sm">
-                Generate new random colors or copy current mapping JSON
+                Current mapping loaded from JSON file by default. Generate new random colors or copy current mapping JSON
               </p>
             </div>
             <div className="flex gap-3">
@@ -420,11 +446,26 @@ export default function ColorPreviewPage() {
             <div className="bg-black/20 rounded p-3">
               <p className="text-gray-300 mb-2">📋 Usage:</p>
               <ol className="text-gray-300 space-y-1 ml-4">
-                <li>1. Click &quot;Regenerate Colors&quot; to generate new random colors</li>
-                <li>2. Click &quot;Copy JSON&quot; to copy current mapping</li>
-                <li>3. Paste into <code className="text-blue-400">/lib/colors/universityColorMapping.json</code></li>
-                <li>4. Run the npm script to update the actual mapping file</li>
+                <li>1. Page loads existing mapping from JSON file by default</li>
+                <li>2. Missing universities get random colors (no adjacent duplicates)</li>
+                <li>3. Click &quot;Regenerate Colors&quot; to generate completely new random colors</li>
+                <li>4. Click &quot;Copy JSON&quot; to copy current mapping (includes new universities)</li>
+                <li>5. Paste into <code className="text-blue-400">/lib/colors/universityColorMapping.json</code></li>
               </ol>
+            </div>
+            <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+              <p className="text-green-300 mb-2">✨ Current status:</p>
+              <div className="text-sm space-y-1">
+                <div className="text-green-200">
+                  📊 Total universities: <span className="font-mono">{UNIVERSITIES.length}</span>
+                </div>
+                <div className="text-green-200">
+                  🎨 From existing mapping: <span className="font-mono">{Object.keys(EXISTING_MAPPING).length}</span>
+                </div>
+                <div className="text-green-200">
+                  🆕 Generated for new: <span className="font-mono">{UNIVERSITIES.length - Object.keys(EXISTING_MAPPING).length}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -433,6 +474,9 @@ export default function ColorPreviewPage() {
         <div className="text-center mt-12 text-gray-400 text-sm">
           <p>This preview shows the same colors used across all components:</p>
           <p>Header flair buttons • University blocks • Admission popup flair buttons</p>
+          <div className="mt-4 text-xs text-gray-500">
+            <p>Universities from hardcoded list • Colors loaded from universityColorMapping.json</p>
+          </div>
         </div>
       </div>
     </div>

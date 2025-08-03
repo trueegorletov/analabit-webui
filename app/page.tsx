@@ -108,14 +108,39 @@ export default function Home() {
 
   const handleIdInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const originalValue = event.target.value;
-    const sanitizedValue = originalValue.replace(/\D/g, '');
-    if (sanitizedValue !== originalValue) {
-      setTooltipText('Допускаются только цифры');
+    
+    // Allow digits and @ symbol, but with restrictions:
+    // - Only one @ symbol allowed
+    // - @ symbol can only be at the beginning
+    let sanitizedValue = originalValue;
+    
+    // Check for invalid characters (anything other than digits and @)
+    const hasInvalidChars = /[^0-9@]/.test(originalValue);
+    
+    // Check for multiple @ symbols
+    const atCount = (originalValue.match(/@/g) || []).length;
+    const hasMultipleAts = atCount > 1;
+    
+    // Check for @ in the middle (not at the beginning)
+    const hasAtInMiddle = originalValue.includes('@') && !originalValue.startsWith('@');
+    
+    if (hasInvalidChars || hasMultipleAts || hasAtInMiddle) {
+      // Remove invalid characters, keeping only digits and one @ at the beginning
+      if (originalValue.startsWith('@')) {
+        // Keep @ at the beginning and only digits after
+        sanitizedValue = '@' + originalValue.slice(1).replace(/[^0-9]/g, '');
+      } else {
+        // Remove everything except digits
+        sanitizedValue = originalValue.replace(/[^0-9]/g, '');
+      }
+      
+      setTooltipText('Недопустимый символ');
       setShowTooltip(true);
       setTimeout(() => {
         setShowTooltip(false);
       }, TOOLTIP_VISIBLE_DURATION);
     }
+    
     setStudentIdInput(sanitizedValue);
     if (inputError) setInputError(false);
   };
@@ -477,9 +502,8 @@ export default function Home() {
           <div className="relative flex-grow">
             <input
               type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="ID абитуриента"
+              inputMode="text"
+              placeholder="ID абитуриента или @WebanketaID"
               value={studentIdInput}
               onChange={handleIdInputChange}
               onKeyDown={handleInputKeydown}
@@ -489,7 +513,7 @@ export default function Home() {
                 }`}
             />
             <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{ opacity: showTooltip ? 1 : 0 }}>
-              <span className="whitespace-nowrap px-4 py-2 rounded-lg bg-red-600/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
+              <span className="whitespace-no wrap px-4 py-2 rounded-lg bg-red-600/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
                 {tooltipText || 'Неверный формат ID'}
               </span>
             </div>

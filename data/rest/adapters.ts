@@ -65,7 +65,7 @@ export function adaptHeading(dto: HeadingDto): Heading {
     varsityName: dto.varsity?.name, // Include varsity name for better display
   };
 }
-function prettifyStudentId(rawStudentId: string): string {
+export function prettifyStudentId(rawStudentId: string): string {
   // trim the possible starting multiple "0" chars prefix
   return rawStudentId.replace(/^0+/, '');
 }
@@ -86,6 +86,7 @@ export function adaptApplication(dto: ApplicationDto): Application {
     passingNow: dto.passing_now,
     passingToMorePriority: dto.passing_to_more_priority,
     anotherVarsitiesCount: dto.another_varsities_count,
+    msuInternalId: dto.msu_internal_id ? prettifyStudentId(dto.msu_internal_id) : undefined,
   };
 }
 
