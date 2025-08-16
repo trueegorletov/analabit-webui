@@ -20,9 +20,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Off-season: redirect everything to root
-  const OFFSEASON =
-    process.env.NEXT_PUBLIC_OFFSEASON_STUB === '1' ||
-    process.env.NEXT_PUBLIC_OFFSEASON_STUB === 'true';
+  const OFFSEASON = process.env.NEXT_PUBLIC_OFFSEASON_STUB ?? true;
   if (OFFSEASON && pathname !== '/') {
     const url = request.nextUrl.clone();
     url.pathname = '/';

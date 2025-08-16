@@ -17,9 +17,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const OFFSEASON =
-    !(process.env.NEXT_PUBLIC_OFFSEASON_STUB === '0' ||
-      process.env.NEXT_PUBLIC_OFFSEASON_STUB === 'false'); //workaround
+  const OFFSEASON = process.env.NEXT_PUBLIC_OFFSEASON_STUB ?? true;
   return (
     <html lang={process.env.NEXT_PUBLIC_LANG ?? 'ru'}>
       <head>

@@ -34,10 +34,7 @@ function Animation({ loading, error }: { loading: boolean; error: boolean }) {
 }
 
 export default function Home() {
-  const OFFSEASON =
-    typeof process !== 'undefined' &&
-    (process.env.NEXT_PUBLIC_OFFSEASON_STUB === '1' ||
-      process.env.NEXT_PUBLIC_OFFSEASON_STUB === 'true');
+  const OFFSEASON = process.env.NEXT_PUBLIC_OFFSEASON_STUB ?? true;
 
   return OFFSEASON ? <OffseasonStub /> : <HomeContent />;
 }
@@ -478,8 +475,8 @@ function HomeContent() {
               onChange={handleIdInputChange}
               onKeyDown={handleInputKeydown}
               className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${inputError
-                  ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
-                  : 'focus:ring-2 focus:ring-violet-500/80'
+                ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
+                : 'focus:ring-2 focus:ring-violet-500/80'
                 }`}
             />
             <div
