@@ -12,4 +12,6 @@ This is the Next.js web interface for the missing anal_ytics service for abituri
 ![Educational program dashboard](.github/assets/3.png)
 ![Abiturient details popup](.github/assets/2.png)
 
+
+
 License: See `LICENSE`.
