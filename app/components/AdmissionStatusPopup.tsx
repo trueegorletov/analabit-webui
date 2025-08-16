@@ -1,2 +1,2 @@
-export * from './admission-popup';
-export { AdmissionStatusPopup as default } from './admission-popup'; 
+export * from './AdmissionPopup';
+export { AdmissionStatusPopup as default } from './AdmissionPopup'; 
