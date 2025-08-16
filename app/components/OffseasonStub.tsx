@@ -278,6 +278,395 @@ function ArticleContent() {
                     </tbody>
                 </table>
             </div>
+            <p className="mt-4 text-zinc-200">Сделаем табличку и будем отслеживать что происходит с текущей ситуацией:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {[
+                            ['X', '-', '-', '-'],
+                            ['Y', '-', '-', '-'],
+                            ['Z', '-', '-', '-'],
+                        ].map((row, idx) => (
+                            <tr key={idx} className={idx % 2 ? 'bg-white/[0.03]' : ''}>
+                                {row.map((cell, i) => (
+                                    <td key={i} className="px-3 py-2 text-zinc-200">{cell}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Добавлять абитуриентов можно в случайном порядке. Начнём, например, с Валентины. Она больше всего хочет на программу Y, где её балл равен 211. Пока что она лучший абитуриент там:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Добавим Евгения. Он больше всего хочет на программу Y, где его балл равен 298. Он смещает Валентину на второе место:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Добавим Анну. Она больше всего хочет на программу Z, где её балл равен 310. Она - лучшая абитуриентка там:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Добавим Бориса. Он больше всего хочет на программу Z, где его балл равен 200. Он оказывается на втором месте:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Добавим Григория. Он больше всего хочет на программу Z, где его балл равен 212. Она оказывается на втором месте, выталкивая Бориса на третье:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Борис не попадает в КЦП на программе Z. Его второй приоритет - программа Y, балл на которой равен 210. И там он оказывается на третьем месте:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 210</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Борис не попадает и в КЦП на программе Y. Его третий приоритет - программа X, балл на которой равен 200. Он оказывается на первом месте:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Теперь КЦП нигде не превышены и можно определить последнего абитуриента - Диану. Её первый приоритет - программа Z, её балл на этой программе равен 299. Она оказывается на втором месте, выталкивая Григория на третье:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Диана, 299</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Григорий не попадает в КЦП на программе Z. Его второй приоритет - программа Y, балл на которой равен 213. Он оказывается на втором месте, выталкивая Валентину на третье:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 211</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Диана, 299</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">Валентина не попадает в КЦП на программе Y. Её второй приоритет - программа Z, балл на которой равен 212. Он оказывается на третьем месте:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Диана, 299</td>
+                            <td className="px-3 py-2 text-zinc-200">Валентина, 212</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-zinc-200">К сожалению, Валентина не попадает в КЦП и на программе Z. У неё нет третьего приоритета и она не поступает никуда, а программа X закрывается с недобром:</p>
+            <div className="overflow-x-auto mt-3 rounded-lg border border-white/10">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06]">
+                        <tr>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Образовательная программа</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 1</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 2</th>
+                            <th className="px-3 py-2 font-medium text-zinc-200">Абитуриент 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">X</td>
+                            <td className="px-3 py-2 text-zinc-200">Борис, 200</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr className="bg-white/[0.03]">
+                            <td className="px-3 py-2 text-zinc-200">Y</td>
+                            <td className="px-3 py-2 text-zinc-200">Евгений, 298</td>
+                            <td className="px-3 py-2 text-zinc-200">Григорий, 212</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                        <tr>
+                            <td className="px-3 py-2 text-zinc-200">Z</td>
+                            <td className="px-3 py-2 text-zinc-200">Анна, 310</td>
+                            <td className="px-3 py-2 text-zinc-200">Диана, 299</td>
+                            <td className="px-3 py-2 text-zinc-200">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <p className="mt-4 text-zinc-200">Проверим для каждого абитуриента:</p>
             <p className="text-zinc-200">Анна первым приоритетом указала программу Z и поступила туда с баллом 310.</p>
             <p className="text-zinc-200">Борис первым приоритетом указал программу Z, но со своим баллом 200 оказался хуже Анны (310) и Дианы (299). Второй приоритет Бориса - программа Y, балл у Бориса на ней равен 210, что хуже, чем у Евгения (298) и Григория (212). В итоге Борис попал на программу X по третьему приоритету с баллом 200.</p>

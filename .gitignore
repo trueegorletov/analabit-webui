@@ -48,3 +48,9 @@ reference/*
 
 *storybook.log
 storybook-static
+ 
+reference/
+
+# agentic coding stuff
+CLAUDE.md
+
