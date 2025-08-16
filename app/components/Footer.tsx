@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 
 export default function Footer() {
@@ -59,7 +61,7 @@ export default function Footer() {
           </div>
           <p className="break-words">
             Особая благодарность{' '}
-            <span className="font-medium text-white">ДОРОГОМУ БРАТУ Новинскому Максиму</span> (Maxim Novinsky) за поддержку проекта.
+            <span className="font-medium text-white">ДОРОГОМУ БРАТУ Новинскому Максиму</span> за поддержку проекта.
           </p>
         </div>
       </div>

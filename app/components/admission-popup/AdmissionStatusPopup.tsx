@@ -72,9 +72,10 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
   const applicationRepo = useApplicationRepository();
   const resultsRepo = useResultsRepository();
 
-  // State for original university determination and MSU internal ID
+  // State for original university determination, MSU internal ID, and actual student ID
   const [originalUniversityCode, setOriginalUniversityCode] = React.useState<string | null>(null);
   const [msuInternalId, setMsuInternalId] = React.useState<string | undefined>(undefined);
+  const [actualStudentId, setActualStudentId] = React.useState<string | undefined>(undefined);
 
   // Extract current headingId from URL for same-direction navigation handling
   const pathname = usePathname();
@@ -99,15 +100,18 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
 
   const [sectionsState, dispatch] = useReducer(sectionReducer, initialState);
 
-  // Effect to determine original university and MSU internal ID from applications
+  // Effect to determine original university, MSU internal ID, and actual student ID from applications
   useEffect(() => {
     const determineDataFromApplications = async () => {
       try {
         const applications = await applicationRepo.getStudentApplications(studentId);
         
-        // Extract MSU internal ID from the first application that has one
-        const appWithMsuId = applications.find(app => app.msuInternalId);
-        setMsuInternalId(appWithMsuId?.msuInternalId);
+        // Extract MSU internal ID and actual student ID from the first application
+        const firstApp = applications[0];
+        if (firstApp) {
+          setMsuInternalId(firstApp.msuInternalId);
+          setActualStudentId(firstApp.studentId);
+        }
         
         // Determine original university
         if (!originalKnown) {
@@ -140,6 +144,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
         console.error('Error determining data from applications:', error);
         setOriginalUniversityCode(null);
         setMsuInternalId(undefined);
+        setActualStudentId(undefined);
       }
     };
 
@@ -432,7 +437,7 @@ export const AdmissionStatusPopup: React.FC<AdmissionStatusPopupProps> = ({
       {/* Scrollable content wrapper */}
       <div className="popup-scroll overflow-x-hidden overflow-y-auto max-h-[90vh] p-4 sm:p-6 md:p-8 flex flex-col text-white">
         <PopupHeader
-          studentId={studentId}
+          studentId={actualStudentId || studentId}
           msuInternalId={msuInternalId}
           mainStatus={mainStatus}
           originalKnown={originalKnown}

@@ -17,6 +17,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const OFFSEASON =
+    process.env.NEXT_PUBLIC_OFFSEASON_STUB === '1' ||
+    process.env.NEXT_PUBLIC_OFFSEASON_STUB === 'true';
   return (
     <html lang={process.env.NEXT_PUBLIC_LANG ?? 'ru'}>
       <head>
@@ -57,12 +60,19 @@ export default function RootLayout({
       <body>
         <RootProviders>
           <main id="root">
-            <Shell />
-            <ParallaxBackground />
-            <Header />
-            {children}
-            <Footer />
-            <HelpButton />
+            {OFFSEASON ? (
+              // Off-season mode: render children only (stub page should render full-screen)
+              children
+            ) : (
+              <>
+                <Shell />
+                <ParallaxBackground />
+                <Header />
+                {children}
+                <Footer />
+                <HelpButton />
+              </>
+            )}
           </main>
         </RootProviders>
       </body>

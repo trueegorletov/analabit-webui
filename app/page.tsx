@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, Suspense, useState, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { gsap } from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import dynamic from 'next/dynamic';
-import AnimatedBlob from './components/AnimatedBlob';
+// AnimatedBlob deprecated on main page; always use shader-powered VolumetricBlob
+import OffseasonStub from '@/app/components/OffseasonStub';
 import { type Palette } from './utils/glowHelpers';
 import { useUniversityColors } from '../hooks/useUniversityColors';
 import { useUniversitiesData } from '../hooks/useUniversitiesData';
@@ -29,16 +29,23 @@ const VolumetricBlob = dynamic(() => import('./components/VolumetricBlob'), {
 });
 
 function Animation({ loading, error }: { loading: boolean; error: boolean }) {
-  const searchParams = useSearchParams();
-  const showAnimatedBlob = searchParams.get('animation') === 'blob';
-
-  // If the query param "animation=blob" is present, render the original 2D AnimatedBlob.
-  // Otherwise, fall back to the new 3D VolumetricBlob.
-  return showAnimatedBlob ? <AnimatedBlob /> : <VolumetricBlob loading={loading} error={error} />;
+  // Always use the shaders-powered VolumetricBlob on the main page
+  return <VolumetricBlob loading={loading} error={error} />;
 }
 
 export default function Home() {
+  // Off-season gate: render stub instead of normal content
+  const OFFSEASON =
+    typeof process !== 'undefined' &&
+    (process.env.NEXT_PUBLIC_OFFSEASON_STUB === '1' ||
+      process.env.NEXT_PUBLIC_OFFSEASON_STUB === 'true');
+
+  if (OFFSEASON) {
+    return <OffseasonStub />;
+  }
+
   // Use the universities data hook
+
   const {
     universities,
     universitiesLoading,
@@ -108,22 +115,22 @@ export default function Home() {
 
   const handleIdInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const originalValue = event.target.value;
-    
+
     // Allow digits and @ symbol, but with restrictions:
     // - Only one @ symbol allowed
     // - @ symbol can only be at the beginning
     let sanitizedValue = originalValue;
-    
+
     // Check for invalid characters (anything other than digits and @)
     const hasInvalidChars = /[^0-9@]/.test(originalValue);
-    
+
     // Check for multiple @ symbols
     const atCount = (originalValue.match(/@/g) || []).length;
     const hasMultipleAts = atCount > 1;
-    
+
     // Check for @ in the middle (not at the beginning)
     const hasAtInMiddle = originalValue.includes('@') && !originalValue.startsWith('@');
-    
+
     if (hasInvalidChars || hasMultipleAts || hasAtInMiddle) {
       // Remove invalid characters, keeping only digits and one @ at the beginning
       if (originalValue.startsWith('@')) {
@@ -133,14 +140,14 @@ export default function Home() {
         // Remove everything except digits
         sanitizedValue = originalValue.replace(/[^0-9]/g, '');
       }
-      
+
       setTooltipText('Недопустимый символ');
       setShowTooltip(true);
       setTimeout(() => {
         setShowTooltip(false);
       }, TOOLTIP_VISIBLE_DURATION);
     }
-    
+
     setStudentIdInput(sanitizedValue);
     if (inputError) setInputError(false);
   };
@@ -209,13 +216,13 @@ export default function Home() {
           const isNotFound = error.type === 'NOT_FOUND';
           const isTimeout = error.type === 'TIMEOUT';
           let tooltipMessage = 'Произошла ошибка при загрузке данных';
-          
+
           if (isNotFound) {
             tooltipMessage = 'Абитуриент не найден';
           } else if (isTimeout) {
             tooltipMessage = 'Превышено время ожидания запроса';
           }
-          
+
           setTooltipText(tooltipMessage);
           setInputError(true);
           setShowTooltip(true);
