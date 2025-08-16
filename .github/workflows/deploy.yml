@@ -35,7 +35,6 @@ jobs:
           --exclude=node_modules \
           --exclude=.git \
           --exclude=.github \
-          # no tests or playwright in repo anymore
           --exclude=storybook-static \
           --exclude=stories \
           .next \
