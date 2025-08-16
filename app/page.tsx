@@ -34,18 +34,15 @@ function Animation({ loading, error }: { loading: boolean; error: boolean }) {
 }
 
 export default function Home() {
-  // Off-season gate: render stub instead of normal content
   const OFFSEASON =
     typeof process !== 'undefined' &&
     (process.env.NEXT_PUBLIC_OFFSEASON_STUB === '1' ||
       process.env.NEXT_PUBLIC_OFFSEASON_STUB === 'true');
 
-  if (OFFSEASON) {
-    return <OffseasonStub />;
-  }
+  return OFFSEASON ? <OffseasonStub /> : <HomeContent />;
+}
 
-  // Use the universities data hook
-
+function HomeContent() {
   const {
     universities,
     universitiesLoading,
@@ -57,26 +54,22 @@ export default function Home() {
     scrollToUniversity,
   } = useUniversitiesData();
 
-  // Use the university colors system
   const { getUniversityColor } = useUniversityColors();
 
-  // Repository hooks for API calls
   const applicationRepo = useApplicationRepository();
   const headingRepo = useHeadingRepository();
   const resultsRepo = useResultsRepository();
 
-  // Create palettes mapping for universities using codes
   const universityPalettes = useMemo(() => {
     const mapping: { [key: string]: Palette } = {};
     universities.forEach((university) => {
-      const color = getUniversityColor(university.code); // Use code for color mapping
+      const color = getUniversityColor(university.code);
       if (color) {
         mapping[university.code] = {
           grad: color.gradient,
           glow: color.glow,
         };
       } else {
-        // Fallback palette
         mapping[university.code] = {
           grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))',
           glow: 'rgba(255, 120, 99, 0.3)',
@@ -86,14 +79,13 @@ export default function Home() {
     return mapping;
   }, [universities, getUniversityColor]);
 
-  // Sort universities alphabetically by name
-  const sortedUniversities = useMemo(() =>
-    [...universities].sort((a, b) => a.name.localeCompare(b.name)),
-    [universities]);
+  const sortedUniversities = useMemo(
+    () => [...universities].sort((a, b) => a.name.localeCompare(b.name)),
+    [universities],
+  );
 
   const [pendingScroll, setPendingScroll] = useState<string | null>(null);
 
-  // Popup state handling
   const [studentIdInput, setStudentIdInput] = useState('');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupData, setPopupData] = useState<AdmissionData | null>(null);
@@ -101,8 +93,8 @@ export default function Home() {
   const [inputError, setInputError] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipText, setTooltipText] = useState('');
-  const ERROR_DURATION = 3511; // ms for blob
-  const TOOLTIP_VISIBLE_DURATION = 5500; // ms for tooltip
+  const ERROR_DURATION = 3511;
+  const TOOLTIP_VISIBLE_DURATION = 5500;
   const [blobError, setBlobError] = useState(false);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -115,29 +107,16 @@ export default function Home() {
 
   const handleIdInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const originalValue = event.target.value;
-
-    // Allow digits and @ symbol, but with restrictions:
-    // - Only one @ symbol allowed
-    // - @ symbol can only be at the beginning
     let sanitizedValue = originalValue;
-
-    // Check for invalid characters (anything other than digits and @)
     const hasInvalidChars = /[^0-9@]/.test(originalValue);
-
-    // Check for multiple @ symbols
     const atCount = (originalValue.match(/@/g) || []).length;
     const hasMultipleAts = atCount > 1;
-
-    // Check for @ in the middle (not at the beginning)
     const hasAtInMiddle = originalValue.includes('@') && !originalValue.startsWith('@');
 
     if (hasInvalidChars || hasMultipleAts || hasAtInMiddle) {
-      // Remove invalid characters, keeping only digits and one @ at the beginning
       if (originalValue.startsWith('@')) {
-        // Keep @ at the beginning and only digits after
         sanitizedValue = '@' + originalValue.slice(1).replace(/[^0-9]/g, '');
       } else {
-        // Remove everything except digits
         sanitizedValue = originalValue.replace(/[^0-9]/g, '');
       }
 
@@ -153,20 +132,15 @@ export default function Home() {
   };
 
   const handleCheckStatus = () => {
-    // Immediately blur the button to prevent focus-related scroll conflicts
     if (buttonRef.current) {
       buttonRef.current.blur();
     }
 
-    // Globally disable all pointer events to prevent any interference
     document.body.style.pointerEvents = 'none';
-
-    // Disable all ScrollTriggers to prevent interference from the parallax background
     ScrollTrigger.getAll().forEach((trigger) => trigger.disable());
     document.dispatchEvent(new CustomEvent('disableParallax'));
 
     const executeCheck = () => {
-      // Re-enable everything now that the scroll animation is complete
       document.body.style.pointerEvents = 'auto';
       ScrollTrigger.getAll().forEach((trigger) => trigger.enable());
       document.dispatchEvent(new CustomEvent('enableParallax'));
@@ -201,10 +175,8 @@ export default function Home() {
         return;
       }
 
-      // Simulate network delay & loading effect
       setLoadingStatus(true);
 
-      // Use the real API to fetch student admission data
       fetchStudentAdmissionData(trimmedId, applicationRepo, headingRepo, resultsRepo)
         .then((data) => {
           setPopupData(data);
@@ -241,7 +213,6 @@ export default function Home() {
       ease: 'sine.inOut',
       onComplete: executeCheck,
       onInterrupt: () => {
-        // Also re-enable if the scroll is interrupted by the user
         document.body.style.pointerEvents = 'auto';
         ScrollTrigger.getAll().forEach((trigger) => trigger.enable());
         document.dispatchEvent(new CustomEvent('enableParallax'));
@@ -251,7 +222,6 @@ export default function Home() {
 
   const closePopup = () => setIsPopupOpen(false);
 
-  // modified handleTagClick
   const handleTagClick = (universityCode: string) => {
     if (typeof window !== 'undefined') {
       window.history.replaceState(null, '', `#${universityCode}`);
@@ -270,7 +240,6 @@ export default function Home() {
     }
   }, [pendingScroll, universities, scrollToUniversity]);
 
-  // Scroll to university block if URL already contains a hash (direct access)
   useEffect(() => {
     if (universities.length === 0) return;
 
@@ -281,26 +250,27 @@ export default function Home() {
       }
     };
 
-    // On initial load
     handleHashChange();
 
-    // Listen for subsequent hash changes
     window.addEventListener('hashchange', handleHashChange);
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, [universities, scrollToUniversity]);
 
-  // Handle tag animations and university block styling
   useEffect(() => {
     if (universities.length === 0) return;
 
     const tags = gsap.utils.toArray<HTMLElement>('.tag');
     tags.forEach((tag) => {
       const universityCode = tag.dataset.universityCode;
-      const palette = universityCode && universityPalettes[universityCode]
-        ? universityPalettes[universityCode]
-        : { grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))', glow: 'rgba(255, 120, 99, 0.3)' };
+      const palette =
+        universityCode && universityPalettes[universityCode]
+          ? universityPalettes[universityCode]
+          : {
+            grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))',
+            glow: 'rgba(255, 120, 99, 0.3)',
+          };
 
       gsap.set(tag, {
         background: palette.grad,
@@ -323,13 +293,16 @@ export default function Home() {
       });
     });
 
-    // Apply gradients to university blocks
     const universityBlocks = gsap.utils.toArray<HTMLElement>('.university-block');
     universityBlocks.forEach((block) => {
       const universityCode = block.dataset.universityCode;
-      const palette = universityCode && universityPalettes[universityCode]
-        ? universityPalettes[universityCode]
-        : { grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))', glow: 'rgba(255, 120, 99, 0.3)' };
+      const palette =
+        universityCode && universityPalettes[universityCode]
+          ? universityPalettes[universityCode]
+          : {
+            grad: 'linear-gradient(120deg, rgba(255, 94, 98, 0.6), rgba(255, 153, 102, 0.6))',
+            glow: 'rgba(255, 120, 99, 0.3)',
+          };
 
       gsap.set(block, {
         background: palette.grad,
@@ -344,7 +317,6 @@ export default function Home() {
       });
     });
 
-    // Tag floating animations
     tags.forEach((tag, index) => {
       const amplitude = gsap.utils.random(3, 8);
       const duration = gsap.utils.random(4, 7);
@@ -359,7 +331,6 @@ export default function Home() {
       });
     });
 
-    // Simple hover scaling using GSAP
     const removeListeners: Array<() => void> = [];
     tags.forEach((tag) => {
       const onEnter = () =>
@@ -379,14 +350,15 @@ export default function Home() {
     };
   }, [universities, universityPalettes]);
 
-  // Debug: Log universities data
   useEffect(() => {
     if (universities.length > 0) {
-      console.log('[DEBUG] Universities loaded:', universities.map(u => ({ name: u.name, code: u.code })));
+      console.log(
+        '[DEBUG] Universities loaded:',
+        universities.map((u) => ({ name: u.name, code: u.code })),
+      );
     }
   }, [universities]);
 
-  // Debug: Add global click listener
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -400,12 +372,10 @@ export default function Home() {
     return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
 
-  // Prevent background scrolling when popup is open
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
     if (isPopupOpen) {
-      // Save current scroll position and lock the body
       const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
@@ -413,7 +383,6 @@ export default function Home() {
       document.body.style.right = '0';
       document.body.style.overflow = 'hidden';
     } else {
-      // Restore body scroll
       const scrollY = document.body.style.top;
       document.body.style.position = '';
       document.body.style.top = '';
@@ -426,7 +395,6 @@ export default function Home() {
     }
 
     return () => {
-      // Clean up in case component unmounts while popup open
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.left = '';
@@ -435,7 +403,6 @@ export default function Home() {
     };
   }, [isPopupOpen]);
 
-  // Show critical loading screen while universities are loading
   if (universitiesLoading) {
     return (
       <CriticalLoadingScreen
@@ -445,7 +412,6 @@ export default function Home() {
     );
   }
 
-  // Show critical error screen if universities failed to load
   if (universitiesError) {
     return (
       <CriticalErrorScreen
@@ -456,7 +422,6 @@ export default function Home() {
     );
   }
 
-  // Don't show main content if no universities loaded
   if (universities.length === 0) {
     return (
       <CriticalErrorScreen
@@ -481,9 +446,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero section with glass container styling */}
       <div className="dashboard-container">
-        {/* Dynamic tag buttons based on loaded universities */}
         <div className="tags">
           {sortedUniversities.map((university) => (
             <div
@@ -515,11 +478,14 @@ export default function Home() {
               onChange={handleIdInputChange}
               onKeyDown={handleInputKeydown}
               className={`w-full bg-black/30 text-white rounded-lg px-4 py-3 placeholder-gray-500 transition-all duration-300 ease-in-out focus:outline-none ${inputError
-                ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
-                : 'focus:ring-2 focus:ring-violet-500/80'
+                  ? 'ring-2 ring-red-500/80 focus:ring-red-500/80'
+                  : 'focus:ring-2 focus:ring-violet-500/80'
                 }`}
             />
-            <div className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out" style={{ opacity: showTooltip ? 1 : 0 }}>
+            <div
+              className="absolute -top-12 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-700 ease-in-out"
+              style={{ opacity: showTooltip ? 1 : 0 }}
+            >
               <span className="whitespace-no wrap px-4 py-2 rounded-lg bg-red-600/95 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
                 {tooltipText || 'Неверный формат ID'}
               </span>
@@ -529,12 +495,32 @@ export default function Home() {
             ref={buttonRef}
             onClick={handleCheckStatus}
             disabled={loadingStatus}
-            className={(loadingStatus ? 'opacity-60 cursor-wait ' : '') + 'inline-flex items-center justify-center px-6 py-2 rounded-md bg-violet-600 hover:bg-violet-700 transition-colors'}
+            className={
+              (loadingStatus ? 'opacity-60 cursor-wait ' : '') +
+              'inline-flex items-center justify-center px-6 py-2 rounded-md bg-violet-600 hover:bg-violet-700 transition-colors'
+            }
           >
             {loadingStatus ? (
-              <svg className="animate-spin h-5 w-5 text-white" style={{ animationDuration: '0.6s' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                style={{ animationDuration: '0.6s' }}
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
               </svg>
             ) : (
               'Проверить'
@@ -543,13 +529,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Results section with glass container styling */}
       <div className="dashboard-container-secondary">
         <h2 className="section-title">Проходные по ОП</h2>
         {renderUniversityBlocks()}
       </div>
 
-      {/* Popup overlay */}
       {isPopupOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto overscroll-contain"
@@ -570,7 +554,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

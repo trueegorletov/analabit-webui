@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, Suspense, useRef, useEffect } from 'react';
 import CustomIcon from './CustomIcon';
