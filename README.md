@@ -6,7 +6,7 @@ This is the Next.js web interface for the missing anal_ytics service for abituri
 
 ## Showcase
 
-![Demo GIF](https://i.imgur.com/ngIR9nI.gif)
+<img src="https://i.imgur.com/ngIR9nI.gif" alt="Demo GIF" width="600"/>
 
 ![Home page](.github/assets/1.png)
 ![Educational program dashboaed](.github/assets/3.png)
